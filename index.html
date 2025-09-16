@@ -126,7 +126,7 @@
           // reset when off screen
           if (col.y * fontSize > innerHeight + 100) {
             col.y = Math.floor(Math.random() * -50);
-            col.speed = 1 + Math.random() * 2.2;
+            col.speed = 0.5 + Math.random() * 1.1;
           }
         }
         requestAnimationFrame(draw);
