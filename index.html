@@ -62,7 +62,7 @@
   <canvas id="matrix" aria-hidden="true"></canvas>
 <nav style="position: relative; z-index: 1; background: rgba(0,0,0,0.8); padding: 10px 0; text-align: center;">
   <a href="/" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Home</a>
-  <a href="/writing.html" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Hypotheses Log</a>
+  <a href="/writing.html" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Hypotheses Page</a>
 </nav>
   <main>
     <div>
@@ -100,7 +100,7 @@
         colCount = Math.ceil(innerWidth / fontSize);
         columns = Array.from({ length: colCount }, () => ({
           y: Math.floor(Math.random() * -50),             // start above the top
-          speed: 1 + Math.random() * 2.2,                 // raindrop speed
+          speed: 1 + Math.random() * 1.2,                 // raindrop speed
           fade: 0.75 + Math.random() * 0.2               // trail fade strength
         }));
       }
