@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hypotheses Log</title>
+  <meta name="description" content="Unique hypotheses entries in a terminal-inspired interface." />
+  <style>
+    /* Core styles for crisp, unique look */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      background: #000; /* Black background */
+      color: #00ff00; /* Green text */
+      font-family: monospace; /* Terminal font */
+      line-height: 1.5;
+      padding: 40px;
+      overflow-y: auto; /* Allow scrolling if content grows */
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      color: #fff; /* White header */
+      font-size: 48px;
+      letter-spacing: 2px;
+      animation: typing 2s steps(20) forwards; /* Unique typing animation */
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid #00ff00; /* Cursor effect */
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    nav {
+      margin-top: 20px;
+      text-align: center;
+    }
+    nav a {
+      color: #fff; /* White links */
+      text-decoration: none;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: 1px solid #00ff00; /* Green border */
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: #00ff00;
+      color: #000;
+    }
+    section.entry {
+      background: rgba(0, 255, 0, 0.05); /* Subtle green overlay */
+      border-left: 4px solid #00ff00;
+      padding: 20px;
+      margin-bottom: 30px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .entry h2 {
+      color: #fff; /* White subheaders */
+      font-size: 24px;
+      margin: 0 0 10px;
+    }
+    .entry .timestamp {
+      color: #808080; /* Gray for timestamps */
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .entry p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hypotheses Log</h1>
+    <nav>
+      <a href="/">Back to Homepage</a>
+    </nav>
+  </header>
+  <main>
+    <!-- Add hypotheses's here as sections. Edit directly in GitHub. -->
+    <section class="entry">
+      <h2>Hypothesis 1: Eye Diversity Throughout The World </h2>
+      <div class="timestamp">Logged: 2025-09-21</div>
+      <p>It's fun to think about where the first humans originated from, on the surface level at least. The deeper you get, the more confusing things can be, and the more thoughts that pop into your head. Now, I'm no scientist, nor do I have a college degree, but the history of the world, and the people especially, really does fascinate me. So last night while looking into the DAI people, along with Taoism and Daoism, I started to think about why Asian people would have different eye formations than that of the majority of the rest of the world. My hypothesis: the environment played a big role in shaping people's features, and that the Epicanthic eye fold is an evolutionary change that helped early humans protect their eyes from specific things in their surroundings, like bright sunlight reflecting off of snow or sand.</p>
+    </section>
+    <section class="entry">
+      <h2>Hypothesis 2: All Languages </h2>
+      <div class="timestamp">Logged: </div>
+      <p></p>
+    </section>
+    <!-- Add more sections as needed -->
+  </main>
+</body>
+</html>
