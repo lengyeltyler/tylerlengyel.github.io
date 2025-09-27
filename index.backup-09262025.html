@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GAME OVER</title>
+  <meta name="description" content="GAME OVER with Matrix rain." />
+  <style>
+    /* Page reset */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden; /* hide scroll from canvas */
+    }
+
+    /* Fullscreen canvas sits behind content */
+    #matrix {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 0;
+    }
+
+    /* Centered content on top */
+    main {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-size: clamp(56px, 14vw, 180px);
+      line-height: 1;
+      text-shadow: 0 2px 10px rgba(0,255,128,0.25);
+    }
+
+    p { margin-top: 24px; }
+    a {
+      font-size: clamp(18px, 4.6vw, 30px);
+      color: #9bffb0;
+      text-decoration: underline;
+    }
+    a:hover, a:focus { text-decoration: none; outline: none; }
+  </style>
+</head>
+<body>
+  <!-- Matrix rain background -->
+  <canvas id="matrix" aria-hidden="true"></canvas>
+<nav style="position: relative; z-index: 1; background: rgba(0,0,0,0.8); padding: 10px 0; text-align: center;">
+  <a href="/" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Home</a>
+  <a href="/writing.html" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Hypotheses Page</a>
+</nav>
+  <main>
+    <div>
+      <h1>GAME OVER</h1>
+      <p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d');
+
+      // Resize canvas to fill screen (and on device-zoom changes)
+      const resize = () => {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.floor(innerWidth * dpr);
+        canvas.height = Math.floor(innerHeight * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale drawing to CSS pixels
+        initColumns();
+      };
+      window.addEventListener('resize', resize, { passive: true });
+
+      // Characters to rain (mix of katakana + ascii)
+      const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      // Columns configuration
+      let columns = [];
+      let fontSize = 16;       // base px
+      let colCount = 0;
+
+      function initColumns() {
+        fontSize = Math.max(12, Math.floor(Math.min(innerWidth, innerHeight) / 50));
+        ctx.font = `${fontSize}px monospace`;
+        colCount = Math.ceil(innerWidth / fontSize);
+        columns = Array.from({ length: colCount }, () => ({
+          y: Math.floor(Math.random() * -50),             // start above the top
+          speed: 1 + Math.random() * 1.2,                 // raindrop speed
+          fade: 0.75 + Math.random() * 0.2               // trail fade strength
+        }));
+      }
+
+      // Draw loop
+      function draw() {
+        // translucent black to create trails
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        ctx.fillRect(0, 0, innerWidth, innerHeight);
+
+        for (let i = 0; i < colCount; i++) {
+          const x = i * fontSize;
+          const c = chars[Math.floor(Math.random() * chars.length)];
+          const col = columns[i];
+
+          // leading symbol (brighter)
+          ctx.fillStyle = '#b8ffcb';
+          ctx.fillText(c, x, col.y * fontSize);
+
+          // trail (darker green)
+          ctx.fillStyle = '#00e676';
+          ctx.fillText(c, x, (col.y - 1) * fontSize);
+
+          col.y += col.speed;
+
+          // reset when off screen
+          if (col.y * fontSize > innerHeight + 100) {
+            col.y = Math.floor(Math.random() * -50);
+            col.speed = 0.1 + Math.random() * 1.1;
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>
