@@ -1,5 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://tylerlengyel.com/</loc></url>
-  <url><loc>https://tylerlengyel.com/writing.html</loc></url>
-</urlset>
+<!doctype html><meta charset="utf-8">
+<title>Not found</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<style>
+  body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;margin:10vh auto;max-width:640px;padding:0 20px;color:CanvasText;background:Canvas}
+  a{color:LinkText}
+</style>
+<h1>404 — Page not found</h1>
+<p><a href="/">Go home</a></p>
