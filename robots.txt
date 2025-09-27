@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tylerlengyel.com/sitemap.xml
