@@ -1,30 +1,21 @@
 <!doctype html>
 <html lang="en">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Short notes and experiments by Tyler Lengyel.">
-<link rel="canonical" href="https://tylerlengyel.com/">
-
-<!-- Social preview (safe even without an image) -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="Tyler Lengyel">
-<meta property="og:description" content="Short notes and experiments.">
-<meta property="og:url" content="https://tylerlengyel.com/">
-<!-- If you later add /og.png, uncomment the next line -->
-<!-- <meta property="og:image" content="https://YOURDOMAIN/og.png"> -->
-<meta name="twitter:card" content="summary">
-
-<!-- Optional tiny CSS to improve readability (remove if you want zero visual change) -->
-<style>
-  html{color-scheme:light dark}
-  body{margin:0;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:Canvas;color:CanvasText}
-  main,.wrap{max-width:720px;margin:0 auto;padding:6vh 20px}
-  a{color:LinkText;text-underline-offset:.15em}
-</style>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GAME OVER</title>
   <meta name="description" content="GAME OVER with Matrix rain." />
+
+  <!-- NEW: canonical + Open Graph/Twitter -->
+  <link rel="canonical" href="https://tylerlengyel.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GAME OVER — Tyler Lengyel">
+  <meta property="og:description" content="GAME OVER with Matrix rain.">
+  <meta property="og:url" content="https://tylerlengyel.com/">
+  <!-- If you add /og.png later, uncomment the next line -->
+  <!-- <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
+  <meta name="twitter:card" content="summary">
+
   <style>
     /* Page reset */
     * { box-sizing: border-box; }
@@ -47,11 +38,26 @@
       z-index: 0;
     }
 
+    /* Top nav */
+    nav {
+      position: relative;
+      z-index: 1;
+      background: rgba(0,0,0,0.8);
+      padding: 10px 0;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 20px;
+      font-size: 20px;
+      color: #9bffb0;
+      text-decoration: none;
+    }
+
     /* Centered content on top */
     main {
       position: relative;
       z-index: 1;
-      height: 100%;
+      height: calc(100% - 56px); /* keep space for nav */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -80,10 +86,12 @@
 <body>
   <!-- Matrix rain background -->
   <canvas id="matrix" aria-hidden="true"></canvas>
-<nav style="position: relative; z-index: 1; background: rgba(0,0,0,0.8); padding: 10px 0; text-align: center;">
-  <a href="/" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Home</a>
-  <a href="/writing.html" style="margin: 0 20px; font-size: 20px; color: #9bffb0; text-decoration: none;">Hypotheses Page</a>
-</nav>
+
+  <nav>
+    <a href="/" style="font-size:20px; color:#9bffb0; text-decoration:none;">Home</a>
+    <a href="/writing.html" style="font-size:20px; color:#9bffb0; text-decoration:none;">Hypotheses Page</a>
+  </nav>
+
   <main>
     <div>
       <h1>GAME OVER</h1>
