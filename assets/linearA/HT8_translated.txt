@@ -1,0 +1,7 @@
+Proto-translations for HT8
+
+oil in small jar ×10   [low]   (raw: Line 1: OLIV+KI 10)
+commodity? in unit? ×3   [low]   (raw: Line 2: PA3 3)
+commodity? in unit? ×1   [low]   (raw: Line 3: SUP+? 1)
+commodity? in amphoraA ×5   [low]   (raw: Line 4: QA-KI 5)
+commodity? in unit? ×2   [low]   (raw: Line 5: KU-RA 2)

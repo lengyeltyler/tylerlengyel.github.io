@@ -1,0 +1,7 @@
+Proto-translations for HT7
+
+commodity? in unit? ×2   [low]   (raw: Line 1: QE-TU-RA 2)
+commodity? in unit? ×1   [low]   (raw: Line 2: KI-RA 1)
+commodity? in unit? ×1   [low]   (raw: Line 3: DA-NA-TU 1)
+commodity? in unit? ×1   [low]   (raw: Line 4: TU-RU-SI 1)
+commodity? in unit? ×2   [low]   (raw: Line 5: TI-RU-SI 2)
