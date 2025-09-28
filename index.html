@@ -4,187 +4,281 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GAME OVER — Tyler Lengyel</title>
-  <meta name="description" content="GAME OVER with Matrix rain. Includes link to Linear A proto-decipherment." />
+  <meta name="description" content="Matrix rain forming a constant Apple outline." />
 
   <!-- Canonical + Social -->
   <link rel="canonical" href="https://tylerlengyel.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="GAME OVER — Tyler Lengyel">
-  <meta property="og:description" content="GAME OVER with Matrix rain. Includes link to Linear A proto-decipherment.">
+  <meta property="og:description" content="Matrix rain forming a constant Apple outline.">
   <meta property="og:url" content="https://tylerlengyel.com/">
   <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#000000">
 
   <style>
-    /* Page reset */
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: #000;
-      color: #fff;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden; /* hide scroll from canvas */
+    :root {
+      --bg: #000;
+      --fg: #a9b1ba; /* subtle gray for UI text */
+      --accent: #00ff9a; /* initial matrix color; JS will rotate every 69 min */
+      --maxw: 1100px;
     }
 
-    /* Fullscreen canvas sits behind content */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Cascadia Mono",
+                   "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace",
+                   "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New",
+                   monospace;
+    }
+
+    /* Simple, quiet header */
+    header {
+      position: fixed;
+      inset: 0 auto auto 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      padding: .85rem 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,.75), rgba(0,0,0,0));
+      z-index: 2;
+      pointer-events: none;
+    }
+    header a {
+      pointer-events: auto;
+      text-decoration: none;
+      color: var(--fg);
+      opacity: .85;
+      border: 1px solid rgba(255,255,255,.08);
+      padding: .4rem .7rem;
+      border-radius: 999px;
+      transition: opacity .15s ease, border-color .15s ease, color .15s ease, background .15s ease;
+      font-size: .9rem;
+      backdrop-filter: blur(4px);
+    }
+    header a:hover {
+      opacity: 1;
+      border-color: rgba(255,255,255,.25);
+      color: #fff;
+      background: rgba(255,255,255,.04);
+    }
+
+    /* Fullscreen canvas behind everything */
     #matrix {
       position: fixed;
       inset: 0;
       width: 100vw;
       height: 100vh;
       display: block;
-      z-index: 0;
-    }
-
-    /* Top nav */
-    nav {
-      position: relative;
       z-index: 1;
-      background: rgba(0,0,0,0.8);
-      padding: 10px 0;
-      text-align: center;
-      border-bottom: 1px solid rgba(155,255,176,0.2);
-    }
-    nav a {
-      display: inline-block;
-      margin: 0 18px;
-      font-size: 20px;
-      color: #9bffb0;
-      text-decoration: none;
-      line-height: 1.3;
-    }
-    nav a:hover { text-decoration: underline; }
-
-    /* Centered content on top */
-    main {
-      position: relative;
-      z-index: 1;
-      height: calc(100% - 56px); /* keep space for nav */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
     }
 
-    h1 {
-      margin: 0;
-      font-weight: 900;
-      letter-spacing: 2px;
-      font-size: clamp(56px, 14vw, 180px);
-      line-height: 1;
-      text-shadow: 0 2px 10px rgba(0,255,128,0.25);
-    }
-
-    p { margin-top: 24px; }
-    a {
-      font-size: clamp(18px, 4.6vw, 30px);
-      color: #9bffb0;
-      text-decoration: underline;
-    }
-    a:hover, a:focus { text-decoration: none; outline: none; }
-
-    /* Small footer note */
+    /* Subtle footer note (no “New” label anymore) */
     footer {
-      position: absolute;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      color: #9bffb0;
-      opacity: .8;
-      font-size: 14px;
+      position: fixed;
+      inset: auto 0 0 0;
+      display: flex;
+      justify-content: center;
+      padding: .75rem;
+      font-size: .8rem;
+      color: rgba(255,255,255,.45);
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
     }
+    footer a { color: rgba(255,255,255,.65); text-decoration: none; pointer-events: auto; }
+    footer a:hover { color: #fff; text-decoration: underline; }
+    /* The old “New” badge is gone; nothing else is shown here. */
   </style>
 </head>
 <body>
-  <!-- Matrix rain background -->
+  <header aria-label="Site navigation">
+    <a href="/" aria-label="Home">Home</a>
+    <a href="/linear-a.html" aria-label="Linear A">Linear A</a>
+    <a href="/writing.html" aria-label="Writing">Writing</a>
+  </header>
+
   <canvas id="matrix" aria-hidden="true"></canvas>
 
-  <nav>
-    <a href="/" aria-label="Home">Home</a>
-    <a href="/writing.html" aria-label="Hypotheses Page">Hypotheses Page</a>
-    <a href="/linearA/" aria-label="Linear A project">Linear&nbsp;A</a>
-  </nav>
-
-  <main>
-    <div>
-      <h1>GAME OVER</h1>
-      <p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
-    </div>
-    <footer>
-      New: <a href="/linearA/">Linear A proto-decipherment</a>
-    </footer>
-  </main>
+  <footer>
+    <span>© Tyler Lengyel</span>
+  </footer>
 
   <script>
-    (() => {
-      const canvas = document.getElementById('matrix');
-      const ctx = canvas.getContext('2d');
+    // ===========================
+    // Matrix Rain with Apple Outline Mask
+    // - Characters fall continuously
+    // - They are *clipped* to a stroked Apple-shaped outline centered on screen
+    // - Color rotates every 69 minutes
+    // ===========================
 
-      // Resize canvas to fill screen (and on device-zoom changes)
-      const resize = () => {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        canvas.width = Math.floor(innerWidth * dpr);
-        canvas.height = Math.floor(innerHeight * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale drawing to CSS pixels
-        initColumns();
-      };
-      window.addEventListener('resize', resize, { passive: true });
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
 
-      // Characters to rain (mix of katakana + ascii)
-      const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    // Offscreen buffers:
+    const rainCanvas = document.createElement('canvas');
+    const rainCtx = rainCanvas.getContext('2d');
+    const maskCanvas = document.createElement('canvas');
+    const maskCtx = maskCanvas.getContext('2d');
 
-      // Columns configuration
-      let columns = [];
-      let fontSize = 16;       // base px
-      let colCount = 0;
+    let W = 0, H = 0, DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1)); // cap DPR at 2 for perf
+    let fontSize = 18;           // base, will be scaled by DPR
+    let columns = 0;
+    let drops = [];
 
-      function initColumns() {
-        fontSize = Math.max(12, Math.floor(Math.min(innerWidth, innerHeight) / 50));
-        ctx.font = `${fontSize}px monospace`;
-        colCount = Math.ceil(innerWidth / fontSize);
-        columns = Array.from({ length: colCount }, () => ({
-          y: Math.floor(Math.random() * -50),             // start above the top
-          speed: 1 + Math.random() * 1.2,                 // raindrop speed
-          fade: 0.75 + Math.random() * 0.2               // trail fade strength
-        }));
-      }
+    // Character set: full-width katakana + digits + punctuation vibe
+    const charset = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789:;=+*<>[]{}';
+    const CHARS = charset.split('');
 
-      // Draw loop
-      function draw() {
-        // translucent black to create trails
-        ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fillRect(0, 0, innerWidth, innerHeight);
+    // Color management (rotate every 69 minutes)
+    const SIXTY_NINE_MIN = 69 * 60 * 1000;
+    let hue = 140; // start near classic "matrix" green
+    let matrixColor = `hsl(${hue} 100% 62%)`;
+    let headColor = `hsl(${hue} 100% 85%)`;
 
-        for (let i = 0; i < colCount; i++) {
-          const x = i * fontSize;
-          const c = chars[Math.floor(Math.random() * chars.length)];
-          const col = columns[i];
+    function rotateColor() {
+      // Pick a new hue at least 30deg away for visible change
+      const newHue = (hue + 30 + Math.floor(Math.random() * 300)) % 360;
+      hue = newHue;
+      matrixColor = `hsl(${hue} 100% 62%)`;
+      headColor   = `hsl(${hue} 100% 85%)`;
+      // Also expose as CSS var if you want to style links etc.
+      document.documentElement.style.setProperty('--accent', matrixColor);
+    }
+    setInterval(rotateColor, SIXTY_NINE_MIN);
 
-          // leading symbol (brighter)
-          ctx.fillStyle = '#b8ffcb';
-          ctx.fillText(c, x, col.y * fontSize);
+    // On load, set CSS var
+    document.documentElement.style.setProperty('--accent', matrixColor);
 
-          // trail (darker green)
-          ctx.fillStyle = '#00e676';
-          ctx.fillText(c, x, (col.y - 1) * fontSize);
+    // Resize + setup
+    function fit() {
+      const { innerWidth: ww, innerHeight: hh } = window;
+      W = Math.floor(ww * DPR);
+      H = Math.floor(hh * DPR);
 
-          col.y += col.speed;
+      [canvas, rainCanvas, maskCanvas].forEach(c => {
+        c.width  = W;
+        c.height = H;
+        c.style.width  = ww + 'px';
+        c.style.height = hh + 'px';
+      });
 
-          // reset when off screen
-          if (col.y * fontSize > innerHeight + 100) {
-            col.y = Math.floor(Math.random() * -50);
-            col.speed = 0.1 + Math.random() * 1.1;
-          }
+      // Font size scales mildly with viewport; tune to taste.
+      const target = Math.max(14, Math.min(24, Math.round(ww / 64)));
+      fontSize = Math.round(target * DPR);
+
+      columns = Math.max(1, Math.floor(W / fontSize));
+      drops = new Array(columns).fill(0).map(() => Math.floor(Math.random() * -40)); // start some offscreen
+
+      // Redraw mask after any resize
+      drawAppleMask();
+      // Clear rain buffers
+      rainCtx.clearRect(0,0,W,H);
+      ctx.clearRect(0,0,W,H);
+    }
+    window.addEventListener('resize', fit, { passive: true });
+    fit();
+
+    // Apple outline path (canvas commands). Not the Apple Inc. trademark,
+    // but a clean symmetric apple silhouette with a leaf.
+    // If you want a *specific* logo path, replace this function to draw that path.
+    function drawApplePath(context, cx, cy, s) {
+      context.beginPath();
+      // Main apple body (symmetric curves)
+      context.moveTo(cx, cy - 120*s);
+      context.bezierCurveTo(cx - 60*s, cy - 160*s, cx - 150*s, cy - 60*s, cx - 75*s, cy - 10*s);
+      context.bezierCurveTo(cx - 120*s, cy + 80*s,  cx - 30*s,  cy + 140*s, cx,       cy + 145*s);
+      context.bezierCurveTo(cx + 30*s,  cy + 140*s, cx + 120*s, cy + 80*s,  cx + 75*s, cy - 10*s);
+      context.bezierCurveTo(cx + 150*s, cy - 60*s,  cx + 60*s,  cy - 160*s, cx,        cy - 120*s);
+      context.closePath();
+
+      // Leaf (small rotated droplet at top-right)
+      const leafCx = cx + 55*s, leafCy = cy - 155*s;
+      context.moveTo(leafCx, leafCy);
+      context.bezierCurveTo(leafCx + 45*s, leafCy - 20*s, leafCx + 45*s, leafCy + 35*s, leafCx, leafCy + 25*s);
+      context.bezierCurveTo(leafCx - 35*s, leafCy + 15*s, leafCx - 30*s, leafCy - 20*s, leafCx, leafCy);
+      // (Leave leaf open; stroke will render it as part of outline)
+    }
+
+    function drawAppleMask() {
+      maskCtx.clearRect(0,0,W,H);
+      // Build stroked outline mask
+      maskCtx.save();
+      maskCtx.lineCap = 'round';
+      maskCtx.lineJoin = 'round';
+      maskCtx.strokeStyle = '#fff';   // opaque where we want to KEEP rain
+      const APPLE_SCALE = Math.min(W, H) / 900; // scale ~ fits in viewport; tweak to tighten/loosen
+      const cx = W/2, cy = H/2;
+      const OUTLINE = Math.max(6, Math.round(APPLE_SCALE * 36)); // outline thickness
+      maskCtx.lineWidth = OUTLINE;
+
+      drawApplePath(maskCtx, cx, cy, APPLE_SCALE);
+      maskCtx.stroke();
+      maskCtx.restore();
+    }
+
+    // Matrix drawing
+    function tick() {
+      // 1) Fade old trails on rain buffer
+      rainCtx.fillStyle = 'rgba(0,0,0,0.08)'; // trail persistence
+      rainCtx.fillRect(0, 0, W, H);
+
+      rainCtx.textBaseline = 'top';
+      rainCtx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace`;
+
+      for (let i = 0; i < columns; i++) {
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        // Head brighter, trail body slightly dimmer
+        rainCtx.fillStyle = Math.random() < 0.18 ? headColor : matrixColor;
+        const char = CHARS[(Math.random() * CHARS.length) | 0];
+        rainCtx.fillText(char, x, y);
+
+        // Move drop down; reset when off-screen
+        if (y > H && Math.random() < 0.025) {
+          drops[i] = -(Math.random() * 40) | 0;
+        } else {
+          drops[i]++;
         }
-        requestAnimationFrame(draw);
       }
 
-      resize();
-      requestAnimationFrame(draw);
-    })();
+      // 2) Composite rain through mask into main canvas
+      ctx.clearRect(0,0,W,H);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(rainCanvas, 0, 0);
+
+      // Keep ONLY where mask is opaque (the stroked outline region)
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(maskCanvas, 0, 0);
+
+      // Reset comp mode for next frame
+      ctx.globalCompositeOperation = 'source-over';
+
+      requestAnimationFrame(tick);
+    }
+
+    // Pause when tab hidden (battery-friendly)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // no-op; RAF naturally pauses throttled in most browsers
+      } else {
+        // Refit (in case of DPI/size change)
+        fit();
+      }
+    });
+
+    // Optional: press "C" to manually cycle color (handy for quick testing)
+    window.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'c') rotateColor();
+    });
+
+    // Go.
+    requestAnimationFrame(tick);
   </script>
 </body>
 </html>
