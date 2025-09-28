@@ -4,90 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hypotheses — Tyler Lengyel</title>
-  <meta name="description" content="Unique hypotheses entries in a fast, minimal, terminal-inspired interface." />
+  <meta name="description" content="Unique hypotheses entries in a fast, minimal interface." />
   <link rel="canonical" href="https://tylerlengyel.com/writing.html" />
   <meta name="theme-color" content="#000000" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Hypotheses — Tyler Lengyel" />
-  <meta property="og:description" content="Unique hypotheses entries in a fast, minimal, terminal-inspired interface." />
+  <meta property="og:description" content="Unique hypotheses entries in a fast, minimal interface." />
   <meta property="og:url" content="https://tylerlengyel.com/writing.html" />
   <meta name="twitter:card" content="summary" />
 
   <style>
-    /* Base */
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: #000; color: #e5e5e5; }
-    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-
-    /* Layout */
-    header { padding: 16px 20px; position: sticky; top: 0; z-index: 10;
-             background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-             border-bottom: 1px solid rgba(255,255,255,0.06); }
-    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
-
-    /* Nav */
-    nav a {
-      color: #bfbfbf; text-decoration: none; margin-right: 16px; padding: 6px 8px; border-radius: 8px;
-      transition: color .15s ease, background-color .15s ease;
-    }
-    nav a:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
-    /* Page head */
-    h1 { margin: 8px 0 6px; font-size: clamp(28px, 4.6vw, 42px); letter-spacing: .02em; }
-    .sub { margin: 0 0 18px; color: #bfbfbf; }
-
-    /* Controls */
-    .controls { display: grid; gap: 10px; grid-template-columns: 1fr auto; align-items: center; margin-bottom: 18px; }
-    .search {
-      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04); color: #e5e5e5; outline: none;
-    }
-    .search::placeholder { color: #9aa3a3; }
-    .sort {
-      padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04); color: #e5e5e5; cursor: pointer;
-    }
-
-    /* List */
-    .count { margin: 6px 0 12px; color: #8bdcb3; font-size: 14px; }
-    .grid { display: grid; gap: 14px; }
-    article {
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 14px 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
-    }
-    article h2 {
-      margin: 0 0 6px;
-      font-size: clamp(18px, 3.6vw, 22px);
-      line-height: 1.25;
-      color: #f2f2f2;
-    }
-    .meta {
-      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-      color: #bfbfbf; font-size: 13px; margin-bottom: 8px;
-    }
-    .meta time { color: #c9c9c9; }
-    .tags { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-    .tag {
-      font-size: 12px; color: #0b0b0b; background: #00ff88;
-      padding: 3px 8px; border-radius: 999px; font-weight: 700;
-    }
-    .summary { margin: 8px 0 0; color: #d9d9d9; line-height: 1.55; }
-
-    /* Links */
-    a { color: #8bdcb3; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      header { -webkit-backdrop-filter: none; backdrop-filter: none; }
-    }
-
-    /* Small screens */
-    @media (max-width: 560px) {
-      .controls { grid-template-columns: 1fr; }
-    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:#000;color:#e5e5e5}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
+    header{padding:16px 20px;position:sticky;top:0;z-index:10;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.06)}
+    main{padding:20px;max-width:1100px;margin:0 auto}
+    nav a{color:#bfbfbf;text-decoration:none;margin-right:16px;padding:6px 8px;border-radius:8px;transition:color .15s,background-color .15s}
+    nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
+    h1{margin:8px 0 6px;font-size:clamp(28px,4.6vw,42px);letter-spacing:.02em}
+    .sub{margin:0 0 18px;color:#bfbfbf}
+    .controls{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:center;margin-bottom:18px}
+    .search,.sort{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#e5e5e5}
+    .sort{cursor:pointer}
+    .count{margin:6px 0 12px;color:#8bdcb3;font-size:14px}
+    .grid{display:grid;gap:14px}
+    article{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.02))}
+    article h2{margin:0 0 6px;font-size:clamp(18px,3.6vw,22px);line-height:1.25;color:#f2f2f2}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:#bfbfbf;font-size:13px;margin-bottom:8px}
+    .meta time{color:#c9c9c9}
+    .tags{display:inline-flex;gap:6px;flex-wrap:wrap}
+    .tag{font-size:12px;color:#0b0b0b;background:#00ff88;padding:3px 8px;border-radius:999px;font-weight:700}
+    .summary{margin:8px 0 0;color:#d9d9d9;line-height:1.55}
+    a{color:#8bdcb3;text-decoration:none}
+    a:hover{text-decoration:underline}
+    @media (prefers-reduced-motion:reduce){header{-webkit-backdrop-filter:none;backdrop-filter:none}}
+    @media (max-width:560px){.controls{grid-template-columns:1fr}}
+    .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
   </style>
 </head>
 <body>
@@ -106,19 +58,13 @@
     <div class="controls" role="region" aria-label="Filters">
       <label class="visually-hidden" for="q">Search</label>
       <input id="q" class="search" type="search" placeholder="Filter by keyword (title, tags, summary)…" autocomplete="off" />
-      <button id="sortBtn" class="sort" type="button" aria-pressed="true" aria-label="Toggle sort order">
-        Sort: New → Old
-      </button>
+      <button id="sortBtn" class="sort" type="button" aria-pressed="true" aria-label="Toggle sort order">Sort: New → Old</button>
     </div>
 
     <div id="count" class="count" aria-live="polite"></div>
 
-    <!--
-      Prefer keeping entries in HTML for crawlability.
-      Duplicate <article> blocks to add more entries. Data attributes help client-side filtering/sorting.
-    -->
     <section id="entries" class="grid">
-      <!-- Example entry (from your live site date) -->
+      <!-- Your one existing entry -->
       <article data-tags="biology pattern vision" data-title="Eye Diversity in Captured Footage" data-date="2025-09-21">
         <h2>Eye Diversity in Captured Footage</h2>
         <div class="meta">
@@ -134,116 +80,29 @@
           Early takeaway: lighting and sensor bloom can mimic structural differences; need controlled comparisons.
         </p>
       </article>
-
-      <!-- Placeholder entry — replace text or duplicate to add more -->
-      <article data-tags="systems speculation energy" data-title="Tower Networks & Beamed Power" data-date="2025-09-26">
-        <h2>Tower Networks &amp; Beamed Power</h2>
-        <div class="meta">
-          <time datetime="2025-09-26">Sep 26, 2025</time>
-          <span class="tags">
-            <span class="tag">systems</span>
-            <span class="tag">energy</span>
-            <span class="tag">speculation</span>
-          </span>
-        </div>
-        <p class="summary">
-          Brainstorm on phased arrays and earth-to-earth power beaming. Practical limits: atmospheric loss, safety envelopes,
-          and synchronization. Hypothesis: short-range, high-precision applications might be plausible with strict gating.
-        </p>
-      </article>
-
-      <!-- Another placeholder -->
-      <article data-tags="zk svg on-chain" data-title="On-chain SVG Size vs Complexity" data-date="2025-09-15">
-        <h2>On-chain SVG Size vs Complexity</h2>
-        <div class="meta">
-          <time datetime="2025-09-15">Sep 15, 2025</time>
-          <span class="tags">
-            <span class="tag">on-chain</span>
-            <span class="tag">SVG</span>
-            <span class="tag">zk</span>
-          </span>
-        </div>
-        <p class="summary">
-          Tradeoffs between visual richness and byte constraints. Strategy: defs + reuse, symmetry, pattern fills,
-          and L-system compression. Target: perceptual complexity ↑ while output size ↓.
-        </p>
-      </article>
     </section>
   </main>
 
   <script>
-    // Utilities
-    const $ = (s, r = document) => r.querySelector(s);
-    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-
-    const entries = $('#entries');
-    const search = $('#q');
-    const sortBtn = $('#sortBtn');
-    const countEl = $('#count');
-
-    // Read articles into a data model (stable even if you edit HTML)
-    function parseArticles() {
-      return $$('#entries article').map((el) => ({
-        el,
-        title: (el.dataset.title || el.querySelector('h2')?.textContent || '').toLowerCase(),
-        tags: (el.dataset.tags || '').toLowerCase(),
-        date: el.dataset.date || el.querySelector('time')?.getAttribute('datetime') || '1970-01-01'
-      }));
-    }
-
-    let model = parseArticles();
-    let sortNewestFirst = true;
-
-    function applyFilterAndSort() {
-      const q = (search.value || '').trim().toLowerCase();
-
-      // Filter
-      let visible = 0;
-      model.forEach(({ el, title, tags }) => {
-        const text = title + ' ' + tags + ' ' + (el.querySelector('.summary')?.textContent || '').toLowerCase();
-        const show = !q || text.includes(q);
-        el.style.display = show ? '' : 'none';
-        if (show) visible++;
+    const $ = (s, r=document)=>r.querySelector(s);
+    const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
+    const entries=$('#entries'), search=$('#q'), sortBtn=$('#sortBtn'), countEl=$('#count');
+    function parse(){return $$('#entries article').map(el=>({el,title:(el.dataset.title||el.querySelector('h2')?.textContent||'').toLowerCase(),tags:(el.dataset.tags||'').toLowerCase(),date:el.dataset.date||el.querySelector('time')?.getAttribute('datetime')||'1970-01-01'}))}
+    let model=parse(), newestFirst=true;
+    function apply(){
+      const q=(search.value||'').trim().toLowerCase();
+      let visible=0;
+      model.forEach(({el,title,tags})=>{
+        const text=title+' '+tags+' '+(el.querySelector('.summary')?.textContent||'').toLowerCase();
+        const show=!q||text.includes(q); el.style.display=show?'':'none'; if(show) visible++;
       });
-
-      // Sort (DOM order)
-      const visibleEls = model
-        .filter(({ el }) => el.style.display !== 'none')
-        .sort((a, b) => {
-          const da = new Date(a.date).getTime();
-          const db = new Date(b.date).getTime();
-          return sortNewestFirst ? db - da : da - db;
-        })
-        .map(a => a.el);
-
-      visibleEls.forEach(el => entries.appendChild(el));
-
-      // Count
-      const total = model.length;
-      countEl.textContent = `${visible} of ${total} entr${total === 1 ? 'y' : 'ies'} shown`;
+      const ordered=model.filter(m=>m.el.style.display!=='none').sort((a,b)=> (newestFirst?1:-1)*(new Date(b.date)-new Date(a.date))).map(a=>a.el);
+      ordered.forEach(el=>entries.appendChild(el));
+      const total=model.length; countEl.textContent=`${visible} of ${total} entr${total===1?'y':'ies'} shown`;
     }
-
-    // Events
-    search.addEventListener('input', applyFilterAndSort);
-    sortBtn.addEventListener('click', () => {
-      sortNewestFirst = !sortNewestFirst;
-      sortBtn.setAttribute('aria-pressed', String(sortNewestFirst));
-      sortBtn.textContent = sortNewestFirst ? 'Sort: New → Old' : 'Sort: Old → New';
-      applyFilterAndSort();
-    });
-
-    // Init
-    applyFilterAndSort();
+    search.addEventListener('input', apply);
+    sortBtn.addEventListener('click', ()=>{newestFirst=!newestFirst;sortBtn.setAttribute('aria-pressed', String(newestFirst));sortBtn.textContent=newestFirst?'Sort: New → Old':'Sort: Old → New';apply();});
+    apply();
   </script>
-
-  <!-- Hidden helper for screen readers -->
-  <style>
-    .visually-hidden {
-      position: absolute !important;
-      height: 1px; width: 1px;
-      overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
-      white-space: nowrap; border: 0; padding: 0; margin: -1px;
-    }
-  </style>
 </body>
 </html>
