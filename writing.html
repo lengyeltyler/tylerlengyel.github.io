@@ -3,105 +3,247 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hypotheses Page</title>
-  <meta name="description" content="Unique hypotheses entries in a terminal-inspired interface." />
-
-  <!-- Canonical + Social -->
-  <link rel="canonical" href="https://tylerlengyel.com/writing.html">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Hypotheses Page — Tyler Lengyel">
-  <meta property="og:description" content="Unique hypotheses entries in a terminal-inspired interface.">
-  <meta property="og:url" content="https://tylerlengyel.com/writing.html">
-  <!-- If you later add /og.png, you can also add: <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
-  <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#000000">
+  <title>Hypotheses — Tyler Lengyel</title>
+  <meta name="description" content="Unique hypotheses entries in a fast, minimal, terminal-inspired interface." />
+  <link rel="canonical" href="https://tylerlengyel.com/writing.html" />
+  <meta name="theme-color" content="#000000" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Hypotheses — Tyler Lengyel" />
+  <meta property="og:description" content="Unique hypotheses entries in a fast, minimal, terminal-inspired interface." />
+  <meta property="og:url" content="https://tylerlengyel.com/writing.html" />
+  <meta name="twitter:card" content="summary" />
 
   <style>
-    /* Core styles for crisp, unique look */
+    /* Base */
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body {
-      background: #000; /* Black background */
-      color: #00ff00; /* Green text */
-      font-family: monospace; /* Terminal font */
-      line-height: 1.5;
-      padding: 40px;
-      overflow-y: auto; /* Allow scrolling if content grows */
-    }
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    h1 {
-      color: #fff; /* White header */
-      font-size: 48px;
-      letter-spacing: 2px;
-      animation: typing 2s steps(20) forwards; /* Unique typing animation */
-      white-space: nowrap;
-      overflow: hidden;
-      border-right: 2px solid #00ff00; /* Cursor effect */
-    }
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 100%; }
-    }
-    nav {
-      margin-top: 20px;
-      text-align: center;
-    }
+    html, body { height: 100%; margin: 0; background: #000; color: #e5e5e5; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+
+    /* Layout */
+    header { padding: 16px 20px; position: sticky; top: 0; z-index: 10;
+             background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+             border-bottom: 1px solid rgba(255,255,255,0.06); }
+    main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+
+    /* Nav */
     nav a {
-      color: #fff; /* White links */
-      text-decoration: none;
-      font-size: 18px;
-      padding: 10px 20px;
-      border: 1px solid #00ff00; /* Green border */
-      transition: background 0.3s;
+      color: #bfbfbf; text-decoration: none; margin-right: 16px; padding: 6px 8px; border-radius: 8px;
+      transition: color .15s ease, background-color .15s ease;
     }
-    nav a:hover {
-      background: #00ff00;
-      color: #000;
+    nav a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+    /* Page head */
+    h1 { margin: 8px 0 6px; font-size: clamp(28px, 4.6vw, 42px); letter-spacing: .02em; }
+    .sub { margin: 0 0 18px; color: #bfbfbf; }
+
+    /* Controls */
+    .controls { display: grid; gap: 10px; grid-template-columns: 1fr auto; align-items: center; margin-bottom: 18px; }
+    .search {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04); color: #e5e5e5; outline: none;
     }
-    section.entry {
-      background: rgba(0, 255, 0, 0.05); /* Subtle green overlay */
-      border-left: 4px solid #00ff00;
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto 30px; /* keep bottom spacing */
+    .search::placeholder { color: #9aa3a3; }
+    .sort {
+      padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04); color: #e5e5e5; cursor: pointer;
     }
-    .entry h2 {
-      color: #fff; /* White subheaders */
-      font-size: 24px;
-      margin: 0 0 10px;
+
+    /* List */
+    .count { margin: 6px 0 12px; color: #8bdcb3; font-size: 14px; }
+    .grid { display: grid; gap: 14px; }
+    article {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
     }
-    .entry .timestamp {
-      color: #808080; /* Gray for timestamps */
-      font-size: 14px;
-      margin-bottom: 10px;
+    article h2 {
+      margin: 0 0 6px;
+      font-size: clamp(18px, 3.6vw, 22px);
+      line-height: 1.25;
+      color: #f2f2f2;
     }
-    .entry p { margin: 0; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      color: #bfbfbf; font-size: 13px; margin-bottom: 8px;
+    }
+    .meta time { color: #c9c9c9; }
+    .tags { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+    .tag {
+      font-size: 12px; color: #0b0b0b; background: #00ff88;
+      padding: 3px 8px; border-radius: 999px; font-weight: 700;
+    }
+    .summary { margin: 8px 0 0; color: #d9d9d9; line-height: 1.55; }
+
+    /* Links */
+    a { color: #8bdcb3; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      header { -webkit-backdrop-filter: none; backdrop-filter: none; }
+    }
+
+    /* Small screens */
+    @media (max-width: 560px) {
+      .controls { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Hypotheses Log</h1>
-    <nav>
-      <a href="/">Back to Homepage</a>
+    <nav aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/writing.html" aria-current="page">Hypotheses Page</a>
+      <a href="/linearA/">Linear A</a>
     </nav>
   </header>
 
   <main>
-    <!-- Your entries (unchanged, just formatted correctly) -->
-    <section class="entry">
-      <h2>Hypothesis 1: Eye Diversity Throughout The World</h2>
-      <div class="timestamp">Logged: 2025-09-21</div>
-      <p>It's fun to think about where the first humans originated from, on the surface level at least. The deeper you get, the more confusing things can be, and the more thoughts that pop into your head. Now, I'm no scientist, nor do I have a college degree, but the history of the world, and the people especially, really does fascinate me. So last night while looking into the DAI people, along with Taoism and Daoism, I started to think about why Asian people would have different eye formations than that of the majority of the rest of the world. My hypothesis: the environment played a big role in shaping people's features, and that the Epicanthic eye fold is an evolutionary change that helped early humans protect their eyes from specific things in their surroundings, like bright sunlight reflecting off of snow or sand.</p>
-    </section>
+    <h1>Hypotheses</h1>
+    <p class="sub">A living notebook of ideas, observations, and work-in-progress notes.</p>
 
-    <section class="entry">
-      <h2>Hypothesis 2: Allianz Are Real</h2>
-      <div class="timestamp">Logged: 2025-09-21</div>
-      <p></p>
+    <div class="controls" role="region" aria-label="Filters">
+      <label class="visually-hidden" for="q">Search</label>
+      <input id="q" class="search" type="search" placeholder="Filter by keyword (title, tags, summary)…" autocomplete="off" />
+      <button id="sortBtn" class="sort" type="button" aria-pressed="true" aria-label="Toggle sort order">
+        Sort: New → Old
+      </button>
+    </div>
+
+    <div id="count" class="count" aria-live="polite"></div>
+
+    <!--
+      Prefer keeping entries in HTML for crawlability.
+      Duplicate <article> blocks to add more entries. Data attributes help client-side filtering/sorting.
+    -->
+    <section id="entries" class="grid">
+      <!-- Example entry (from your live site date) -->
+      <article data-tags="biology pattern vision" data-title="Eye Diversity in Captured Footage" data-date="2025-09-21">
+        <h2>Eye Diversity in Captured Footage</h2>
+        <div class="meta">
+          <time datetime="2025-09-21">Sep 21, 2025</time>
+          <span class="tags">
+            <span class="tag">biology</span>
+            <span class="tag">pattern</span>
+            <span class="tag">vision</span>
+          </span>
+        </div>
+        <p class="summary">
+          Notes on iris pattern variability and how different capture conditions affect apparent “eye morphology.”
+          Early takeaway: lighting and sensor bloom can mimic structural differences; need controlled comparisons.
+        </p>
+      </article>
+
+      <!-- Placeholder entry — replace text or duplicate to add more -->
+      <article data-tags="systems speculation energy" data-title="Tower Networks & Beamed Power" data-date="2025-09-26">
+        <h2>Tower Networks &amp; Beamed Power</h2>
+        <div class="meta">
+          <time datetime="2025-09-26">Sep 26, 2025</time>
+          <span class="tags">
+            <span class="tag">systems</span>
+            <span class="tag">energy</span>
+            <span class="tag">speculation</span>
+          </span>
+        </div>
+        <p class="summary">
+          Brainstorm on phased arrays and earth-to-earth power beaming. Practical limits: atmospheric loss, safety envelopes,
+          and synchronization. Hypothesis: short-range, high-precision applications might be plausible with strict gating.
+        </p>
+      </article>
+
+      <!-- Another placeholder -->
+      <article data-tags="zk svg on-chain" data-title="On-chain SVG Size vs Complexity" data-date="2025-09-15">
+        <h2>On-chain SVG Size vs Complexity</h2>
+        <div class="meta">
+          <time datetime="2025-09-15">Sep 15, 2025</time>
+          <span class="tags">
+            <span class="tag">on-chain</span>
+            <span class="tag">SVG</span>
+            <span class="tag">zk</span>
+          </span>
+        </div>
+        <p class="summary">
+          Tradeoffs between visual richness and byte constraints. Strategy: defs + reuse, symmetry, pattern fills,
+          and L-system compression. Target: perceptual complexity ↑ while output size ↓.
+        </p>
+      </article>
     </section>
   </main>
+
+  <script>
+    // Utilities
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+    const entries = $('#entries');
+    const search = $('#q');
+    const sortBtn = $('#sortBtn');
+    const countEl = $('#count');
+
+    // Read articles into a data model (stable even if you edit HTML)
+    function parseArticles() {
+      return $$('#entries article').map((el) => ({
+        el,
+        title: (el.dataset.title || el.querySelector('h2')?.textContent || '').toLowerCase(),
+        tags: (el.dataset.tags || '').toLowerCase(),
+        date: el.dataset.date || el.querySelector('time')?.getAttribute('datetime') || '1970-01-01'
+      }));
+    }
+
+    let model = parseArticles();
+    let sortNewestFirst = true;
+
+    function applyFilterAndSort() {
+      const q = (search.value || '').trim().toLowerCase();
+
+      // Filter
+      let visible = 0;
+      model.forEach(({ el, title, tags }) => {
+        const text = title + ' ' + tags + ' ' + (el.querySelector('.summary')?.textContent || '').toLowerCase();
+        const show = !q || text.includes(q);
+        el.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      // Sort (DOM order)
+      const visibleEls = model
+        .filter(({ el }) => el.style.display !== 'none')
+        .sort((a, b) => {
+          const da = new Date(a.date).getTime();
+          const db = new Date(b.date).getTime();
+          return sortNewestFirst ? db - da : da - db;
+        })
+        .map(a => a.el);
+
+      visibleEls.forEach(el => entries.appendChild(el));
+
+      // Count
+      const total = model.length;
+      countEl.textContent = `${visible} of ${total} entr${total === 1 ? 'y' : 'ies'} shown`;
+    }
+
+    // Events
+    search.addEventListener('input', applyFilterAndSort);
+    sortBtn.addEventListener('click', () => {
+      sortNewestFirst = !sortNewestFirst;
+      sortBtn.setAttribute('aria-pressed', String(sortNewestFirst));
+      sortBtn.textContent = sortNewestFirst ? 'Sort: New → Old' : 'Sort: Old → New';
+      applyFilterAndSort();
+    });
+
+    // Init
+    applyFilterAndSort();
+  </script>
+
+  <!-- Hidden helper for screen readers -->
+  <style>
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap; border: 0; padding: 0; margin: -1px;
+    }
+  </style>
 </body>
 </html>
