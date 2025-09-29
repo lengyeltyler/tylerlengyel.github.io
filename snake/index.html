@@ -5,36 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Snake</title>
   <meta name="description" content="Retro Snake — arrow keys or WASD.">
-  <!-- Help fight caching while you iterate -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
     :root {
-      --bg: #0a0f0a;          /* near-black */
-      --grid: #123312;        /* dim grid lines */
-      --snake: #6cff6c;       /* neon green */
+      --bg: #0a0f0a;
+      --grid: #123312;
+      --snake: #6cff6c;
       --snakeHead: #b3ffb3;
       --food: #a9ff3f;
-      --ui: #d2ffd2;          /* text */
+      --ui: #d2ffd2;
       --accent: #4dff4d;
-      --cell: 24;             /* px per cell (visual) */
-      --size: 20;             /* grid width/height in cells (20x20 like classic) */
+      --cell: 24;   /* px per cell (visual) */
+      --size: 20;   /* grid width/height in cells (will change per level) */
     }
     * { box-sizing: border-box; }
-    html, body {
-      height: 100%;
+    html, body { height: 100%; }
+    body {
       margin: 0;
       background: radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
       color: var(--ui);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-    .wrap {
-      min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
+    .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
     .card {
       width: min(94vw, calc(var(--size) * var(--cell) * 1px + 32px));
       border: 1px solid #1c2a1c;
@@ -44,12 +38,9 @@
       box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 40px rgba(76,255,76,0.06);
       backdrop-filter: blur(4px);
     }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px; gap: 10px; flex-wrap: wrap;
-    }
-    .topbar .title { font-weight: 700; letter-spacing: 0.5px; }
-    .stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
+    .title { font-weight: 700; letter-spacing: 0.5px; }
+    .stats { display: flex; gap: 12px; flex-wrap: wrap; }
     .pill {
       border: 1px solid #1e371e; border-radius: 999px; padding: 6px 10px; font-size: 14px;
       color: var(--accent); background: rgba(76,255,76,0.06);
@@ -79,12 +70,21 @@
     }
     .btn:active { transform: translateY(1px) scale(.99); background: rgba(76,255,76,0.12); }
     .grid-spacer { visibility: hidden; }
-    .help {
-      margin-top: 10px; font-size: 13px; opacity: .8; line-height: 1.4;
-    }
+    .help { margin-top: 10px; font-size: 13px; opacity: .8; line-height: 1.4; }
     .linkbar { margin-top: 8px; font-size: 13px; opacity: .75; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    /* Scoreboard */
+    .board {
+      margin-top: 14px;
+      border-top: 1px solid #1c2a1c;
+      padding-top: 12px;
+    }
+    .board h3 { margin: 0 0 8px 0; font-size: 14px; letter-spacing: .4px; opacity: .9; }
+    .scores { display: grid; grid-template-columns: 1.5fr .8fr .8fr .9fr; gap: 6px 10px; font-size: 13px; }
+    .scores div { padding: 6px 8px; background: rgba(76,255,76,0.04); border: 1px solid #1e371e; border-radius: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scores .hdr { font-weight: 700; background: rgba(76,255,76,0.08); }
   </style>
 </head>
 <body>
@@ -95,13 +95,15 @@
         <div class="stats">
           <div class="pill">Score: <span id="score">0</span></div>
           <div class="pill">High: <span id="high">0</span></div>
+          <div class="pill">Level: <span id="level">1</span>/69</div>
           <div class="pill">Speed: <span id="speedLabel">Normal</span></div>
           <div class="pill" id="stateLabel">Playing</div>
         </div>
       </div>
+
       <canvas id="board" width="480" height="480" aria-label="Snake game area" role="img"></canvas>
 
-      <!-- Mobile-friendly controls -->
+      <!-- Touch controls -->
       <div class="controls" aria-hidden="false">
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="up">▲ Up</button>
@@ -115,46 +117,148 @@
       </div>
 
       <div class="help">
-        Controls: Arrow Keys / WASD. Space or P = Pause/Resume. R = Restart.  
-        Don’t hit the walls or your own tail (classic rules). No Nokia branding used.
+        Controls: Arrow Keys / WASD. Space or P = Pause/Resume. R = Restart. + / – = Speed.
+        <br>Now with wrap-around edges, 69 levels (the grid grows), and a Top-10 scoreboard.
       </div>
+
       <div class="linkbar">
         <a href="/" rel="home">← Back to Home</a>
+      </div>
+
+      <div class="board">
+        <h3>Top Scores</h3>
+        <div class="scores" id="scoresGrid">
+          <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
+          <!-- rows injected here -->
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     // ====== Config ======
-    const SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--size')) || 20;   // grid width/height
-    const CELL_PX = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 24; // visual size
+    const BASE_SIZE = 16;              // Level 1 grid (cells per side)
+    const MAX_LEVEL = 69;              // Levels 1..69
+    const CELLS_PER_LEVEL = 1;         // Increase grid by +1 cell each level
+    const CELLS_PER_FOOD_FOR_LEVEL = 5;// Level up every 5 foods
+    const CELL_PX = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 24;
+
     const SPEEDS = [
-      { label: "Chill", ms: 160 },
+      { label: "Chill",  ms: 160 },
       { label: "Normal", ms: 120 },
-      { label: "Snappy", ms: 90 },
-      { label: "Turbo", ms: 65 }
+      { label: "Snappy", ms:  90 },
+      { label: "Turbo",  ms:  65 }
     ];
     let speedIndex = 1; // Normal
-    const STORAGE_KEY = "snake_highscore_v1";
+
+    const STORAGE_HIGH   = "snake_highscore_v1";
+    const STORAGE_BOARD  = "snake_scoreboard_v1";
 
     // ====== DOM ======
     const canvas = document.getElementById('board');
     const ctx = canvas.getContext('2d', { alpha: false });
     const scoreEl = document.getElementById('score');
-    const highEl = document.getElementById('high');
+    const highEl  = document.getElementById('high');
+    const levelEl = document.getElementById('level');
     const speedLabel = document.getElementById('speedLabel');
     const stateLabel = document.getElementById('stateLabel');
     const pauseBtn = document.getElementById('pauseBtn');
-
-    // Ensure internal canvas resolution matches visual size exactly
-    const px = SIZE * CELL_PX;
-    canvas.width = px;
-    canvas.height = px;
+    const scoresGrid = document.getElementById('scoresGrid');
 
     // ====== Game State ======
+    let SIZE, px;
     let snake, direction, nextDirection, food, score, high, alive, paused, lastTick;
+    let level, foodsThisLevel;
 
+    // ====== Scoreboard ======
+    function readBoard() {
+      try {
+        const raw = localStorage.getItem(STORAGE_BOARD);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch { return []; }
+    }
+    function writeBoard(list) {
+      try { localStorage.setItem(STORAGE_BOARD, JSON.stringify(list)); } catch {}
+    }
+    function addScoreToBoard(name, score, level) {
+      const list = readBoard();
+      list.push({ name: (name || "Player").trim().slice(0, 24) || "Player", score, level, ts: Date.now() });
+      list.sort((a,b) => b.score - a.score || b.ts - a.ts);
+      const top = list.slice(0, 10);
+      writeBoard(top);
+      renderBoard(top);
+    }
+    function renderBoard(list = readBoard()) {
+      // Clear old rows (keep 4 header divs)
+      while (scoresGrid.children.length > 4) scoresGrid.removeChild(scoresGrid.lastChild);
+      for (const row of list) {
+        const d = new Date(row.ts);
+        const date = d.toLocaleDateString(undefined, { month: 'short', day:'2-digit' });
+        const cells = [
+          row.name,
+          String(row.score),
+          String(row.level),
+          date
+        ];
+        for (const c of cells) {
+          const div = document.createElement('div'); div.textContent = c; scoresGrid.appendChild(div);
+        }
+      }
+    }
+
+    // ====== High score ======
+    function loadHigh() {
+      const v = parseInt(localStorage.getItem(STORAGE_HIGH) || "0", 10);
+      high = isNaN(v) ? 0 : v;
+      highEl.textContent = high;
+    }
+    function saveHigh() {
+      if (score > high) {
+        high = score;
+        highEl.textContent = high;
+        localStorage.setItem(STORAGE_HIGH, String(high));
+      }
+    }
+
+    // ====== Level / Size ======
+    function sizeForLevel(lv) {
+      return BASE_SIZE + (lv - 1) * CELLS_PER_LEVEL;
+    }
+    function applySizeVars() {
+      document.documentElement.style.setProperty('--size', String(SIZE));
+      px = SIZE * CELL_PX;
+      canvas.width = px;
+      canvas.height = px;
+    }
+    function setLevel(lv) {
+      level = Math.max(1, Math.min(MAX_LEVEL, lv));
+      SIZE = sizeForLevel(level);
+      applySizeVars();
+      levelEl.textContent = level;
+      speedLabel.textContent = SPEEDS[speedIndex].label;
+      foodsThisLevel = 0;
+    }
+    function maybeLevelUp() {
+      if (level >= MAX_LEVEL) return;
+      if (foodsThisLevel >= CELLS_PER_FOOD_FOR_LEVEL) {
+        level++;
+        const oldSize = SIZE;
+        setLevel(level);
+        // When grid grows, keep everything valid (wrap-around handles any overflow)
+        // No need to reposition snake; just continue.
+        // Tiny speed nudge every ~4 levels (optional difficulty ramp)
+        if (level % 4 === 0 && speedIndex < SPEEDS.length - 1) {
+          speedIndex++;
+          speedLabel.textContent = SPEEDS[speedIndex].label;
+        }
+      }
+    }
+
+    // ====== Game Core ======
     function reset() {
+      setLevel(1);
       snake = [
         { x: Math.floor(SIZE/2), y: Math.floor(SIZE/2) },
         { x: Math.floor(SIZE/2)-1, y: Math.floor(SIZE/2) },
@@ -169,21 +273,7 @@
       placeFood();
       scoreEl.textContent = score;
       stateLabel.textContent = "Playing";
-      speedLabel.textContent = SPEEDS[speedIndex].label;
-    }
-
-    function loadHigh() {
-      const v = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
-      high = isNaN(v) ? 0 : v;
-      highEl.textContent = high;
-    }
-
-    function saveHigh() {
-      if (score > high) {
-        high = score;
-        highEl.textContent = high;
-        localStorage.setItem(STORAGE_KEY, String(high));
-      }
+      renderBoard(); // show saved scores
     }
 
     function placeFood() {
@@ -198,20 +288,17 @@
     }
 
     function setDirection(dx, dy) {
-      // Prevent immediate 180° turns
-      if (dx === -direction.x && dy === -direction.y) return;
+      if (dx === -direction.x && dy === -direction.y) return; // block 180 turns
       nextDirection = { x: dx, y: dy };
     }
 
-    // ====== Drawing ======
+    // ====== Draw ======
     function draw() {
       // Background
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg');
-      ctx.fillRect(0, 0, px, px);
+      ctx.fillStyle = getVar('--bg'); ctx.fillRect(0, 0, px, px);
 
       // Subtle grid
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = getVar('--grid'); ctx.lineWidth = 1;
       ctx.beginPath();
       for (let i = 1; i < SIZE; i++) {
         const g = i * CELL_PX + 0.5;
@@ -222,12 +309,10 @@
 
       // Food
       fillCell(food.x, food.y, getVar('--food'));
-
       // Snake
       for (let i = 0; i < snake.length; i++) {
         const seg = snake[i];
-        if (i === 0) fillCell(seg.x, seg.y, getVar('--snakeHead'));
-        else fillCell(seg.x, seg.y, getVar('--snake'));
+        fillCell(seg.x, seg.y, i === 0 ? getVar('--snakeHead') : getVar('--snake'));
       }
     }
 
@@ -235,12 +320,9 @@
       ctx.fillStyle = color;
       ctx.fillRect(x * CELL_PX, y * CELL_PX, CELL_PX, CELL_PX);
     }
+    function getVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-    function getVar(name) {
-      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    }
-
-    // ====== Tick / Logic ======
+    // ====== Tick / Logic (with wrap-around walls) ======
     function step(ts) {
       if (!alive) { draw(); return; }
       if (paused)  { draw(); requestAnimationFrame(step); return; }
@@ -251,30 +333,28 @@
       if (delta >= interval) {
         lastTick = ts;
 
-        // apply direction change
         direction = nextDirection;
-
-        // compute new head
         const head = snake[0];
-        const nx = head.x + direction.x;
-        const ny = head.y + direction.y;
+        let nx = head.x + direction.x;
+        let ny = head.y + direction.y;
 
-        // wall collision (classic: no wrap)
-        if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) {
-          alive = false;
-          stateLabel.textContent = "Game Over";
-          saveHigh();
-          draw();
-          requestAnimationFrame(step);
-          return;
-        }
+        // Wrap-around instead of wall death:
+        if (nx < 0) nx = SIZE - 1;
+        else if (nx >= SIZE) nx = 0;
+        if (ny < 0) ny = SIZE - 1;
+        else if (ny >= SIZE) ny = 0;
 
-        // self collision
+        // Self collision = game over
         if (snake.some(s => s.x === nx && s.y === ny)) {
           alive = false;
           stateLabel.textContent = "Game Over";
           saveHigh();
           draw();
+          // Name + scoreboard
+          setTimeout(() => {
+            const name = prompt("Game Over! Enter your name for the scoreboard:", "");
+            addScoreToBoard(name || "Player", score, level);
+          }, 30);
           requestAnimationFrame(step);
           return;
         }
@@ -284,9 +364,10 @@
 
         // eat?
         if (nx === food.x && ny === food.y) {
-          score += 1;
+          score += 1; foodsThisLevel += 1;
           scoreEl.textContent = score;
           placeFood();
+          maybeLevelUp();
         } else {
           snake.pop();
         }
@@ -309,7 +390,6 @@
       else if (k === '-' || k === '_') changeSpeed(-1);
     }, { passive: true });
 
-    // Mobile / on-screen controls
     document.querySelectorAll('[data-dir]').forEach(btn => {
       btn.addEventListener('click', () => {
         const d = btn.getAttribute('data-dir');
@@ -325,7 +405,6 @@
       paused = !paused;
       stateLabel.textContent = paused ? "Paused" : "Playing";
     }
-
     function changeSpeed(delta) {
       speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, speedIndex + delta));
       speedLabel.textContent = SPEEDS[speedIndex].label;
@@ -333,11 +412,10 @@
 
     // ====== Boot ======
     loadHigh();
+    renderBoard();
     reset();
     draw();
     requestAnimationFrame(step);
-
-    // Avoid big jumps after tab change
     document.addEventListener('visibilitychange', () => { lastTick = 0; }, { passive: true });
   </script>
 </body>
