@@ -6,18 +6,15 @@
   <title>GAME OVER</title>
   <meta name="description" content="GAME OVER with Matrix rain." />
 
-  <!-- NEW: canonical + Open Graph/Twitter -->
   <link rel="canonical" href="https://tylerlengyel.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="GAME OVER — Tyler Lengyel">
   <meta property="og:description" content="GAME OVER with Matrix rain.">
   <meta property="og:url" content="https://tylerlengyel.com/">
-  <!-- If you add /og.png later, uncomment the next line -->
-  <!-- <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
   <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#000000">
 
   <style>
-    /* Page reset */
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
@@ -25,10 +22,8 @@
       background: #000;
       color: #fff;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden; /* hide scroll from canvas */
+      overflow: hidden;
     }
-
-    /* Fullscreen canvas sits behind content */
     #matrix {
       position: fixed;
       inset: 0;
@@ -37,65 +32,117 @@
       display: block;
       z-index: 0;
     }
-
-    /* Top nav */
     nav {
       position: relative;
       z-index: 1;
       background: rgba(0,0,0,0.8);
       padding: 10px 0;
       text-align: center;
+      border-bottom: 1px solid rgba(155,255,176,0.2);
     }
     nav a {
-      margin: 0 20px;
-      font-size: 20px;
+      margin: 0 16px;
+      font-size: 18px;
       color: #9bffb0;
       text-decoration: none;
     }
-
-    /* Centered content on top */
     main {
       position: relative;
       z-index: 1;
-      height: calc(100% - 56px); /* keep space for nav */
+      height: calc(100% - 56px);
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
       padding: 24px;
     }
-
     h1 {
-      margin: 0;
+      margin: 0 0 8px 0;
       font-weight: 900;
       letter-spacing: 2px;
       font-size: clamp(56px, 14vw, 180px);
       line-height: 1;
       text-shadow: 0 2px 10px rgba(0,255,128,0.25);
     }
-
-    p { margin-top: 24px; }
-    a {
-      font-size: clamp(18px, 4.6vw, 30px);
-      color: #9bffb0;
-      text-decoration: underline;
-    }
+    p { margin: 10px 0 24px; }
+    a { color: #9bffb0; text-decoration: underline; }
     a:hover, a:focus { text-decoration: none; outline: none; }
+
+    /* Linear A portal */
+    .panel {
+      margin: 24px auto 0;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(155,255,176,0.25);
+      border-radius: 10px;
+      padding: 16px;
+      max-width: 900px;
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: clamp(18px, 3.2vw, 24px);
+      font-weight: 700;
+      color: #b8ffcb;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .card {
+      display: block;
+      padding: 12px;
+      border: 1px solid rgba(155,255,176,0.25);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.4);
+      text-decoration: none;
+      color: #e6ffe9;
+      transition: transform .06s ease, border-color .15s ease;
+    }
+    .card:hover { transform: translateY(-2px); border-color: #9bffb0; }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      color: #9bffb0;
+    }
+    .card p {
+      margin: 0;
+      font-size: 14px;
+      color: #c9ffda;
+      opacity: .9;
+    }
   </style>
 </head>
 <body>
-  <!-- Matrix rain background -->
   <canvas id="matrix" aria-hidden="true"></canvas>
 
   <nav>
-    <a href="/" style="font-size:20px; color:#9bffb0; text-decoration:none;">Home</a>
-    <a href="/writing.html" style="font-size:20px; color:#9bffb0; text-decoration:none;">Hypotheses Page</a>
+    <a href="/">Home</a>
+    <a href="/writing.html">Hypotheses Page</a>
+    <!-- NEW: top-level link to the Linear A landing (create linearA/index.html when ready) -->
+    <a href="/linearA/">Linear&nbsp;A</a>
   </nav>
 
   <main>
     <div>
       <h1>GAME OVER</h1>
       <p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
+
+      <!-- NEW: Quick portal to your Linear A pages -->
+      <div class="panel" role="navigation" aria-label="Linear A proto-decipherment">
+        <h2>Linear A — Proto-decipherment</h2>
+        <div class="cards">
+          <a class="card" href="/linearA/HT13.html"><h3>HT13</h3><p>Wine / grain / oil ledger</p></a>
+          <a class="card" href="/linearA/HT31.html"><h3>HT31</h3><p>Mixed commodities</p></a>
+          <a class="card" href="/linearA/HT95.html"><h3>HT95</h3><p>Grain–oil pairs</p></a>
+          <a class="card" href="/linearA/ZA10.html"><h3>ZA10</h3><p>Grain + “prestige?”</p></a>
+          <a class="card" href="/linearA/HT10.html"><h3>HT10</h3><p>Large measures (syllabic)</p></a>
+          <a class="card" href="/linearA/HT12.html"><h3>HT12</h3><p>Oil + commodities</p></a>
+          <a class="card" href="/linearA/HT7.html"><h3>HT7</h3><p>Short entries</p></a>
+          <a class="card" href="/linearA/HT8.html"><h3>HT8</h3><p>Oil; amphora A</p></a>
+          <a class="card" href="/linearA/HT9.html"><h3>HT9</h3><p>High-volume wine list</p></a>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -104,22 +151,19 @@
       const canvas = document.getElementById('matrix');
       const ctx = canvas.getContext('2d');
 
-      // Resize canvas to fill screen (and on device-zoom changes)
       const resize = () => {
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         canvas.width = Math.floor(innerWidth * dpr);
         canvas.height = Math.floor(innerHeight * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale drawing to CSS pixels
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         initColumns();
       };
       window.addEventListener('resize', resize, { passive: true });
 
-      // Characters to rain (mix of katakana + ascii)
       const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-      // Columns configuration
       let columns = [];
-      let fontSize = 16;       // base px
+      let fontSize = 16;
       let colCount = 0;
 
       function initColumns() {
@@ -127,15 +171,13 @@
         ctx.font = `${fontSize}px monospace`;
         colCount = Math.ceil(innerWidth / fontSize);
         columns = Array.from({ length: colCount }, () => ({
-          y: Math.floor(Math.random() * -50),             // start above the top
-          speed: 1 + Math.random() * 1.2,                 // raindrop speed
-          fade: 0.75 + Math.random() * 0.2               // trail fade strength
+          y: Math.floor(Math.random() * -50),
+          speed: 1 + Math.random() * 1.2,
+          fade: 0.75 + Math.random() * 0.2
         }));
       }
 
-      // Draw loop
       function draw() {
-        // translucent black to create trails
         ctx.fillStyle = 'rgba(0,0,0,0.08)';
         ctx.fillRect(0, 0, innerWidth, innerHeight);
 
@@ -144,17 +186,13 @@
           const c = chars[Math.floor(Math.random() * chars.length)];
           const col = columns[i];
 
-          // leading symbol (brighter)
           ctx.fillStyle = '#b8ffcb';
           ctx.fillText(c, x, col.y * fontSize);
 
-          // trail (darker green)
           ctx.fillStyle = '#00e676';
           ctx.fillText(c, x, (col.y - 1) * fontSize);
 
           col.y += col.speed;
-
-          // reset when off screen
           if (col.y * fontSize > innerHeight + 100) {
             col.y = Math.floor(Math.random() * -50);
             col.speed = 0.1 + Math.random() * 1.1;
