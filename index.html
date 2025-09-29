@@ -41,8 +41,8 @@
       border-bottom: 1px solid rgba(155,255,176,0.2);
     }
     nav a {
-      margin: 0 16px;
-      font-size: 18px;
+      margin: 0 20px;
+      font-size: 20px;
       color: #9bffb0;
       text-decoration: none;
     }
@@ -57,92 +57,36 @@
       padding: 24px;
     }
     h1 {
-      margin: 0 0 8px 0;
+      margin: 0;
       font-weight: 900;
       letter-spacing: 2px;
       font-size: clamp(56px, 14vw, 180px);
       line-height: 1;
       text-shadow: 0 2px 10px rgba(0,255,128,0.25);
     }
-    p { margin: 10px 0 24px; }
-    a { color: #9bffb0; text-decoration: underline; }
-    a:hover, a:focus { text-decoration: none; outline: none; }
-
-    /* Linear A portal */
-    .panel {
-      margin: 24px auto 0;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(155,255,176,0.25);
-      border-radius: 10px;
-      padding: 16px;
-      max-width: 900px;
-    }
-    .panel h2 {
-      margin: 0 0 12px;
-      font-size: clamp(18px, 3.2vw, 24px);
-      font-weight: 700;
-      color: #b8ffcb;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      margin-top: 8px;
-    }
-    .card {
-      display: block;
-      padding: 12px;
-      border: 1px solid rgba(155,255,176,0.25);
-      border-radius: 10px;
-      background: rgba(0,0,0,0.4);
-      text-decoration: none;
-      color: #e6ffe9;
-      transition: transform .06s ease, border-color .15s ease;
-    }
-    .card:hover { transform: translateY(-2px); border-color: #9bffb0; }
-    .card h3 {
-      margin: 0 0 6px;
-      font-size: 18px;
+    p { margin-top: 24px; }
+    a {
+      font-size: clamp(18px, 4.6vw, 30px);
       color: #9bffb0;
+      text-decoration: underline;
     }
-    .card p {
-      margin: 0;
-      font-size: 14px;
-      color: #c9ffda;
-      opacity: .9;
-    }
+    a:hover, a:focus { text-decoration: none; outline: none; }
   </style>
 </head>
 <body>
   <canvas id="matrix" aria-hidden="true"></canvas>
 
   <nav>
-    <a href="/">Home</a>
-    <a href="/writing.html">Hypotheses Page</a>
-    <!-- NEW: top-level link to the Linear A landing (create linearA/index.html when ready) -->
-    <a href="/linearA/">Linear&nbsp;A</a>
+    <a href="/" style="font-size:20px;">Home</a>
+    <a href="/writing.html" style="font-size:20px;">Hypotheses Page</a>
+    <!-- NEW: Link to Linear A landing page -->
+    <a href="/linearA/index.html" style="font-size:20px;">Linear A</a>
   </nav>
 
   <main>
     <div>
       <h1>GAME OVER</h1>
       <p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
-
-      <!-- NEW: Quick portal to your Linear A pages -->
-      <div class="panel" role="navigation" aria-label="Linear A proto-decipherment">
-        <h2>Linear A — Proto-decipherment</h2>
-        <div class="cards">
-          <a class="card" href="/linearA/HT13.html"><h3>HT13</h3><p>Wine / grain / oil ledger</p></a>
-          <a class="card" href="/linearA/HT31.html"><h3>HT31</h3><p>Mixed commodities</p></a>
-          <a class="card" href="/linearA/HT95.html"><h3>HT95</h3><p>Grain–oil pairs</p></a>
-          <a class="card" href="/linearA/ZA10.html"><h3>ZA10</h3><p>Grain + “prestige?”</p></a>
-          <a class="card" href="/linearA/HT10.html"><h3>HT10</h3><p>Large measures (syllabic)</p></a>
-          <a class="card" href="/linearA/HT12.html"><h3>HT12</h3><p>Oil + commodities</p></a>
-          <a class="card" href="/linearA/HT7.html"><h3>HT7</h3><p>Short entries</p></a>
-          <a class="card" href="/linearA/HT8.html"><h3>HT8</h3><p>Oil; amphora A</p></a>
-          <a class="card" href="/linearA/HT9.html"><h3>HT9</h3><p>High-volume wine list</p></a>
-        </div>
-      </div>
     </div>
   </main>
 
