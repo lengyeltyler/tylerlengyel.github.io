@@ -4,14 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>createPhil — Tyler Lengyel</title>
-  <link rel="canonical" href="https://tylerlengyel.com/createPhil/">
   <meta name="theme-color" content="#000000">
   <style>
-    body { margin:0; background:#000; color:#fff; font-family:system-ui; height:100vh; display:flex; flex-direction:column; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
     nav {
+      position: relative;
+      z-index: 1;
       background: rgba(0,0,0,0.8);
-      padding: 10px;
-      text-align:center;
+      padding: 10px 0;
+      text-align: center;
       border-bottom: 1px solid rgba(155,255,176,0.2);
     }
     nav a {
@@ -20,23 +29,31 @@
       color: #9bffb0;
       text-decoration: none;
     }
-    nav a:hover { text-decoration: underline; }
+    nav a:hover, nav a:focus { text-decoration: underline; }
+    .content {
+      position: relative;
+      z-index: 1;
+      height: calc(100% - 56px);
+    }
     iframe {
-      flex:1;
-      border:0;
-      width:100%;
-      height:100%;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #000;
     }
   </style>
 </head>
 <body>
   <nav>
-    <a href="/">Home</a>
-    <a href="/writing.html">Hypotheses Page</a>
-    <a href="/linearA/index.html">Linear A</a>
-    <a href="/createPhil/">createPhil</a>
+    <a href="/" style="font-size:20px;">Home</a>
+    <a href="/writing.html" style="font-size:20px;">Hypotheses Page</a>
+    <a href="/linearA/index.html" style="font-size:20px;">Linear A</a>
+    <a href="/createPhil/" style="font-size:20px;">createPhil</a>
   </nav>
-  <!-- Embed the actual app -->
-  <iframe src="https://lengyeltyler.github.io/createPhil/" title="createPhil"></iframe>
+  <div class="content">
+    <!-- Embed the working project site -->
+    <iframe src="https://lengyeltyler.github.io/createPhil/" title="createPhil"></iframe>
+  </div>
 </body>
 </html>
