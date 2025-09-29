@@ -3,106 +3,105 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hypotheses — Tyler Lengyel</title>
-  <meta name="description" content="Unique hypotheses entries in a fast, minimal interface." />
-  <link rel="canonical" href="https://tylerlengyel.com/writing.html" />
-  <meta name="theme-color" content="#000000" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Hypotheses — Tyler Lengyel" />
-  <meta property="og:description" content="Unique hypotheses entries in a fast, minimal interface." />
-  <meta property="og:url" content="https://tylerlengyel.com/writing.html" />
-  <meta name="twitter:card" content="summary" />
+  <title>Hypotheses Page</title>
+  <meta name="description" content="Unique hypotheses entries in a terminal-inspired interface." />
+
+  <!-- Canonical + Social -->
+  <link rel="canonical" href="https://tylerlengyel.com/writing.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Hypotheses Page — Tyler Lengyel">
+  <meta property="og:description" content="Unique hypotheses entries in a terminal-inspired interface.">
+  <meta property="og:url" content="https://tylerlengyel.com/writing.html">
+  <!-- If you later add /og.png, you can also add: <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#000000">
 
   <style>
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:#000;color:#e5e5e5}
-    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"}
-    header{padding:16px 20px;position:sticky;top:0;z-index:10;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.06)}
-    main{padding:20px;max-width:1100px;margin:0 auto}
-    nav a{color:#bfbfbf;text-decoration:none;margin-right:16px;padding:6px 8px;border-radius:8px;transition:color .15s,background-color .15s}
-    nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
-    h1{margin:8px 0 6px;font-size:clamp(28px,4.6vw,42px);letter-spacing:.02em}
-    .sub{margin:0 0 18px;color:#bfbfbf}
-    .controls{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:center;margin-bottom:18px}
-    .search,.sort{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#e5e5e5}
-    .sort{cursor:pointer}
-    .count{margin:6px 0 12px;color:#8bdcb3;font-size:14px}
-    .grid{display:grid;gap:14px}
-    article{border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.02))}
-    article h2{margin:0 0 6px;font-size:clamp(18px,3.6vw,22px);line-height:1.25;color:#f2f2f2}
-    .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:#bfbfbf;font-size:13px;margin-bottom:8px}
-    .meta time{color:#c9c9c9}
-    .tags{display:inline-flex;gap:6px;flex-wrap:wrap}
-    .tag{font-size:12px;color:#0b0b0b;background:#00ff88;padding:3px 8px;border-radius:999px;font-weight:700}
-    .summary{margin:8px 0 0;color:#d9d9d9;line-height:1.55}
-    a{color:#8bdcb3;text-decoration:none}
-    a:hover{text-decoration:underline}
-    @media (prefers-reduced-motion:reduce){header{-webkit-backdrop-filter:none;backdrop-filter:none}}
-    @media (max-width:560px){.controls{grid-template-columns:1fr}}
-    .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
+    /* Core styles for crisp, unique look */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      background: #000; /* Black background */
+      color: #00ff00; /* Green text */
+      font-family: monospace; /* Terminal font */
+      line-height: 1.5;
+      padding: 40px;
+      overflow-y: auto; /* Allow scrolling if content grows */
+    }
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    h1 {
+      color: #fff; /* White header */
+      font-size: 48px;
+      letter-spacing: 2px;
+      animation: typing 2s steps(20) forwards; /* Unique typing animation */
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid #00ff00; /* Cursor effect */
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    nav {
+      margin-top: 20px;
+      text-align: center;
+    }
+    nav a {
+      color: #fff; /* White links */
+      text-decoration: none;
+      font-size: 18px;
+      padding: 10px 20px;
+      border: 1px solid #00ff00; /* Green border */
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: #00ff00;
+      color: #000;
+    }
+    section.entry {
+      background: rgba(0, 255, 0, 0.05); /* Subtle green overlay */
+      border-left: 4px solid #00ff00;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto 30px; /* keep bottom spacing */
+    }
+    .entry h2 {
+      color: #fff; /* White subheaders */
+      font-size: 24px;
+      margin: 0 0 10px;
+    }
+    .entry .timestamp {
+      color: #808080; /* Gray for timestamps */
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .entry p { margin: 0; }
   </style>
 </head>
 <body>
   <header>
-    <nav aria-label="Primary">
-      <a href="/">Home</a>
-      <a href="/writing.html" aria-current="page">Hypotheses Page</a>
-      <a href="/linearA/">Linear A</a>
+    <h1>Hypotheses Log</h1>
+    <nav>
+      <a href="/">Back to Homepage</a>
     </nav>
   </header>
 
   <main>
-    <h1>Hypotheses</h1>
-    <p class="sub">A living notebook of ideas, observations, and work-in-progress notes.</p>
+    <!-- Your entries (unchanged, just formatted correctly) -->
+    <section class="entry">
+      <h2>Hypothesis 1: Eye Diversity Throughout The World</h2>
+      <div class="timestamp">Logged: 2025-09-21</div>
+      <p>It's fun to think about where the first humans originated from, on the surface level at least. The deeper you get, the more confusing things can be, and the more thoughts that pop into your head. Now, I'm no scientist, nor do I have a college degree, but the history of the world, and the people especially, really does fascinate me. So last night while looking into the DAI people, along with Taoism and Daoism, I started to think about why Asian people would have different eye formations than that of the majority of the rest of the world. My hypothesis: the environment played a big role in shaping people's features, and that the Epicanthic eye fold is an evolutionary change that helped early humans protect their eyes from specific things in their surroundings, like bright sunlight reflecting off of snow or sand.</p>
+    </section>
 
-    <div class="controls" role="region" aria-label="Filters">
-      <label class="visually-hidden" for="q">Search</label>
-      <input id="q" class="search" type="search" placeholder="Filter by keyword (title, tags, summary)…" autocomplete="off" />
-      <button id="sortBtn" class="sort" type="button" aria-pressed="true" aria-label="Toggle sort order">Sort: New → Old</button>
-    </div>
-
-    <div id="count" class="count" aria-live="polite"></div>
-
-    <section id="entries" class="grid">
-      <!-- Your one existing entry -->
-      <article data-tags="biology pattern vision" data-title="Eye Diversity in Captured Footage" data-date="2025-09-21">
-        <h2>Eye Diversity in Captured Footage</h2>
-        <div class="meta">
-          <time datetime="2025-09-21">Sep 21, 2025</time>
-          <span class="tags">
-            <span class="tag">biology</span>
-            <span class="tag">pattern</span>
-            <span class="tag">vision</span>
-          </span>
-        </div>
-        <p class="summary">
-          Notes on iris pattern variability and how different capture conditions affect apparent “eye morphology.”
-          Early takeaway: lighting and sensor bloom can mimic structural differences; need controlled comparisons.
-        </p>
-      </article>
+    <section class="entry">
+      <h2>Hypothesis 2: Allianz Are Real</h2>
+      <div class="timestamp">Logged: 2025-09-21</div>
+      <p></p>
     </section>
   </main>
-
-  <script>
-    const $ = (s, r=document)=>r.querySelector(s);
-    const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
-    const entries=$('#entries'), search=$('#q'), sortBtn=$('#sortBtn'), countEl=$('#count');
-    function parse(){return $$('#entries article').map(el=>({el,title:(el.dataset.title||el.querySelector('h2')?.textContent||'').toLowerCase(),tags:(el.dataset.tags||'').toLowerCase(),date:el.dataset.date||el.querySelector('time')?.getAttribute('datetime')||'1970-01-01'}))}
-    let model=parse(), newestFirst=true;
-    function apply(){
-      const q=(search.value||'').trim().toLowerCase();
-      let visible=0;
-      model.forEach(({el,title,tags})=>{
-        const text=title+' '+tags+' '+(el.querySelector('.summary')?.textContent||'').toLowerCase();
-        const show=!q||text.includes(q); el.style.display=show?'':'none'; if(show) visible++;
-      });
-      const ordered=model.filter(m=>m.el.style.display!=='none').sort((a,b)=> (newestFirst?1:-1)*(new Date(b.date)-new Date(a.date))).map(a=>a.el);
-      ordered.forEach(el=>entries.appendChild(el));
-      const total=model.length; countEl.textContent=`${visible} of ${total} entr${total===1?'y':'ies'} shown`;
-    }
-    search.addEventListener('input', apply);
-    sortBtn.addEventListener('click', ()=>{newestFirst=!newestFirst;sortBtn.setAttribute('aria-pressed', String(newestFirst));sortBtn.textContent=newestFirst?'Sort: New → Old':'Sort: Old → New';apply();});
-    apply();
-  </script>
 </body>
 </html>
