@@ -3,215 +3,168 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GAME OVER — Tyler Lengyel</title>
+  <title>GAME OVER</title>
   <meta name="description" content="GAME OVER with Matrix rain." />
 
-  <!-- Canonical + Social -->
+  <!-- NEW: canonical + Open Graph/Twitter -->
   <link rel="canonical" href="https://tylerlengyel.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="GAME OVER — Tyler Lengyel">
   <meta property="og:description" content="GAME OVER with Matrix rain.">
   <meta property="og:url" content="https://tylerlengyel.com/">
+  <!-- If you add /og.png later, uncomment the next line -->
+  <!-- <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
   <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#000000">
 
   <style>
     /* Page reset */
     * { box-sizing: border-box; }
-    html, body {
-      height: 100%;
+    html, body { height: 100%; }
+    body {
       margin: 0;
-      color: #e5e5e5;
       background: #000;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden; /* hide scroll from canvas */
     }
 
-    /* Layout */
-    .wrap {
-      position: relative;
-      min-height: 100%;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-    }
-
-    header, footer {
-      position: relative;
-      z-index: 2;
-      padding: 16px 20px;
-      background: rgba(0,0,0,0.4);
-      -webkit-backdrop-filter: blur(2px);
-      backdrop-filter: blur(2px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    footer { border-top: 1px solid rgba(255,255,255,0.06); border-bottom: none; }
-
-    nav a {
-      color: #bfbfbf;
-      text-decoration: none;
-      margin-right: 16px;
-      display: inline-block;
-      padding: 6px 8px;
-      border-radius: 8px;
-      transition: color .15s ease, background-color .15s ease;
-    }
-    nav a:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
-    .hero {
-      position: relative;
-      z-index: 2;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 8vh 20px;
-    }
-    h1 {
-      margin: 0 0 12px;
-      font-size: clamp(48px, 8vw, 140px);
-      letter-spacing: .08em;
-      font-weight: 800;
-      color: #f2f2f2;
-      text-shadow: 0 2px 24px rgba(0,255,140,0.35);
-    }
-    .sub {
-      margin: 0 0 28px;
-      color: #b3f7d0;
-      opacity: .9;
-      font-size: clamp(14px, 2.2vw, 18px);
-    }
-    .links {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      display: inline-block;
-      color: #0b0b0b;
-      background: #00ff88;
-      border: none;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .btn:hover { filter: brightness(0.95); }
-    .btn.alt {
-      color: #e8fff6;
-      background: transparent;
-      border: 1px solid rgba(0,255,136,0.5);
-    }
-
-    /* Matrix canvas */
+    /* Fullscreen canvas sits behind content */
     #matrix {
       position: fixed;
       inset: 0;
-      z-index: 1;
+      width: 100vw;
+      height: 100vh;
       display: block;
+      z-index: 0;
     }
 
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      #matrix { display: none; }
+    /* Top nav */
+    nav {
+      position: relative;
+      z-index: 1;
+      background: rgba(0,0,0,0.8);
+      padding: 10px 0;
+      text-align: center;
     }
+    nav a {
+      margin: 0 20px;
+      font-size: 20px;
+      color: #9bffb0;
+      text-decoration: none;
+    }
+
+    /* Centered content on top */
+    main {
+      position: relative;
+      z-index: 1;
+      height: calc(100% - 56px); /* keep space for nav */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-size: clamp(56px, 14vw, 180px);
+      line-height: 1;
+      text-shadow: 0 2px 10px rgba(0,255,128,0.25);
+    }
+
+    p { margin-top: 24px; }
+    a {
+      font-size: clamp(18px, 4.6vw, 30px);
+      color: #9bffb0;
+      text-decoration: underline;
+    }
+    a:hover, a:focus { text-decoration: none; outline: none; }
   </style>
 </head>
 <body>
+  <!-- Matrix rain background -->
   <canvas id="matrix" aria-hidden="true"></canvas>
 
-  <div class="wrap">
-    <header>
-      <nav aria-label="Primary">
-        <a href="/">Home</a>
-        <a href="/writing.html">Hypotheses Page</a>
-        <a href="/linearA/">Linear A</a>
-      </nav>
-    </header>
+  <nav>
+    <a href="/" style="font-size:20px; color:#9bffb0; text-decoration:none;">Home</a>
+    <a href="/writing.html" style="font-size:20px; color:#9bffb0; text-decoration:none;">Hypotheses Page</a>
+  </nav>
 
-    <main class="hero">
-      <h1>GAME&nbsp;OVER</h1>
-      <p class="sub">sometimes an ending is just an unlock screen</p>
-
-      <div class="links">
-        <!-- Accessible + descriptive YouTube link -->
-        <a
-          class="btn"
-          href="https://www.youtube.com/watch?v="
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Watch the prize video on YouTube"
-        >
-          Watch the prize video on YouTube
-        </a>
-
-        <a class="btn alt" href="/writing.html">Read the hypotheses</a>
-        <a class="btn alt" href="/linearA/">Linear A project</a>
-      </div>
-    </main>
-
-    <footer>
-      <small>&copy; <span id="y"></span> Tyler&nbsp;Lengyel • <a href="https://github.com/lengyeltyler/tylerlengyel.github.io" style="color:#8bdcb3;text-decoration:none;">Source</a></small>
-    </footer>
-  </div>
+  <main>
+    <div>
+      <h1>GAME OVER</h1>
+      <p><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
+    </div>
+  </main>
 
   <script>
-    // Footer year
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // Matrix rain (disabled if tab hidden or prefers-reduced-motion)
-    (function () {
-      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (prefersReduced) return;
-
+    (() => {
       const canvas = document.getElementById('matrix');
-      const ctx = canvas.getContext('2d', { alpha: true });
+      const ctx = canvas.getContext('2d');
 
-      let w, h, fontSize, columns, drops, animId;
-      const glyphs = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
-      const chars = glyphs.split('');
+      // Resize canvas to fill screen (and on device-zoom changes)
+      const resize = () => {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.floor(innerWidth * dpr);
+        canvas.height = Math.floor(innerHeight * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale drawing to CSS pixels
+        initColumns();
+      };
+      window.addEventListener('resize', resize, { passive: true });
 
-      function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        fontSize = Math.max(14, Math.floor(w / 80));
-        columns = Math.ceil(w / fontSize);
-        drops = Array(columns).fill(0).map(() => Math.floor(Math.random() * -40));
+      // Characters to rain (mix of katakana + ascii)
+      const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      // Columns configuration
+      let columns = [];
+      let fontSize = 16;       // base px
+      let colCount = 0;
+
+      function initColumns() {
+        fontSize = Math.max(12, Math.floor(Math.min(innerWidth, innerHeight) / 50));
+        ctx.font = `${fontSize}px monospace`;
+        colCount = Math.ceil(innerWidth / fontSize);
+        columns = Array.from({ length: colCount }, () => ({
+          y: Math.floor(Math.random() * -50),             // start above the top
+          speed: 1 + Math.random() * 1.2,                 // raindrop speed
+          fade: 0.75 + Math.random() * 0.2               // trail fade strength
+        }));
       }
 
+      // Draw loop
       function draw() {
-        // subtle trail
+        // translucent black to create trails
         ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(0, 0, innerWidth, innerHeight);
 
-        ctx.fillStyle = '#00ff88';
-        ctx.font = fontSize + 'px monospace';
-
-        for (let i = 0; i < columns; i++) {
-          const text = chars[(Math.random() * chars.length) | 0];
+        for (let i = 0; i < colCount; i++) {
           const x = i * fontSize;
-          const y = drops[i] * fontSize;
+          const c = chars[Math.floor(Math.random() * chars.length)];
+          const col = columns[i];
 
-          ctx.fillText(text, x, y);
+          // leading symbol (brighter)
+          ctx.fillStyle = '#b8ffcb';
+          ctx.fillText(c, x, col.y * fontSize);
 
-          // reset drop randomly when offscreen
-          if (y > h && Math.random() > 0.975) drops[i] = 0;
-          drops[i]++;
+          // trail (darker green)
+          ctx.fillStyle = '#00e676';
+          ctx.fillText(c, x, (col.y - 1) * fontSize);
+
+          col.y += col.speed;
+
+          // reset when off screen
+          if (col.y * fontSize > innerHeight + 100) {
+            col.y = Math.floor(Math.random() * -50);
+            col.speed = 0.1 + Math.random() * 1.1;
+          }
         }
-        animId = requestAnimationFrame(draw);
+        requestAnimationFrame(draw);
       }
 
       resize();
-      draw();
-      window.addEventListener('resize', () => {
-        cancelAnimationFrame(animId);
-        resize();
-        draw();
-      });
-
-      // Pause when tab is hidden
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) cancelAnimationFrame(animId);
-        else draw();
-      });
+      requestAnimationFrame(draw);
     })();
   </script>
 </body>
