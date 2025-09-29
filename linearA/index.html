@@ -1,44 +1,41 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Linear A — Proto-decipherment</title>
-  <meta name="description" content="Notes, tablets, and links for the Linear A proto-decipherment project." />
-  <link rel="canonical" href="https://tylerlengyel.com/linearA/">
-  <meta name="theme-color" content="#000000" />
-  <style>
-    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: #e5e5e5; background:#000; }
-    header, main { padding: 16px 20px; }
-    a { color: #8bdcb3; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    nav a { margin-right: 16px; }
-    h1 { margin: 12px 0 8px; }
-    ul { line-height: 1.8; }
-    .muted { color: #bfbfbf; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Linear A — Proto-decipherment</title>
+<meta name="description" content="Per-tablet proto-translations, notes, and dictionaries." />
+<style>
+  :root { --fg:#00ff00; --bg:#000; --muted:#9b9b9b; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:monospace;line-height:1.5;padding:32px}
+  a{color:#fff;text-decoration:none;border-bottom:1px solid var(--fg)}
+  a:hover{background:var(--fg);color:#000}
+  h1,h2{color:#fff;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:20px}
+  .card{border-left:4px solid var(--fg);padding:16px;background:rgba(0,255,0,0.06)}
+  .card h3{margin:0 0 8px;color:#fff}
+  nav{margin-bottom:24px}
+</style>
 </head>
 <body>
-  <header>
-    <nav aria-label="Primary">
-      <a href="/">Home</a>
-      <a href="/writing.html">Hypotheses Page</a>
-      <a href="/linearA/">Linear A</a>
-    </nav>
-  </header>
+  <nav><a href="/">← Back to homepage</a></nav>
+  <h1>Linear A — Proto-decipherment</h1>
+  <p class="muted" style="color:#9b9b9b;max-width:70ch">
+    Working, tablet-by-tablet notes: proto-translations side-by-side with the original lines,
+    confidence estimates, and a local dictionary per tablet.
+  </p>
 
-  <main>
-    <h1>Linear A — Proto-decipherment</h1>
-    <p class="muted">Project index and tablet links.</p>
-
-    <!-- Fixed: previously pointed to /linearA/LinearA_report.md (404) -->
-    <p><a href="/linearA/">Linear A — Proto-decipherment Report</a></p>
-
-    <h2>Tablets</h2>
-    <ul>
-      <li><a href="/assets/linearA/HT13.html">HT13</a></li>
-      <!-- Add other tablet pages as they’re published -->
-    </ul>
-  </main>
+  <h2>Tablets</h2>
+  <div class="grid">
+    <a class="card" href="/linearA/HT10.html"><h3>HT10</h3><div>Syllabic tallies; large measure counts.</div></a>
+    <a class="card" href="/linearA/HT12.html"><h3>HT12</h3><div>Oil + undetermined commodities.</div></a>
+    <a class="card" href="/linearA/HT13.html"><h3>HT13</h3><div>Wine, grain, oil ledger (anchors).</div></a>
+    <a class="card" href="/linearA/HT31.html"><h3>HT31</h3><div>Mixed commodities; amphora A/B.</div></a>
+    <a class="card" href="/linearA/HT7.html"><h3>HT7</h3><div>Short syllabic entries (unit?).</div></a>
+    <a class="card" href="/linearA/HT8.html"><h3>HT8</h3><div>Oil + amphora A mention.</div></a>
+    <a class="card" href="/linearA/HT9.html"><h3>HT9</h3><div>High-volume wine list (VIN+TE).</div></a>
+    <a class="card" href="/linearA/HT95.html"><h3>HT95</h3><div>Grain–oil ledger.</div></a>
+    <a class="card" href="/linearA/ZA10.html"><h3>ZA10</h3><div>Grain totals with “prestige?”.</div></a>
+  </div>
 </body>
 </html>
