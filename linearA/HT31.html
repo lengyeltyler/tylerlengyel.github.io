@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HT31 — Proto-translation</title>
+<meta name="description" content="HT31 proto-translation with original lines and local dictionary." />
+<style>
+  :root { --fg:#00ff00; --bg:#000; --muted:#9b9b9b; }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:monospace;line-height:1.6;padding:32px}
+  a{color:#fff;text-decoration:none;border-bottom:1px solid var(--fg)} a:hover{background:var(--fg);color:#000}
+  h1,h2,h3{color:#fff;margin:0 0 12px}
+  nav{margin-bottom:24px}
+  .block{background:rgba(0,255,0,0.06);border-left:4px solid var(--fg);padding:16px;margin:14px 0}
+  .muted{color:var(--muted)}
+  pre{white-space:pre-wrap;margin:0}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:800px){ .cols{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+  <nav><a href="/linearA/">← Linear A</a> &nbsp; <a href="/">Home</a></nav>
+  <h1>HT31 — Proto-translation</h1>
+
+  <div class="block">
+    <h2>Deciphered Text (hypothesis)</h2>
+    <pre>
+oil in small jar ×2       [high]    (raw: AB54 AB67 AB22 AB03 2)
+grain in big jar ×10      [high]    (raw: AB81 AB02 AB22 AB67 10)
+grain in large measure ×7 [medium]  (raw: AB81 AB02 AB22 AB28 7)
+commodity? in amphoraA ×5 [medium]  (raw: AB54 AB28 AB22 AB09 5)
+wineB in amphoraB ×8      [high]    (raw: AB51 AB45 AB22 AB59 8)
+commodity? in unit? ×4    [medium]  (raw: AB28 AB67 AB22 AB54 4)
+    </pre>
+  </div>
+
+  <div class="block">
+    <h2>Original Tablet Text</h2>
+    <pre>
+AB54 AB67 AB22 AB03 2
+AB81 AB02 AB22 AB67 10
+AB81 AB02 AB22 AB28 7
+AB54 AB28 AB22 AB09 5
+AB51 AB45 AB22 AB59 8
+AB28 AB67 AB22 AB54 4
+    </pre>
+  </div>
+
+  <div class="cols">
+    <div class="block">
+      <h3>Confidence Levels</h3>
+      <pre>
+- grain, oil, wineB → high confidence.
+- others → medium.
+      </pre>
+    </div>
+    <div class="block">
+      <h3>Notes</h3>
+      <pre>
+- One of the richest multi-commodity ledgers.
+- Shows proportional mixes (grain/oil/wine).
+      </pre>
+    </div>
+  </div>
+
+  <div class="block">
+    <h3>Dictionary (local mapping)</h3>
+    <pre>
+- AB81 AB02 AB22 AB67 → grain in big jar.
+- AB54 AB67 AB22 AB03 → oil in small jar.
+- AB51 AB45 AB22 AB59 → wineB in amphoraB.
+    </pre>
+  </div>
+</body>
+</html>
