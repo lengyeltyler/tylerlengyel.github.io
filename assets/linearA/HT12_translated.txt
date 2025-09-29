@@ -1,8 +1,0 @@
-Proto-translations for HT12
-
-oil in small jar ×5   [low]   (raw: Line 1: OLIV 5)
-commodity? in unit? ×8   [low]   (raw: Line 2: QA+TU 8)
-commodity? in large measure ×30   [low]   (raw: Line 3: QE-TU-NE 30)
-commodity? in unit? ×50   [low]   (raw: Line 4: DA-I 50)
-commodity? in unit? ×10   [low]   (raw: Line 5: MA+RU 10)
-commodity? in large measure ×28   [low]   (raw: Line 6: KU-RA2 28)

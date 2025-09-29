@@ -1,4 +1,0 @@
-Proto-translations for HT95.txt
-
-oil in small jar ×2   [high]   (raw: AB54 AB67 AB22 AB03 2)
-grain in big jar ×10   [high]   (raw: AB81 AB02 AB22 AB67 10)

@@ -1,8 +1,0 @@
-Proto-translations for HT31.txt
-
-oil in small jar ×2   [high]   (raw: AB54 AB67 AB22 AB03 2)
-grain in big jar ×10   [high]   (raw: AB81 AB02 AB22 AB67 10)
-grain in large measure ×7   [medium]   (raw: AB81 AB02 AB22 AB28 7)
-commodity? in amphoraA ×5   [medium]   (raw: AB54 AB28 AB22 AB09 5)
-wineB in amphoraB ×8   [high]   (raw: AB51 AB45 AB22 AB59 8)
-commodity? in unit? ×4   [medium]   (raw: AB28 AB67 AB22 AB54 4)

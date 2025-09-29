@@ -1,8 +1,0 @@
-Proto-translations for HT10
-
-commodity? in large measure ×32   [low]   (raw: Line 1: KU-RA2-TA 32)
-commodity? in unit? ×2   [low]   (raw: Line 2: DA-NE 2)
-commodity? in large measure ×2   [low]   (raw: Line 3: KU-RA2-TE 2)
-commodity? in large measure ×10   [low]   (raw: Line 4: KU-RA2-SI 10)
-commodity? in large measure ×15   [low]   (raw: Line 5: KU-RA2-NE 15)
-commodity? in large measure ×70   [low]   (raw: Line 6: KU-RA2 70)

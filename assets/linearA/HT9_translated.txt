@@ -1,8 +1,0 @@
-Proto-translations for HT9
-
-wine in amphoraB ×51   [low]   (raw: Line 1: VIN+TE 51)
-wine in amphoraB ×25   [low]   (raw: Line 2: VIN+TE 25)
-wine in amphoraB ×87   [low]   (raw: Line 3: VIN+TE 87)
-wine in amphoraB ×19   [low]   (raw: Line 4: VIN+TE 19)
-wine in amphoraB ×18   [low]   (raw: Line 5: VIN+TE 18)
-wine in amphoraB ×130   [low]   (raw: Line 6: VIN+TE 130)

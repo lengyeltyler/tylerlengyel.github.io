@@ -1,6 +1,0 @@
-Proto-translations for HT13.txt
-
-wineA in amphoraA ×7   [high]   (raw: AB51 AB24 AB22 AB09 7)
-grain in big jar ×12   [high]   (raw: AB81 AB02 AB22 AB67 12)
-AB04 in amphoraB ×2   [low]   (raw: AB04 AB40 AB22 AB59 2)
-oil in small jar ×5   [high]   (raw: AB54 AB67 AB22 AB03 5)

@@ -1,5 +1,0 @@
-Proto-translations for ZA10.txt
-
-prestige? in measure tag ×3   [medium]   (raw: AB27 AB17 AB22 AB40 3)
-prestige? in big jar ×1   [medium]   (raw: AB04 AB69 AB22 AB67 1)
-grain in big jar ×9   [high]   (raw: AB81 AB02 AB22 AB67 9)
