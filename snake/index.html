@@ -21,8 +21,9 @@
       --food: #a9ff3f;
       --ui: #d2ffd2;
       --accent: #4dff4d;
-      --cell: 24;   /* px per cell (visual) */
-      --size: 20;   /* grid width/height in cells (will change per level) */
+      --size: 20;   /* logical grid size; visual board stays constant now */
+      --board-max: 480px; /* max visual size on larger screens */
+      --cell: 24; /* kept for compatibility; no longer drives canvas pixels */
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -31,20 +32,29 @@
       background: radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
       color: var(--ui);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      /* Improve touch behavior on mobile */
+      /* Stops iOS “pull to refresh”/gestures from fighting gameplay; we re-enable vertical pan inside the card */
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      overflow: hidden; /* page stays fixed; the card can scroll internally */
     }
-    .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
     .card {
-      width: min(94vw, calc(var(--size) * var(--cell) * 1px + 32px));
+      width: min(94vw, calc(var(--board-max) + 32px));
       border: 1px solid #1c2a1c;
-      background: rgba(5, 10, 5, 0.7);
+      background: rgba(5, 10, 5, 0.72);
       border-radius: 18px;
       padding: 16px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 40px rgba(76,255,76,0.06);
       backdrop-filter: blur(4px);
+      max-height: 100vh;          /* allow internal scroll if needed on small screens */
+      overflow: auto;
+      touch-action: pan-y;         /* allow vertical scroll INSIDE the card on mobile */
     }
     .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
     .title { font-weight: 700; letter-spacing: 0.5px; }
@@ -53,10 +63,11 @@
       border: 1px solid #1e371e; border-radius: 999px; padding: 6px 10px; font-size: 14px;
       color: var(--accent); background: rgba(76,255,76,0.06);
     }
-    /* Responsive canvas: scales to viewport on phones */
+
+    /* CONSTANT visual board size: width clamps to viewport, stays square via aspect-ratio */
     canvas {
-      width: min(94vw, calc(var(--size) * var(--cell) * 1px));
-      height: min(94vw, calc(var(--size) * var(--cell) * 1px));
+      width: min(94vw, var(--board-max));
+      aspect-ratio: 1 / 1;        /* keeps it square without needing explicit height */
       image-rendering: pixelated;
       border-radius: 10px;
       border: 1px solid #1c2a1c;
@@ -65,15 +76,20 @@
       margin: 0 auto;
       touch-action: none;
     }
+
     .controls {
-      margin-top: 10px;
+      position: sticky; bottom: 8px; /* 💡 stays visible near bottom even if the card scrolls */
+      margin-top: 12px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
       gap: 8px;
       user-select: none;
+      padding-top: 8px;
+      background: linear-gradient(to bottom, transparent, rgba(5,10,5,0.35));
+      backdrop-filter: blur(2px);
     }
     .btn {
-      border: 1px solid #1e371e; border-radius: 10px; padding: 10px 12px; text-align: center;
+      border: 1px solid #1e371e; border-radius: 10px; padding: 12px 12px; text-align: center;
       background: rgba(76,255,76,0.06);
       color: var(--ui); font-weight: 600; cursor: pointer;
       transition: transform .04s ease, background .1s ease;
@@ -97,9 +113,8 @@
     .scores div { padding: 6px 8px; background: rgba(76,255,76,0.04); border: 1px solid #1e371e; border-radius: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .scores .hdr { font-weight: 700; background: rgba(76,255,76,0.08); }
 
-    /* Mobile tweaks: larger cells/buttons on narrow screens */
+    /* Mobile tweaks: slightly larger buttons */
     @media (max-width: 480px) {
-      :root { --cell: 28; }
       .btn { padding: 16px 18px; font-size: 18px; }
     }
   </style>
@@ -120,7 +135,7 @@
 
       <canvas id="board" width="480" height="480" aria-label="Snake game area" role="img"></canvas>
 
-      <!-- Touch controls -->
+      <!-- Touch controls (sticky so DOWN stays visible) -->
       <div class="controls" aria-hidden="false">
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="up">▲ Up</button>
@@ -158,7 +173,9 @@
     const MAX_LEVEL = 69;              // Levels 1..69
     const CELLS_PER_LEVEL = 1;         // +1 cell per side each level
     const CELLS_PER_FOOD_FOR_LEVEL = 5;// Level up every 5 foods
-    const CELL_PX = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell')) || 24;
+
+    // CONSTANT internal canvas resolution (keeps visual size constant)
+    const CANVAS_PX = 480;
 
     const SPEEDS = [
       { label: "Chill",  ms: 160 },
@@ -166,8 +183,7 @@
       { label: "Snappy", ms:  90 },
       { label: "Turbo",  ms:  65 }
     ];
-
-    // Auto mobile mode: start slower on coarse pointers (touch)
+    // Auto mobile mode: start slower on touch/coarse pointers
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
 
     const STORAGE_HIGH   = "snake_highscore_v1";
@@ -184,26 +200,27 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const scoresGrid = document.getElementById('scoresGrid');
 
+    // Ensure internal canvas resolution is constant (matches attribute width/height)
+    canvas.width = CANVAS_PX;
+    canvas.height = CANVAS_PX;
+
     // ====== Game State ======
-    let SIZE, px;
+    let SIZE;            // logical grid size (cells per side)
     let snake, direction, nextDirection, food, score, high, alive, paused, lastTick;
     let level, foodsThisLevel;
 
+    // Dynamic cell size derived from constant canvas size
+    function cellPx() { return Math.floor(CANVAS_PX / SIZE); }
+
     // ====== Scoreboard ======
     function readBoard() {
-      try {
-        const raw = localStorage.getItem(STORAGE_BOARD);
-        if (!raw) return [];
-        const arr = JSON.parse(raw);
-        return Array.isArray(arr) ? arr : [];
-      } catch { return []; }
+      try { const raw = localStorage.getItem(STORAGE_BOARD); return raw ? JSON.parse(raw) : []; }
+      catch { return []; }
     }
-    function writeBoard(list) {
-      try { localStorage.setItem(STORAGE_BOARD, JSON.stringify(list)); } catch {}
-    }
+    function writeBoard(list) { try { localStorage.setItem(STORAGE_BOARD, JSON.stringify(list)); } catch {} }
     function addScoreToBoard(name, score, level) {
       const list = readBoard();
-      list.push({ name: (name || "Player").trim().slice(0, 24) || "Player", score, level, ts: Date.now() });
+      list.push({ name: (name || "Player").trim().slice(0,24) || "Player", score, level, ts: Date.now() });
       list.sort((a,b) => b.score - a.score || b.ts - a.ts);
       const top = list.slice(0, 10);
       writeBoard(top);
@@ -213,9 +230,8 @@
       while (scoresGrid.children.length > 4) scoresGrid.removeChild(scoresGrid.lastChild);
       for (const row of list) {
         const d = new Date(row.ts);
-        const date = d.toLocaleDateString(undefined, { month: 'short', day:'2-digit' });
-        const cells = [row.name, String(row.score), String(row.level), date];
-        for (const c of cells) {
+        const date = d.toLocaleDateString(undefined, { month:'short', day:'2-digit' });
+        for (const c of [row.name, String(row.score), String(row.level), date]) {
           const div = document.createElement('div'); div.textContent = c; scoresGrid.appendChild(div);
         }
       }
@@ -224,24 +240,17 @@
     // ====== High score ======
     function loadHigh() {
       const v = parseInt(localStorage.getItem(STORAGE_HIGH) || "0", 10);
-      high = isNaN(v) ? 0 : v;
-      highEl.textContent = high;
+      high = isNaN(v) ? 0 : v; highEl.textContent = high;
     }
     function saveHigh() {
-      if (score > high) {
-        high = score;
-        highEl.textContent = high;
-        localStorage.setItem(STORAGE_HIGH, String(high));
-      }
+      if (score > high) { high = score; highEl.textContent = high; localStorage.setItem(STORAGE_HIGH, String(high)); }
     }
 
     // ====== Level / Size ======
     function sizeForLevel(lv) { return BASE_SIZE + (lv - 1) * CELLS_PER_LEVEL; }
     function applySizeVars() {
       document.documentElement.style.setProperty('--size', String(SIZE));
-      px = SIZE * CELL_PX;
-      canvas.width = px;
-      canvas.height = px;
+      // canvas remains constant; only cell size changes via cellPx()
     }
     function setLevel(lv) {
       level = Math.max(1, Math.min(MAX_LEVEL, lv));
@@ -256,10 +265,8 @@
       if (foodsThisLevel >= CELLS_PER_FOOD_FOR_LEVEL) {
         level++;
         setLevel(level);
-        // Optional difficulty ramp: speed up slightly every 4 levels
         if (level % 4 === 0 && speedIndex < SPEEDS.length - 1) {
-          speedIndex++;
-          speedLabel.textContent = SPEEDS[speedIndex].label;
+          speedIndex++; speedLabel.textContent = SPEEDS[speedIndex].label;
         }
       }
     }
@@ -274,14 +281,11 @@
       ];
       direction = { x: 1, y: 0 };
       nextDirection = { x: 1, y: 0 };
-      score = 0;
-      alive = true;
-      paused = false;
-      lastTick = 0;
+      score = 0; alive = true; paused = false; lastTick = 0;
       placeFood();
       scoreEl.textContent = score;
       stateLabel.textContent = "Playing";
-      renderBoard(); // show saved scores
+      renderBoard();
     }
 
     function placeFood() {
@@ -293,28 +297,43 @@
     }
 
     function setDirection(dx, dy) {
-      if (dx === -direction.x && dy === -direction.y) return; // block 180 turns
+      if (dx === -direction.x && dy === -direction.y) return;
       nextDirection = { x: dx, y: dy };
     }
 
     // ====== Draw ======
     function draw() {
-      ctx.fillStyle = getVar('--bg'); ctx.fillRect(0, 0, px, px);
+      const cp = cellPx();
+      const px = cp * SIZE; // may be slightly smaller than CANVAS_PX due to floor; center it
+      const offset = Math.floor((CANVAS_PX - px) / 2);
+
+      // Background
+      ctx.fillStyle = getVar('--bg');
+      ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
+
+      // Subtle grid (centered)
       ctx.strokeStyle = getVar('--grid'); ctx.lineWidth = 1;
       ctx.beginPath();
       for (let i = 1; i < SIZE; i++) {
-        const g = i * CELL_PX + 0.5;
-        ctx.moveTo(g, 0); ctx.lineTo(g, px);
-        ctx.moveTo(0, g); ctx.lineTo(px, g);
+        const g = offset + i * cp + 0.5;
+        ctx.moveTo(g, offset);           ctx.lineTo(g, offset + px);
+        ctx.moveTo(offset, g);           ctx.lineTo(offset + px, g);
       }
       ctx.stroke();
-      fillCell(food.x, food.y, getVar('--food'));
+
+      // Food
+      fillCell(food.x, food.y, getVar('--food'), cp, offset);
+      // Snake
       for (let i = 0; i < snake.length; i++) {
         const seg = snake[i];
-        fillCell(seg.x, seg.y, i === 0 ? getVar('--snakeHead') : getVar('--snake'));
+        fillCell(seg.x, seg.y, i === 0 ? getVar('--snakeHead') : getVar('--snake'), cp, offset);
       }
     }
-    function fillCell(x, y, color) { ctx.fillStyle = color; ctx.fillRect(x * CELL_PX, y * CELL_PX, CELL_PX, CELL_PX); }
+
+    function fillCell(x, y, color, cp, offset) {
+      ctx.fillStyle = color;
+      ctx.fillRect(offset + x * cp, offset + y * cp, cp, cp);
+    }
     function getVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
     // ====== Tick / Logic (wrap-around walls) ======
@@ -370,15 +389,17 @@
     // ====== Input (keys + buttons + swipe) ======
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
-      if (k === 'arrowup' || k === 'w') setDirection(0, -1);
-      else if (k === 'arrowdown' || k === 's') setDirection(0, 1);
-      else if (k === 'arrowleft' || k === 'a') setDirection(-1, 0);
-      else if (k === 'arrowright' || k === 'd') setDirection(1, 0);
-      else if (k === ' ' || k === 'p') togglePause();
-      else if (k === 'r') { reset(); }
-      else if (k === '+' || k === '=') changeSpeed(1);
-      else if (k === '-' || k === '_') changeSpeed(-1);
-    }, { passive: true });
+      let handled = false;
+      if (k === 'arrowup' || k === 'w')      { setDirection(0, -1); handled = true; }
+      else if (k === 'arrowdown' || k === 's'){ setDirection(0, 1);  handled = true; }
+      else if (k === 'arrowleft' || k === 'a'){ setDirection(-1, 0); handled = true; }
+      else if (k === 'arrowright' || k === 'd'){setDirection(1, 0);  handled = true; }
+      else if (k === ' ' || k === 'p')        { togglePause();       handled = true; }
+      else if (k === 'r')                     { reset();             handled = true; }
+      else if (k === '+' || k === '=')        { changeSpeed(1);      handled = true; }
+      else if (k === '-' || k === '_')        { changeSpeed(-1);     handled = true; }
+      if (handled) { e.preventDefault(); } // 🛑 stop page scrolling on arrows/space
+    }, { passive: false });
 
     document.querySelectorAll('[data-dir]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -421,8 +442,9 @@
       stateLabel.textContent = paused ? "Paused" : "Playing";
     }
     function changeSpeed(delta) {
+      const prev = speedIndex;
       speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, speedIndex + delta));
-      speedLabel.textContent = SPEEDS[speedIndex].label;
+      if (speedIndex !== prev) speedLabel.textContent = SPEEDS[speedIndex].label;
     }
 
     // ====== Boot ======
@@ -433,7 +455,7 @@
     requestAnimationFrame(step);
     document.addEventListener('visibilitychange', () => { lastTick = 0; }, { passive: true });
 
-    // ====== PWA: register service worker (place near end, after DOM is ready) ======
+    // ====== PWA: register service worker ======
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/snake/service-worker.js");
