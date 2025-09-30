@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Snake — Leaderboard</title>
+  <meta name="theme-color" content="#0a0f0a">
+  <link rel="manifest" href="/snake/manifest.json">
+
+  <style>
+    :root{ --bg:#0a0f0a; --panel:#0c150c; --border:#1c2a1c; --ui:#d2ffd2; --accent:#4dff4d; }
+    *{box-sizing:border-box} html,body{height:100%} body{
+      margin:0; background:radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ui);
+    }
+    .wrap{min-height:100%; display:grid; place-items:center; padding:16px}
+    .card{ width:min(96vw,800px); background:rgba(5,10,5,.7); border:1px solid var(--border);
+      border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.4), inset 0 0 40px rgba(76,255,76,.06);
+      padding:16px; backdrop-filter:blur(4px);
+    }
+    h1{margin:0 0 6px 0; letter-spacing:.5px}
+    .linkbar{margin:8px 0 14px 0}
+    a{color:var(--accent); text-decoration:none} a:hover{text-decoration:underline}
+    .scores{display:grid; grid-template-columns:1.5fr .8fr .8fr .9fr; gap:6px 10px; font-size:14px}
+    .scores div{padding:8px; background:rgba(76,255,76,.04); border:1px solid var(--border); border-radius:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .hdr{font-weight:700; background:rgba(76,255,76,.08)}
+    .row:nth-child(odd) div{background:rgba(76,255,76,.03)}
+    .actions{display:flex; gap:10px; align-items:center; margin:8px 0 12px}
+    button{border:1px solid var(--border); background:rgba(76,255,76,.08); color:var(--ui);
+      border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer}
+    .hint{opacity:.8; font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Top Scores</h1>
+      <div class="linkbar">
+        <a href="/snake/">← Back to Game</a> · <a href="/">Home</a>
+      </div>
+
+      <div class="actions">
+        <button id="refreshBtn">Refresh</button>
+        <span class="hint">Shows the global Top-10 when online; falls back to your device’s local scores when offline.</span>
+      </div>
+
+      <div class="scores" id="scoresGrid">
+        <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
+        <!-- rows injected -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Set your Worker API base (same as game) ===
+    const GLOBAL_API = "https://snake-scoreboard.snake-scoreboard.workers.dev/api";
+
+    // Local fallback key (matches the game)
+    const STORAGE_BOARD = "snake_scoreboard_v1";
+
+    const scoresGrid = document.getElementById('scoresGrid');
+    const btn = document.getElementById('refreshBtn');
+
+    function renderBoard(list){
+      while (scoresGrid.children.length > 4) scoresGrid.removeChild(scoresGrid.lastChild);
+      for(const r of list){
+        const d = new Date(r.ts), date = d.toLocaleDateString(undefined,{month:'short',day:'2-digit'});
+        for(const c of [r.name, String(r.score), String(r.level), date]){
+          const div = document.createElement('div'); div.textContent = c; scoresGrid.appendChild(div);
+        }
+      }
+    }
+
+    function readLocal(){ try{ const raw = localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[] } catch { return [] } }
+
+    async function load(){
+      try{
+        const res = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
+        const { top } = await res.json();
+        renderBoard(top || []);
+      }catch{
+        renderBoard(readLocal());
+      }
+    }
+
+    btn.addEventListener('click', load);
+    load();
+
+    // Register SW so this page also works offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/snake/service-worker.js'));
+    }
+  </script>
+</body>
+</html>

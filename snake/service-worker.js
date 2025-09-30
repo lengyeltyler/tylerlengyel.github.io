@@ -2,6 +2,7 @@ const CACHE_NAME = "snake-v1";
 const ASSETS = [
   "/snake/",
   "/snake/index.html",
+  "/snake/leaderboard.html",
   "/snake/manifest.json",
   "/snake/icon-192.png",
   "/snake/icon-512.png"
