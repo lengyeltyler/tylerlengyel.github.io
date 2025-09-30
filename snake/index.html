@@ -47,11 +47,12 @@
       max-width:min(100vw,100svw); max-height:min(100vh,100svh);
     }
 
-    /* HUD overlays canvas (doesn't block touches) */
+    /* HUD overlays canvas by default (desktop) so it doesn't consume vertical space */
     .hud{
-      position:absolute; inset:auto 0 0 0; top:8px;
-      padding:0 8px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
-      pointer-events:none;
+      position:absolute; left:0; right:0; top:8px;
+      padding:0 8px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      pointer-events:none; /* don't block canvas touches */
     }
     .title{font-weight:700; letter-spacing:.5px; text-shadow:0 2px 8px rgba(76,255,76,.15)}
     .stats{display:flex; gap:8px; flex-wrap:wrap}
@@ -102,9 +103,32 @@
     .scores div{padding:6px 8px; background:rgba(76,255,76,.04); border:1px solid #1e371e; border-radius:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
     .scores .hdr{font-weight:700; background:rgba(76,255,76,.08)}
 
+    /* ===== Mobile tweaks: HUD ABOVE the grid, tiny text + smaller D-pad ===== */
     @media (max-width: 640px){
-      .extras{display:none} /* hide extras on phones to avoid any scroll */
-      .btn{padding:18px; font-size:20px}
+      .hud{
+        position: static;         /* no overlay; sits above the canvas */
+        inset: auto;
+        padding: 0 2px 4px 2px;
+        display: block;
+        pointer-events: auto;
+      }
+      .title{ font-size: 14px; margin-bottom: 2px; }
+      .stats{
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr)); /* two columns */
+        gap: 4px 6px;
+      }
+      .pill{
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: transparent;
+        border-color: #184e18;
+        color: #86ff86;
+      }
+      .btn{ padding: 12px; font-size: 16px; border-radius: 10px; }
+      .controls{ gap: 6px; }
+      .extras{ display: none; }   /* no scrolling on phones */
     }
   </style>
 </head>
@@ -223,15 +247,22 @@
       }
     }
 
-    // ====== Layout: square canvas sized to available space, crisp on DPR ======
+    // ====== Layout: square canvas sized to available space, crisp on DPR
     function layout(){
       const app = document.querySelector('.app');
       const controls = document.querySelector('.controls');
+      const hud = document.querySelector('.hud');
+
       const appW = app.clientWidth;
       const appH = app.clientHeight;
-      const ctrH = controls.offsetHeight + 8;
-      const size = Math.min(appW, appH - ctrH);
+
+      const ctrH = controls.offsetHeight + 8;      // always subtract controls
+      const hudIsOverlay = getComputedStyle(hud).position === 'absolute';
+      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6); // subtract HUD only when it's above the grid
+
+      const size = Math.min(appW, appH - ctrH - hudH);
       const cssSize = Math.max(240, size); // minimum so it never gets too tiny
+
       canvas.style.width = cssSize + "px";
       canvas.style.height = cssSize + "px";
 
