@@ -1,128 +1,117 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!-- PWA manifest + theme color -->
+  <!-- PWA -->
   <link rel="manifest" href="/snake/manifest.json">
   <meta name="theme-color" content="#0a0f0a">
+  <!-- iOS standalone feel when added to Home Screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Snake</title>
-  <meta name="description" content="Retro Snake — arrow keys or WASD.">
+  <meta name="description" content="Retro Snake — keyboard, swipe, and D-pad." />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    :root {
-      --bg: #0a0f0a;
-      --grid: #123312;
-      --snake: #6cff6c;
-      --snakeHead: #b3ffb3;
-      --food: #a9ff3f;
-      --ui: #d2ffd2;
-      --accent: #4dff4d;
-      --size: 20;   /* logical grid size; visual board stays constant now */
-      --board-max: 480px; /* max visual size on larger screens */
-      --cell: 24; /* kept for compatibility; no longer drives canvas pixels */
+    :root{
+      --bg:#0a0f0a; --grid:#123312; --snake:#6cff6c; --snakeHead:#b3ffb3; --food:#a9ff3f;
+      --ui:#d2ffd2; --accent:#4dff4d;
+      --size:20;                   /* logical grid size (changes with level) */
+      --desktop-max:560px;         /* desktop max visual width */
+      --gap:12px;
+      --safe-top: env(safe-area-inset-top);
+      --safe-right: env(safe-area-inset-right);
+      --safe-bottom: env(safe-area-inset-bottom);
+      --safe-left: env(safe-area-inset-left);
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
-      color: var(--ui);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      /* Stops iOS “pull to refresh”/gestures from fighting gameplay; we re-enable vertical pan inside the card */
-      touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
-      overflow: hidden; /* page stays fixed; the card can scroll internally */
-    }
-    .wrap {
-      min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 16px;
-    }
-    .card {
-      width: min(94vw, calc(var(--board-max) + 32px));
-      border: 1px solid #1c2a1c;
-      background: rgba(5, 10, 5, 0.72);
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 40px rgba(76,255,76,0.06);
-      backdrop-filter: blur(4px);
-      max-height: 100vh;          /* allow internal scroll if needed on small screens */
-      overflow: auto;
-      touch-action: pan-y;         /* allow vertical scroll INSIDE the card on mobile */
-    }
-    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; }
-    .title { font-weight: 700; letter-spacing: 0.5px; }
-    .stats { display: flex; gap: 12px; flex-wrap: wrap; }
-    .pill {
-      border: 1px solid #1e371e; border-radius: 999px; padding: 6px 10px; font-size: 14px;
-      color: var(--accent); background: rgba(76,255,76,0.06);
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
+      color:var(--ui);
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      touch-action:none;              /* stop browser gestures while playing */
+      -webkit-user-select:none; user-select:none;
+      overflow:hidden;                /* no page scroll; app fills viewport */
     }
 
-    /* CONSTANT visual board size: width clamps to viewport, stays square via aspect-ratio */
-    canvas {
-      width: min(94vw, var(--board-max));
-      aspect-ratio: 1 / 1;        /* keeps it square without needing explicit height */
+    /* ===== App-like layout (fills the screen) ===== */
+    .app{
+      position:fixed; inset:0;
+      padding:calc(var(--safe-top) + 8px) calc(var(--safe-right) + 8px)
+              calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 8px);
+      display:grid; grid-template-rows: 1fr auto; gap: var(--gap);
+      max-width:min(100vw,100svw); max-height:min(100vh,100svh);
+    }
+
+    /* HUD overlays canvas (doesn't block touches) */
+    .hud{
+      position:absolute; inset:auto 0 0 0; top:8px;
+      padding:0 8px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      pointer-events:none;
+    }
+    .title{font-weight:700; letter-spacing:.5px; text-shadow:0 2px 8px rgba(76,255,76,.15)}
+    .stats{display:flex; gap:8px; flex-wrap:wrap}
+    .pill{
+      pointer-events:auto;
+      border:1px solid #1e371e; border-radius:999px; padding:4px 8px; font-size:13px;
+      color:var(--accent); background:rgba(76,255,76,.06)
+    }
+
+    .stage{
+      position:relative; display:grid; place-items:center; min-height:0;
+    }
+    /* Canvas is a square that auto-sizes to space above controls; crisp via JS DPR scaling */
+    canvas{
+      display:block;
+      width:100%;
+      height:auto;
+      max-width:var(--desktop-max);
+      aspect-ratio:1/1;
+      border:1px solid #1c2a1c; border-radius:12px;
+      background:linear-gradient(#0b140b,#081008);
       image-rendering: pixelated;
-      border-radius: 10px;
-      border: 1px solid #1c2a1c;
-      display: block;
-      background: linear-gradient(#0b140b, #081008);
-      margin: 0 auto;
-      touch-action: none;
+      touch-action:none;
     }
 
-    .controls {
-      position: sticky; bottom: 8px; /* 💡 stays visible near bottom even if the card scrolls */
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 8px;
-      user-select: none;
-      padding-top: 8px;
-      background: linear-gradient(to bottom, transparent, rgba(5,10,5,0.35));
-      backdrop-filter: blur(2px);
+    /* D-pad: always visible bottom row */
+    .controls{
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+      max-width:var(--desktop-max); margin:0 auto;
+      padding-bottom:2px;
     }
-    .btn {
-      border: 1px solid #1e371e; border-radius: 10px; padding: 12px 12px; text-align: center;
-      background: rgba(76,255,76,0.06);
-      color: var(--ui); font-weight: 600; cursor: pointer;
-      transition: transform .04s ease, background .1s ease;
-      touch-action: manipulation;
+    .btn{
+      border:1px solid #1e371e; border-radius:12px; padding:14px 12px; text-align:center;
+      background:rgba(76,255,76,.06); color:var(--ui); font-weight:700; cursor:pointer;
+      transition:transform .04s ease, background .1s ease; touch-action:manipulation; font-size:18px;
     }
-    .btn:active { transform: translateY(1px) scale(.99); background: rgba(76,255,76,0.12); }
-    .grid-spacer { visibility: hidden; }
-    .help { margin-top: 10px; font-size: 13px; opacity: .8; line-height: 1.4; }
-    .linkbar { margin-top: 8px; font-size: 13px; opacity: .75; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .btn:active{transform:translateY(1px) scale(.99); background:rgba(76,255,76,.12)}
+    .grid-spacer{visibility:hidden}
 
-    /* Scoreboard */
-    .board {
-      margin-top: 14px;
-      border-top: 1px solid #1c2a1c;
-      padding-top: 12px;
-    }
-    .board h3 { margin: 0 0 8px 0; font-size: 14px; letter-spacing: .4px; opacity: .9; }
-    .scores { display: grid; grid-template-columns: 1.5fr .8fr .8fr .9fr; gap: 6px 10px; font-size: 13px; }
-    .scores div { padding: 6px 8px; background: rgba(76,255,76,0.04); border: 1px solid #1e371e; border-radius: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .scores .hdr { font-weight: 700; background: rgba(76,255,76,0.08); }
+    /* Optional extra info (help, scoreboard). Hidden on small screens for true app feel. */
+    .extras{max-width:var(--desktop-max); margin:8px auto 0}
+    .help{font-size:13px; opacity:.8; margin-bottom:6px}
+    .linkbar a{color:var(--accent); text-decoration:none}
+    .linkbar a:hover{text-decoration:underline}
+    .board{border-top:1px solid #1c2a1c; padding-top:8px}
+    .board h3{margin:0 0 6px 0; font-size:14px; opacity:.9}
+    .scores{display:grid; grid-template-columns:1.5fr .8fr .8fr .9fr; gap:6px 10px; font-size:13px}
+    .scores div{padding:6px 8px; background:rgba(76,255,76,.04); border:1px solid #1e371e; border-radius:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .scores .hdr{font-weight:700; background:rgba(76,255,76,.08)}
 
-    /* Mobile tweaks: slightly larger buttons */
-    @media (max-width: 480px) {
-      .btn { padding: 16px 18px; font-size: 18px; }
+    @media (max-width: 640px){
+      .extras{display:none} /* hide extras on phones to avoid any scroll */
+      .btn{padding:18px; font-size:20px}
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="topbar">
+  <div class="app">
+    <div class="stage">
+      <div class="hud">
         <div class="title">S N A K E</div>
         <div class="stats">
           <div class="pill">Score: <span id="score">0</span></div>
@@ -132,36 +121,37 @@
           <div class="pill" id="stateLabel">Playing</div>
         </div>
       </div>
+      <canvas id="board" aria-label="Snake game area" role="img"></canvas>
+    </div>
 
-      <canvas id="board" width="480" height="480" aria-label="Snake game area" role="img"></canvas>
-
-      <!-- Touch controls (sticky so DOWN stays visible) -->
-      <div class="controls" aria-hidden="false">
+    <!-- D-pad -->
+    <div>
+      <div class="controls">
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="up">▲ Up</button>
         <div class="grid-spacer"></div>
+
         <button class="btn" data-dir="left">◀ Left</button>
         <button class="btn" id="pauseBtn">⏸ / ▶</button>
         <button class="btn" data-dir="right">▶ Right</button>
+
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="down">▼ Down</button>
         <div class="grid-spacer"></div>
       </div>
 
-      <div class="help">
-        Controls: Arrow Keys / WASD. Space or P = Pause/Resume. R = Restart. + / – = Speed.
-        <br>Wrap-around edges, 69 levels (grid grows), Top-10 scoreboard, offline-ready PWA.
-      </div>
+      <div class="extras">
+        <div class="help">
+          Keys: Arrows/WASD. Space/P = Pause. R = Restart. + / – = Speed.
+          Wrap edges • 69 levels • Top-10 scoreboard • Offline PWA.
+        </div>
+        <div class="linkbar"><a href="/" rel="home">← Back to Home</a></div>
 
-      <div class="linkbar">
-        <a href="/" rel="home">← Back to Home</a>
-      </div>
-
-      <div class="board">
-        <h3>Top Scores</h3>
-        <div class="scores" id="scoresGrid">
-          <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
-          <!-- rows injected here -->
+        <div class="board">
+          <h3>Top Scores</h3>
+          <div class="scores" id="scoresGrid">
+            <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
+          </div>
         </div>
       </div>
     </div>
@@ -169,297 +159,211 @@
 
   <script>
     // ====== Config ======
-    const BASE_SIZE = 16;              // Level 1 grid (cells per side)
-    const MAX_LEVEL = 69;              // Levels 1..69
-    const CELLS_PER_LEVEL = 1;         // +1 cell per side each level
-    const CELLS_PER_FOOD_FOR_LEVEL = 5;// Level up every 5 foods
-
-    // CONSTANT internal canvas resolution (keeps visual size constant)
-    const CANVAS_PX = 480;
-
-    const SPEEDS = [
-      { label: "Chill",  ms: 160 },
-      { label: "Normal", ms: 120 },
-      { label: "Snappy", ms:  90 },
-      { label: "Turbo",  ms:  65 }
-    ];
-    // Auto mobile mode: start slower on touch/coarse pointers
+    const BASE_SIZE=16, MAX_LEVEL=69, CELLS_PER_LEVEL=1, CELLS_PER_FOOD_FOR_LEVEL=5;
+    const SPEEDS=[{label:"Chill",ms:160},{label:"Normal",ms:120},{label:"Snappy",ms:90},{label:"Turbo",ms:65}];
+    // Auto mobile mode: slower on touch by default
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
-
-    const STORAGE_HIGH   = "snake_highscore_v1";
-    const STORAGE_BOARD  = "snake_scoreboard_v1";
 
     // ====== DOM ======
     const canvas = document.getElementById('board');
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha:false });
     const scoreEl = document.getElementById('score');
-    const highEl  = document.getElementById('high');
+    const highEl = document.getElementById('high');
     const levelEl = document.getElementById('level');
     const speedLabel = document.getElementById('speedLabel');
     const stateLabel = document.getElementById('stateLabel');
     const pauseBtn = document.getElementById('pauseBtn');
     const scoresGrid = document.getElementById('scoresGrid');
 
-    // Ensure internal canvas resolution is constant (matches attribute width/height)
-    canvas.width = CANVAS_PX;
-    canvas.height = CANVAS_PX;
-
     // ====== Game State ======
-    let SIZE;            // logical grid size (cells per side)
-    let snake, direction, nextDirection, food, score, high, alive, paused, lastTick;
-    let level, foodsThisLevel;
+    let SIZE, snake, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
+    let LOGICAL_PX=480, DPR=1; // we set these in layout()
+    function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+    function cellPx(){ return Math.floor(LOGICAL_PX / SIZE); }
 
-    // Dynamic cell size derived from constant canvas size
-    function cellPx() { return Math.floor(CANVAS_PX / SIZE); }
-
-    // ====== Scoreboard ======
-    function readBoard() {
-      try { const raw = localStorage.getItem(STORAGE_BOARD); return raw ? JSON.parse(raw) : []; }
-      catch { return []; }
+    // ====== Scoreboard (local) ======
+    const STORAGE_HIGH="snake_highscore_v1", STORAGE_BOARD="snake_scoreboard_v1";
+    function readBoard(){ try{const raw=localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[]}catch{return[]}}
+    function writeBoard(list){ try{localStorage.setItem(STORAGE_BOARD, JSON.stringify(list))}catch{} }
+    function addScoreToBoard(name,score,level){
+      const list=readBoard(); list.push({name:(name||"Player").trim().slice(0,24)||"Player",score,level,ts:Date.now()});
+      list.sort((a,b)=>b.score-a.score||b.ts-a.ts); writeBoard(list.slice(0,10)); renderBoard();
     }
-    function writeBoard(list) { try { localStorage.setItem(STORAGE_BOARD, JSON.stringify(list)); } catch {} }
-    function addScoreToBoard(name, score, level) {
-      const list = readBoard();
-      list.push({ name: (name || "Player").trim().slice(0,24) || "Player", score, level, ts: Date.now() });
-      list.sort((a,b) => b.score - a.score || b.ts - a.ts);
-      const top = list.slice(0, 10);
-      writeBoard(top);
-      renderBoard(top);
-    }
-    function renderBoard(list = readBoard()) {
-      while (scoresGrid.children.length > 4) scoresGrid.removeChild(scoresGrid.lastChild);
-      for (const row of list) {
-        const d = new Date(row.ts);
-        const date = d.toLocaleDateString(undefined, { month:'short', day:'2-digit' });
-        for (const c of [row.name, String(row.score), String(row.level), date]) {
-          const div = document.createElement('div'); div.textContent = c; scoresGrid.appendChild(div);
-        }
+    function renderBoard(list=readBoard()){
+      if(!scoresGrid) return; // hidden on small screens
+      while (scoresGrid.children.length>4) scoresGrid.removeChild(scoresGrid.lastChild);
+      for(const r of list){
+        const d=new Date(r.ts), date=d.toLocaleDateString(undefined,{month:'short',day:'2-digit'});
+        for(const c of [r.name,String(r.score),String(r.level),date]){ const div=document.createElement('div'); div.textContent=c; scoresGrid.appendChild(div); }
       }
     }
 
     // ====== High score ======
-    function loadHigh() {
-      const v = parseInt(localStorage.getItem(STORAGE_HIGH) || "0", 10);
-      high = isNaN(v) ? 0 : v; highEl.textContent = high;
-    }
-    function saveHigh() {
-      if (score > high) { high = score; highEl.textContent = high; localStorage.setItem(STORAGE_HIGH, String(high)); }
-    }
+    function loadHigh(){ const v=parseInt(localStorage.getItem(STORAGE_HIGH)||"0",10); high=isNaN(v)?0:v; highEl.textContent=high; }
+    function saveHigh(){ if(score>high){ high=score; highEl.textContent=high; localStorage.setItem(STORAGE_HIGH, String(high)); } }
 
     // ====== Level / Size ======
-    function sizeForLevel(lv) { return BASE_SIZE + (lv - 1) * CELLS_PER_LEVEL; }
-    function applySizeVars() {
-      document.documentElement.style.setProperty('--size', String(SIZE));
-      // canvas remains constant; only cell size changes via cellPx()
-    }
-    function setLevel(lv) {
-      level = Math.max(1, Math.min(MAX_LEVEL, lv));
-      SIZE = sizeForLevel(level);
+    function sizeForLevel(lv){ return BASE_SIZE + (lv-1)*CELLS_PER_LEVEL; }
+    function applySizeVars(){ document.documentElement.style.setProperty('--size', String(SIZE)); }
+    function setLevel(lv){
+      level=Math.max(1,Math.min(MAX_LEVEL,lv));
+      SIZE=sizeForLevel(level);
       applySizeVars();
-      levelEl.textContent = level;
-      speedLabel.textContent = SPEEDS[speedIndex].label;
-      foodsThisLevel = 0;
+      levelEl.textContent=level;
+      speedLabel.textContent=SPEEDS[speedIndex].label;
+      foodsThisLevel=0;
     }
-    function maybeLevelUp() {
-      if (level >= MAX_LEVEL) return;
-      if (foodsThisLevel >= CELLS_PER_FOOD_FOR_LEVEL) {
-        level++;
-        setLevel(level);
-        if (level % 4 === 0 && speedIndex < SPEEDS.length - 1) {
-          speedIndex++; speedLabel.textContent = SPEEDS[speedIndex].label;
+    function maybeLevelUp(){
+      if(level>=MAX_LEVEL) return;
+      if(foodsThisLevel>=CELLS_PER_FOOD_FOR_LEVEL){
+        setLevel(level+1);
+        if(level%4===0 && speedIndex<SPEEDS.length-1){
+          speedIndex++; speedLabel.textContent=SPEEDS[speedIndex].label;
         }
       }
     }
 
-    // ====== Game Core ======
-    function reset() {
+    // ====== Layout: square canvas sized to available space, crisp on DPR ======
+    function layout(){
+      const app = document.querySelector('.app');
+      const controls = document.querySelector('.controls');
+      const appW = app.clientWidth;
+      const appH = app.clientHeight;
+      const ctrH = controls.offsetHeight + 8;
+      const size = Math.min(appW, appH - ctrH);
+      const cssSize = Math.max(240, size); // minimum so it never gets too tiny
+      canvas.style.width = cssSize + "px";
+      canvas.style.height = cssSize + "px";
+
+      LOGICAL_PX = Math.floor(cssSize);
+      DPR = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(LOGICAL_PX * DPR);
+      canvas.height = Math.floor(LOGICAL_PX * DPR);
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    window.addEventListener('resize', layout, {passive:true});
+    window.addEventListener('orientationchange', layout, {passive:true});
+
+    // ====== Core ======
+    function reset(){
       setLevel(1);
-      snake = [
-        { x: Math.floor(SIZE/2), y: Math.floor(SIZE/2) },
-        { x: Math.floor(SIZE/2)-1, y: Math.floor(SIZE/2) },
-        { x: Math.floor(SIZE/2)-2, y: Math.floor(SIZE/2) }
+      snake=[
+        {x:Math.floor(SIZE/2), y:Math.floor(SIZE/2)},
+        {x:Math.floor(SIZE/2)-1, y:Math.floor(SIZE/2)},
+        {x:Math.floor(SIZE/2)-2, y:Math.floor(SIZE/2)}
       ];
-      direction = { x: 1, y: 0 };
-      nextDirection = { x: 1, y: 0 };
-      score = 0; alive = true; paused = false; lastTick = 0;
-      placeFood();
-      scoreEl.textContent = score;
-      stateLabel.textContent = "Playing";
-      renderBoard();
+      direction={x:1,y:0}; nextDirection={x:1,y:0};
+      score=0; alive=true; paused=false; lastTick=0;
+      placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing"; renderBoard();
     }
-
-    function placeFood() {
-      while (true) {
-        const x = Math.floor(Math.random() * SIZE);
-        const y = Math.floor(Math.random() * SIZE);
-        if (!snake.some(s => s.x === x && s.y === y)) { food = { x, y }; return; }
+    function placeFood(){
+      while(true){
+        const x=Math.floor(Math.random()*SIZE), y=Math.floor(Math.random()*SIZE);
+        if(!snake.some(s=>s.x===x && s.y===y)){ food={x,y}; return; }
       }
     }
+    function setDirection(dx,dy){ if(dx===-direction.x && dy===-direction.y) return; nextDirection={x:dx,y:dy}; }
 
-    function setDirection(dx, dy) {
-      if (dx === -direction.x && dy === -direction.y) return;
-      nextDirection = { x: dx, y: dy };
-    }
-
-    // ====== Draw ======
-    function draw() {
-      const cp = cellPx();
-      const px = cp * SIZE; // may be slightly smaller than CANVAS_PX due to floor; center it
-      const offset = Math.floor((CANVAS_PX - px) / 2);
-
-      // Background
-      ctx.fillStyle = getVar('--bg');
-      ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX);
-
-      // Subtle grid (centered)
-      ctx.strokeStyle = getVar('--grid'); ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (let i = 1; i < SIZE; i++) {
-        const g = offset + i * cp + 0.5;
-        ctx.moveTo(g, offset);           ctx.lineTo(g, offset + px);
-        ctx.moveTo(offset, g);           ctx.lineTo(offset + px, g);
-      }
+    function draw(){
+      const cp=cellPx(), px=cp*SIZE, offset=Math.floor((LOGICAL_PX - px)/2);
+      // bg
+      ctx.fillStyle=getVar('--bg'); ctx.fillRect(0,0,LOGICAL_PX,LOGICAL_PX);
+      // grid
+      ctx.strokeStyle=getVar('--grid'); ctx.lineWidth=1; ctx.beginPath();
+      for(let i=1;i<SIZE;i++){ const g=offset+i*cp+0.5; ctx.moveTo(g,offset); ctx.lineTo(g,offset+px); ctx.moveTo(offset,g); ctx.lineTo(offset+px,g); }
       ctx.stroke();
-
-      // Food
-      fillCell(food.x, food.y, getVar('--food'), cp, offset);
-      // Snake
-      for (let i = 0; i < snake.length; i++) {
-        const seg = snake[i];
-        fillCell(seg.x, seg.y, i === 0 ? getVar('--snakeHead') : getVar('--snake'), cp, offset);
-      }
+      // food
+      fillCell(food.x,food.y,getVar('--food'),cp,offset);
+      // snake
+      for(let i=0;i<snake.length;i++){ const seg=snake[i]; fillCell(seg.x,seg.y, i===0?getVar('--snakeHead'):getVar('--snake'),cp,offset); }
     }
+    function fillCell(x,y,color,cp,offset){ ctx.fillStyle=color; ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp); }
 
-    function fillCell(x, y, color, cp, offset) {
-      ctx.fillStyle = color;
-      ctx.fillRect(offset + x * cp, offset + y * cp, cp, cp);
-    }
-    function getVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-    // ====== Tick / Logic (wrap-around walls) ======
-    function step(ts) {
-      if (!alive) { draw(); return; }
-      if (paused)  { draw(); requestAnimationFrame(step); return; }
-
-      if (!lastTick) lastTick = ts;
-      const delta = ts - lastTick;
-      const interval = SPEEDS[speedIndex].ms;
-      if (delta >= interval) {
-        lastTick = ts;
-
-        direction = nextDirection;
-        const head = snake[0];
-        let nx = head.x + direction.x;
-        let ny = head.y + direction.y;
-
-        // Wrap-around instead of wall death:
-        if (nx < 0) nx = SIZE - 1; else if (nx >= SIZE) nx = 0;
-        if (ny < 0) ny = SIZE - 1; else if (ny >= SIZE) ny = 0;
-
-        // Self collision = game over
-        if (snake.some(s => s.x === nx && s.y === ny)) {
-          alive = false;
-          stateLabel.textContent = "Game Over";
-          saveHigh();
-          draw();
-          setTimeout(() => {
-            const name = prompt("Game Over! Enter your name for the scoreboard:", "");
-            addScoreToBoard(name || "Player", score, level);
-          }, 30);
-          requestAnimationFrame(step);
-          return;
+    function step(ts){
+      if(!alive){ draw(); return; }
+      if(paused){ draw(); requestAnimationFrame(step); return; }
+      if(!lastTick) lastTick=ts;
+      const interval=SPEEDS[speedIndex].ms;
+      if(ts-lastTick>=interval){
+        lastTick=ts;
+        direction=nextDirection;
+        const head=snake[0];
+        let nx=head.x+direction.x, ny=head.y+direction.y;
+        // wrap
+        if(nx<0) nx=SIZE-1; else if(nx>=SIZE) nx=0;
+        if(ny<0) ny=SIZE-1; else if(ny>=SIZE) ny=0;
+        // self collision
+        if(snake.some(s=>s.x===nx && s.y===ny)){
+          alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
+          setTimeout(()=>{ const name=prompt("Game Over! Enter your name:", ""); addScoreToBoard(name||"Player", score, level); }, 20);
+          requestAnimationFrame(step); return;
         }
-
-        snake.unshift({ x: nx, y: ny });
-
-        if (nx === food.x && ny === food.y) {
-          score += 1; foodsThisLevel += 1;
-          scoreEl.textContent = score;
-          placeFood();
-          maybeLevelUp();
-        } else {
+        snake.unshift({x:nx,y:ny});
+        if(nx===food.x && ny===food.y){
+          score+=1; foodsThisLevel+=1; scoreEl.textContent=score; placeFood(); maybeLevelUp();
+        }else{
           snake.pop();
         }
       }
-
-      draw();
-      requestAnimationFrame(step);
+      draw(); requestAnimationFrame(step);
     }
 
     // ====== Input (keys + buttons + swipe) ======
-    window.addEventListener('keydown', (e) => {
-      const k = e.key.toLowerCase();
-      let handled = false;
-      if (k === 'arrowup' || k === 'w')      { setDirection(0, -1); handled = true; }
-      else if (k === 'arrowdown' || k === 's'){ setDirection(0, 1);  handled = true; }
-      else if (k === 'arrowleft' || k === 'a'){ setDirection(-1, 0); handled = true; }
-      else if (k === 'arrowright' || k === 'd'){setDirection(1, 0);  handled = true; }
-      else if (k === ' ' || k === 'p')        { togglePause();       handled = true; }
-      else if (k === 'r')                     { reset();             handled = true; }
-      else if (k === '+' || k === '=')        { changeSpeed(1);      handled = true; }
-      else if (k === '-' || k === '_')        { changeSpeed(-1);     handled = true; }
-      if (handled) { e.preventDefault(); } // 🛑 stop page scrolling on arrows/space
-    }, { passive: false });
+    window.addEventListener('keydown', (e)=>{
+      const k=e.key.toLowerCase(); let handled=false;
+      if(k==='arrowup'||k==='w'){ setDirection(0,-1); handled=true; }
+      else if(k==='arrowdown'||k==='s'){ setDirection(0,1); handled=true; }
+      else if(k==='arrowleft'||k==='a'){ setDirection(-1,0); handled=true; }
+      else if(k==='arrowright'||k==='d'){ setDirection(1,0); handled=true; }
+      else if(k===' '||k==='p'){ togglePause(); handled=true; }
+      else if(k==='r'){ reset(); handled=true; }
+      else if(k==='+'||k==='='){ changeSpeed(1); handled=true; }
+      else if(k==='-'||k==='_'){ changeSpeed(-1); handled=true; }
+      if(handled) e.preventDefault(); // stop page scroll on arrows/space
+    }, {passive:false});
 
-    document.querySelectorAll('[data-dir]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const d = btn.getAttribute('data-dir');
-        if (d === 'up') setDirection(0, -1);
-        if (d === 'down') setDirection(0, 1);
-        if (d === 'left') setDirection(-1, 0);
-        if (d === 'right') setDirection(1, 0);
+    document.querySelectorAll('[data-dir]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const d=btn.getAttribute('data-dir');
+        if(d==='up') setDirection(0,-1);
+        if(d==='down') setDirection(0,1);
+        if(d==='left') setDirection(-1,0);
+        if(d==='right') setDirection(1,0);
       });
     });
-    pauseBtn.addEventListener('click', togglePause);
+    document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
-    // Swipe control on the canvas
-    (function() {
-      const el = canvas;
-      let startX=0, startY=0, active=false;
-      const minDist = 18; // px threshold
-      el.addEventListener('touchstart', (e) => {
-        const t = e.changedTouches[0];
-        startX = t.clientX; startY = t.clientY; active = true;
-      }, {passive: true});
-      el.addEventListener('touchend', (e) => {
-        if (!active) return; active = false;
-        const t = e.changedTouches[0];
-        const dx = t.clientX - startX;
-        const dy = t.clientY - startY;
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < minDist) return;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0) setDirection(1, 0);
-          else setDirection(-1, 0);
-        } else {
-          if (dy > 0) setDirection(0, 1);
-          else setDirection(0, -1);
-        }
-      }, {passive: true});
+    // swipe on canvas
+    (function(){
+      const el=canvas; let startX=0,startY=0,active=false; const minDist=18;
+      el.addEventListener('touchstart', e=>{ const t=e.changedTouches[0]; startX=t.clientX; startY=t.clientY; active=true; }, {passive:true});
+      el.addEventListener('touchend', e=>{
+        if(!active) return; active=false; const t=e.changedTouches[0];
+        const dx=t.clientX-startX, dy=t.clientY-startY;
+        if(Math.max(Math.abs(dx),Math.abs(dy))<minDist) return;
+        if(Math.abs(dx)>Math.abs(dy)){ setDirection(dx>0?1:-1,0); } else { setDirection(0,dy>0?1:-1); }
+      }, {passive:true});
     })();
 
-    function togglePause() {
-      paused = !paused;
-      stateLabel.textContent = paused ? "Paused" : "Playing";
-    }
-    function changeSpeed(delta) {
-      const prev = speedIndex;
-      speedIndex = Math.max(0, Math.min(SPEEDS.length - 1, speedIndex + delta));
-      if (speedIndex !== prev) speedLabel.textContent = SPEEDS[speedIndex].label;
-    }
+    function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; }
+    function changeSpeed(delta){ const prev=speedIndex; speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta)); if(speedIndex!==prev) speedLabel.textContent=SPEEDS[speedIndex].label; }
 
     // ====== Boot ======
-    loadHigh();
-    renderBoard();
-    reset();
-    draw();
-    requestAnimationFrame(step);
-    document.addEventListener('visibilitychange', () => { lastTick = 0; }, { passive: true });
+    function boot(){
+      layout();
+      loadHigh();
+      renderBoard();
+      reset();
+      draw();
+      requestAnimationFrame(step);
+    }
+    window.addEventListener('load', boot, {passive:true});
+    document.addEventListener('visibilitychange', ()=>{ lastTick=0; }, {passive:true});
+    window.addEventListener('resize', ()=>{ lastTick=0; }, {passive:true});
 
-    // ====== PWA: register service worker ======
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/snake/service-worker.js");
-      });
+    // ====== Service worker ======
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', ()=> navigator.serviceWorker.register('/snake/service-worker.js'));
     }
   </script>
 </body>
