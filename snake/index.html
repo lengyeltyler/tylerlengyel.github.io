@@ -253,14 +253,18 @@
       const size = Math.min(appW, appH - ctrH - extraH - hudH);
       const cssSize = Math.max(240, size); // minimum so it never gets too tiny
 
+      // Set only width; height comes from aspect-ratio so it stays perfectly square
       canvas.style.width = cssSize + "px";
-      canvas.style.height = cssSize + "px";
+      canvas.style.height = ""; // let CSS handle it
 
-      LOGICAL_PX = Math.floor(cssSize);
+      // Measure the *actual* rendered width to size the backing buffer
+      const rectW = Math.floor(canvas.getBoundingClientRect().width);
+      LOGICAL_PX = rectW;
+
       DPR = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.floor(LOGICAL_PX * DPR);
+      canvas.width  = Math.floor(LOGICAL_PX * DPR);
       canvas.height = Math.floor(LOGICAL_PX * DPR);
-      ctx.setTransform(DPR,0,0,DPR,0,0);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
     window.addEventListener('resize', layout, {passive:true});
     window.addEventListener('orientationchange', layout, {passive:true});
