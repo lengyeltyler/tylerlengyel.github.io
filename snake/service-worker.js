@@ -1,4 +1,4 @@
-const CACHE_NAME = "snake-v1";
+const CACHE_NAME = "snake-v3";
 const ASSETS = [
   "/snake/",
   "/snake/index.html",
@@ -7,7 +7,6 @@ const ASSETS = [
   "/snake/icon-192.png",
   "/snake/icon-512.png"
 ];
-// Add more assets if you split CSS/JS later.
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
@@ -27,7 +26,6 @@ self.addEventListener("fetch", (e) => {
     caches.match(req).then((cached) =>
       cached ||
       fetch(req).then((resp) => {
-        // Optional: cache new GETs
         if (req.method === "GET" && resp.ok && new URL(req.url).origin === location.origin) {
           const clone = resp.clone();
           caches.open(CACHE_NAME).then(c => c.put(req, clone));

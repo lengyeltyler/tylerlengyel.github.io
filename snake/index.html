@@ -33,7 +33,7 @@
       background:radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
       color:var(--ui);
       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-      touch-action:none;              /* stop browser gestures while playing */
+      touch-action:none;
       -webkit-user-select:none; user-select:none;
       overflow:hidden;                /* no page scroll; app fills viewport */
     }
@@ -62,15 +62,11 @@
       color:var(--accent); background:rgba(76,255,76,.06)
     }
 
-    .stage{
-      position:relative; display:grid; place-items:center; min-height:0;
-    }
-    /* Canvas is a square that auto-sizes to space above controls; crisp via JS DPR scaling */
+    .stage{ position:relative; display:grid; place-items:center; min-height:0; }
+
+    /* Canvas auto-sizes to space above controls; crisp via DPR scaling in JS */
     canvas{
-      display:block;
-      width:100%;
-      height:auto;
-      max-width:var(--desktop-max);
+      display:block; width:100%; height:auto; max-width:var(--desktop-max);
       aspect-ratio:1/1;
       border:1px solid #1c2a1c; border-radius:12px;
       background:linear-gradient(#0b140b,#081008);
@@ -91,44 +87,22 @@
     }
     .btn:active{transform:translateY(1px) scale(.99); background:rgba(76,255,76,.12)}
     .grid-spacer{visibility:hidden}
+    .controls .full { grid-column: 1 / -1; } /* Speed button spans all columns */
 
-    /* Speed button spans all columns under D-pad */
-    .controls .full { grid-column: 1 / -1; }
-
-    /* Optional extra info (help, scoreboard). Hidden on small screens for true app feel. */
+    /* Small desktop-only extras under the D-pad */
     .extras{max-width:var(--desktop-max); margin:8px auto 0}
     .help{font-size:13px; opacity:.8; margin-bottom:6px}
     .linkbar a{color:var(--accent); text-decoration:none}
     .linkbar a:hover{text-decoration:underline}
-    .board{border-top:1px solid #1c2a1c; padding-top:8px}
-    .board h3{margin:0 0 6px 0; font-size:14px; opacity:.9}
-    .scores{display:grid; grid-template-columns:1.5fr .8fr .8fr .9fr; gap:6px 10px; font-size:13px}
-    .scores div{padding:6px 8px; background:rgba(76,255,76,.04); border:1px solid #1e371e; border-radius:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .scores .hdr{font-weight:700; background:rgba(76,255,76,.08)}
 
-    /* ===== Mobile tweaks: HUD ABOVE the grid, tiny text + smaller D-pad ===== */
+    /* ===== Mobile tweaks ===== */
     @media (max-width: 640px){
       .hud{
-        position: static;         /* no overlay; sits above the canvas */
-        inset: auto;
-        padding: 0 2px 4px 2px;
-        display: block;
-        pointer-events: auto;
+        position: static; inset: auto; padding: 0 2px 4px 2px; display: block; pointer-events: auto;
       }
       .title{ font-size: 14px; margin-bottom: 2px; }
-      .stats{
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0,1fr)); /* two columns */
-        gap: 4px 6px;
-      }
-      .pill{
-        font-size: 11px;
-        padding: 2px 6px;
-        border-radius: 8px;
-        background: transparent;
-        border-color: #184e18;
-        color: #86ff86;
-      }
+      .stats{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 6px; }
+      .pill{ font-size: 11px; padding: 2px 6px; border-radius: 8px; background: transparent; border-color: #184e18; color: #86ff86; }
       .btn{ padding: 12px; font-size: 16px; border-radius: 10px; }
       .controls{ gap: 6px; }
       .extras{ display: none; }   /* no scrolling on phones */
@@ -166,19 +140,18 @@
         <button class="btn" data-dir="down">▼ Down</button>
         <div class="grid-spacer"></div>
 
-        <!-- NEW: cycles through Chill / Normal / Snappy / Turbo -->
+        <!-- Speed cycles Chill → Normal → Snappy → Turbo -->
         <button class="btn full" id="speedBtn" aria-label="Change speed">
           Speed: <span id="speedBtnLabel">Normal</span>
         </button>
       </div>
 
+      <!-- ONE light extras block (no embedded table) -->
       <div class="extras">
         <div class="help">
           Keys: Arrows/WASD. Space/P = Pause. R = Restart. + / – = Speed.
           Wrap edges • 69 levels • Top-10 scoreboard • Offline PWA.
         </div>
-        <div class="linkbar"><a href="/" rel="home">← Back to Home</a></div>
-
         <div class="linkbar">
           <a href="/" rel="home">← Back to Home</a> ·
           <a href="/snake/leaderboard.html">Leaderboard</a>
@@ -191,11 +164,9 @@
     // ====== Config ======
     const BASE_SIZE=16, MAX_LEVEL=69, CELLS_PER_LEVEL=1, CELLS_PER_FOOD_FOR_LEVEL=5;
     const SPEEDS=[{label:"Chill",ms:160},{label:"Normal",ms:120},{label:"Snappy",ms:90},{label:"Turbo",ms:65}];
-    // Auto mobile mode: slower on touch by default
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
 
-    // >>> Set this to your Cloudflare Worker base URL when ready (no trailing slash):
-    // e.g., "https://snake-scoreboard.yourname.workers.dev/api"
+    // Cloudflare Worker API
     const GLOBAL_API = "https://snake-scoreboard.snake-scoreboard.workers.dev/api";
 
     // ====== DOM ======
@@ -207,52 +178,33 @@
     const speedLabel = document.getElementById('speedLabel');
     const stateLabel = document.getElementById('stateLabel');
     const pauseBtn = document.getElementById('pauseBtn');
-    const scoresGrid = document.getElementById('scoresGrid');
     const speedBtn = document.getElementById('speedBtn');
     const speedBtnLabel = document.getElementById('speedBtnLabel');
 
     // ====== Game State ======
     let SIZE, snake, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
-    let LOGICAL_PX=480, DPR=1; // we set these in layout()
+    let LOGICAL_PX=480, DPR=1;
     function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
     function cellPx(){ return Math.floor(LOGICAL_PX / SIZE); }
 
-    // ====== Scoreboard (local) ======
+    // ====== Scoreboard (local, kept for offline) ======
     const STORAGE_HIGH="snake_highscore_v1", STORAGE_BOARD="snake_scoreboard_v1";
     function readBoard(){ try{const raw=localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[]}catch{return[]}}
     function writeBoard(list){ try{localStorage.setItem(STORAGE_BOARD, JSON.stringify(list))}catch{} }
     function addScoreToBoard(name,score,level){
       const list=readBoard(); list.push({name:(name||"Player").trim().slice(0,24)||"Player",score,level,ts:Date.now()});
-      list.sort((a,b)=>b.score-a.score||b.ts-a.ts); writeBoard(list.slice(0,10)); renderBoard();
-    }
-    function renderBoard(list=readBoard()){
-      if(!scoresGrid) return; // hidden on small screens
-      while (scoresGrid.children.length>4) scoresGrid.removeChild(scoresGrid.lastChild);
-      for(const r of list){
-        const d=new Date(r.ts), date=d.toLocaleDateString(undefined,{month:'short',day:'2-digit'});
-        for(const c of [r.name,String(r.score),String(r.level),date]){ const div=document.createElement('div'); div.textContent=c; scoresGrid.appendChild(div); }
-      }
+      list.sort((a,b)=>b.score-a.score||b.ts-a.ts); writeBoard(list.slice(0,10));
     }
 
-    // ====== Global scoreboard (optional; requires Worker URL) ======
-    async function fetchGlobalTop(){
-      if(!GLOBAL_API) return; // not configured yet
-      try{
-        const r = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
-        const { top } = await r.json();
-        if (top) renderBoard(top);
-      }catch{}
-    }
+    // Global scoreboard calls (non-blocking; page now only links out)
     async function submitGlobalScore(name, score, level){
       if(!GLOBAL_API) return;
       try{
-        const r = await fetch(`${GLOBAL_API}/submit`,{
+        await fetch(`${GLOBAL_API}/submit`,{
           method:"POST",
           headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({ name, score, level })
         });
-        const { top } = await r.json();
-        if (top) renderBoard(top);
       }catch{}
     }
 
@@ -321,7 +273,7 @@
       ];
       direction={x:1,y:0}; nextDirection={x:1,y:0};
       score=0; alive=true; paused=false; lastTick=0;
-      placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing"; renderBoard();
+      placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing";
     }
     function placeFood(){
       while(true){
@@ -333,15 +285,11 @@
 
     function draw(){
       const cp=cellPx(), px=cp*SIZE, offset=Math.floor((LOGICAL_PX - px)/2);
-      // bg
       ctx.fillStyle=getVar('--bg'); ctx.fillRect(0,0,LOGICAL_PX,LOGICAL_PX);
-      // grid
       ctx.strokeStyle=getVar('--grid'); ctx.lineWidth=1; ctx.beginPath();
       for(let i=1;i<SIZE;i++){ const g=offset+i*cp+0.5; ctx.moveTo(g,offset); ctx.lineTo(g,offset+px); ctx.moveTo(offset,g); ctx.lineTo(offset+px,g); }
       ctx.stroke();
-      // food
       fillCell(food.x,food.y,getVar('--food'),cp,offset);
-      // snake
       for(let i=0;i<snake.length;i++){ const seg=snake[i]; fillCell(seg.x,seg.y, i===0?getVar('--snakeHead'):getVar('--snake'),cp,offset); }
     }
     function fillCell(x,y,color,cp,offset){ ctx.fillStyle=color; ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp); }
@@ -363,11 +311,9 @@
         if(snake.some(s=>s.x===nx && s.y===ny)){
           alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
           setTimeout(()=>{
-            const name=prompt("Game Over! Enter your name for the scoreboard:", "") || "Player";
-            // local (offline)
-            addScoreToBoard(name, score, level);
-            // global (if configured)
-            submitGlobalScore(name, score, level);
+            const name=prompt("Game Over! Enter your name for the leaderboard:", "") || "Player";
+            addScoreToBoard(name, score, level);   // local (offline)
+            submitGlobalScore(name, score, level); // global (online)
           }, 20);
           requestAnimationFrame(step); return;
         }
@@ -419,7 +365,6 @@
     })();
 
     function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; }
-
     function changeSpeed(delta){
       const prev=speedIndex;
       speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta));
@@ -434,8 +379,6 @@
     function boot(){
       layout();
       loadHigh();
-      renderBoard();
-      fetchGlobalTop().catch(()=>{}); // optional: will no-op until GLOBAL_API is set
       reset();
       draw();
       requestAnimationFrame(step);
