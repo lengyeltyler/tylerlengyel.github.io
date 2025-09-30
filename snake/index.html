@@ -187,7 +187,7 @@
     function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
     function cellPx(){ return Math.floor(LOGICAL_PX / SIZE); }
 
-    // ====== Scoreboard (local, kept for offline) ======
+    // ====== Local scores (for offline) ======
     const STORAGE_HIGH="snake_highscore_v1", STORAGE_BOARD="snake_scoreboard_v1";
     function readBoard(){ try{const raw=localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[]}catch{return[]}}
     function writeBoard(list){ try{localStorage.setItem(STORAGE_BOARD, JSON.stringify(list))}catch{} }
@@ -195,8 +195,6 @@
       const list=readBoard(); list.push({name:(name||"Player").trim().slice(0,24)||"Player",score,level,ts:Date.now()});
       list.sort((a,b)=>b.score-a.score||b.ts-a.ts); writeBoard(list.slice(0,10));
     }
-
-    // Global scoreboard calls (non-blocking; page now only links out)
     async function submitGlobalScore(name, score, level){
       if(!GLOBAL_API) return;
       try{
@@ -239,16 +237,20 @@
     function layout(){
       const app = document.querySelector('.app');
       const controls = document.querySelector('.controls');
+      const extras = document.querySelector('.extras');
       const hud = document.querySelector('.hud');
 
       const appW = app.clientWidth;
       const appH = app.clientHeight;
 
-      const ctrH = controls.offsetHeight + 8;      // always subtract controls
+      const ctrH = controls.offsetHeight + 8;                // always subtract D-pad
+      const extraH = extras && getComputedStyle(extras).display !== 'none'
+        ? extras.offsetHeight + 8                              // subtract extras on desktop
+        : 0;
       const hudIsOverlay = getComputedStyle(hud).position === 'absolute';
-      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6); // subtract HUD only when it's above the grid
+      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6); // subtract HUD only when above canvas (mobile)
 
-      const size = Math.min(appW, appH - ctrH - hudH);
+      const size = Math.min(appW, appH - ctrH - extraH - hudH);
       const cssSize = Math.max(240, size); // minimum so it never gets too tiny
 
       canvas.style.width = cssSize + "px";

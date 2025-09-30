@@ -1,4 +1,4 @@
-const CACHE_NAME = "snake-v3";
+const CACHE_NAME = "snake-v4";
 const ASSETS = [
   "/snake/",
   "/snake/index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(ASSETS)));
+  self.skipWaiting(); // take over immediately
 });
 
 self.addEventListener("activate", (e) => {
@@ -18,6 +19,7 @@ self.addEventListener("activate", (e) => {
       Promise.all(keys.map(k => (k === CACHE_NAME ? null : caches.delete(k))))
     )
   );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (e) => {
