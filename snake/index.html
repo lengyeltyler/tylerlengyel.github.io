@@ -92,6 +92,9 @@
     .btn:active{transform:translateY(1px) scale(.99); background:rgba(76,255,76,.12)}
     .grid-spacer{visibility:hidden}
 
+    /* Speed button spans all columns under D-pad */
+    .controls .full { grid-column: 1 / -1; }
+
     /* Optional extra info (help, scoreboard). Hidden on small screens for true app feel. */
     .extras{max-width:var(--desktop-max); margin:8px auto 0}
     .help{font-size:13px; opacity:.8; margin-bottom:6px}
@@ -162,6 +165,11 @@
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="down">▼ Down</button>
         <div class="grid-spacer"></div>
+
+        <!-- NEW: cycles through Chill / Normal / Snappy / Turbo -->
+        <button class="btn full" id="speedBtn" aria-label="Change speed">
+          Speed: <span id="speedBtnLabel">Normal</span>
+        </button>
       </div>
 
       <div class="extras">
@@ -188,6 +196,10 @@
     // Auto mobile mode: slower on touch by default
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
 
+    // >>> Set this to your Cloudflare Worker base URL when ready (no trailing slash):
+    // e.g., "https://snake-scoreboard.yourname.workers.dev/api"
+    const GLOBAL_API = ""; // leave empty to skip global calls until deployed
+
     // ====== DOM ======
     const canvas = document.getElementById('board');
     const ctx = canvas.getContext('2d', { alpha:false });
@@ -198,6 +210,8 @@
     const stateLabel = document.getElementById('stateLabel');
     const pauseBtn = document.getElementById('pauseBtn');
     const scoresGrid = document.getElementById('scoresGrid');
+    const speedBtn = document.getElementById('speedBtn');
+    const speedBtnLabel = document.getElementById('speedBtnLabel');
 
     // ====== Game State ======
     let SIZE, snake, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
@@ -222,6 +236,28 @@
       }
     }
 
+    // ====== Global scoreboard (optional; requires Worker URL) ======
+    async function fetchGlobalTop(){
+      if(!GLOBAL_API) return; // not configured yet
+      try{
+        const r = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
+        const { top } = await r.json();
+        if (top) renderBoard(top);
+      }catch{}
+    }
+    async function submitGlobalScore(name, score, level){
+      if(!GLOBAL_API) return;
+      try{
+        const r = await fetch(`${GLOBAL_API}/submit`,{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ name, score, level })
+        });
+        const { top } = await r.json();
+        if (top) renderBoard(top);
+      }catch{}
+    }
+
     // ====== High score ======
     function loadHigh(){ const v=parseInt(localStorage.getItem(STORAGE_HIGH)||"0",10); high=isNaN(v)?0:v; highEl.textContent=high; }
     function saveHigh(){ if(score>high){ high=score; highEl.textContent=high; localStorage.setItem(STORAGE_HIGH, String(high)); } }
@@ -235,6 +271,7 @@
       applySizeVars();
       levelEl.textContent=level;
       speedLabel.textContent=SPEEDS[speedIndex].label;
+      if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
       foodsThisLevel=0;
     }
     function maybeLevelUp(){
@@ -243,6 +280,7 @@
         setLevel(level+1);
         if(level%4===0 && speedIndex<SPEEDS.length-1){
           speedIndex++; speedLabel.textContent=SPEEDS[speedIndex].label;
+          if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
         }
       }
     }
@@ -326,7 +364,13 @@
         // self collision
         if(snake.some(s=>s.x===nx && s.y===ny)){
           alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
-          setTimeout(()=>{ const name=prompt("Game Over! Enter your name:", ""); addScoreToBoard(name||"Player", score, level); }, 20);
+          setTimeout(()=>{
+            const name=prompt("Game Over! Enter your name for the scoreboard:", "") || "Player";
+            // local (offline)
+            addScoreToBoard(name, score, level);
+            // global (if configured)
+            submitGlobalScore(name, score, level);
+          }, 20);
           requestAnimationFrame(step); return;
         }
         snake.unshift({x:nx,y:ny});
@@ -362,7 +406,7 @@
         if(d==='right') setDirection(1,0);
       });
     });
-    document.getElementById('pauseBtn').addEventListener('click', togglePause);
+    if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
 
     // swipe on canvas
     (function(){
@@ -377,13 +421,23 @@
     })();
 
     function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; }
-    function changeSpeed(delta){ const prev=speedIndex; speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta)); if(speedIndex!==prev) speedLabel.textContent=SPEEDS[speedIndex].label; }
+
+    function changeSpeed(delta){
+      const prev=speedIndex;
+      speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta));
+      if(speedIndex!==prev){
+        speedLabel.textContent=SPEEDS[speedIndex].label;
+        if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
+      }
+    }
+    if (speedBtn) speedBtn.addEventListener('click', ()=> changeSpeed(1));
 
     // ====== Boot ======
     function boot(){
       layout();
       loadHigh();
       renderBoard();
+      fetchGlobalTop().catch(()=>{}); // optional: will no-op until GLOBAL_API is set
       reset();
       draw();
       requestAnimationFrame(step);
