@@ -1,9 +1,9 @@
 // /nakes/prize.js  (ES module)
-const API_BASE = "https://snake-prize.snake-scoreboard.workers.dev";
+const API_BASE = "https://nakes-prize.nakes-scoreboard.workers.dev";
 
 const STORE = {
-  sessionId: "snake_prize_session_id",
-  wallet:    "snake_prize_wallet",
+  sessionId: "nakes_prize_session_id",
+  wallet:    "nakes_prize_wallet",
 };
 
 function b64urlToBuf(b64) {
