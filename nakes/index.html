@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <!-- PWA -->
-  <link rel="manifest" href="/snake/manifest.json">
+  <link rel="manifest" href="/nakes/manifest.json">
   <meta name="theme-color" content="#0a0f0a">
   <!-- iOS standalone feel when added to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,14 +10,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <meta charset="utf-8" />
-  <title>Snake</title>
-  <meta name="description" content="Retro Snake — keyboard, swipe, and D-pad." />
+  <title>nakes</title>
+  <meta name="description" content="Retro nakes — keyboard, swipe, and D-pad." />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
     :root{
-      --bg:#0a0f0a; --grid:#123312; --snake:#6cff6c; --snakeHead:#b3ffb3; --food:#a9ff3f;
+      --bg:#0a0f0a; --grid:#123312; --nakes:#6cff6c; --nakesHead:#b3ffb3; --food:#a9ff3f;
       --ui:#d2ffd2; --accent:#4dff4d;
       --size:20;                   /* logical grid size (changes with level) */
       --desktop-max:560px;         /* desktop max visual width */
@@ -122,7 +122,7 @@
           <div class="pill" id="stateLabel">Playing</div>
         </div>
       </div>
-      <canvas id="board" aria-label="Snake game area" role="img"></canvas>
+      <canvas id="board" aria-label="nakes game area" role="img"></canvas>
     </div>
 
     <!-- D-pad -->
@@ -144,7 +144,7 @@
         <button class="btn full" id="speedBtn" aria-label="Change speed">
           Speed: <span id="speedBtnLabel">Normal</span>
         </button>
-        <a class="btn full" id="scoresBtn" href="/snake/leaderboard.html" role="button" style="display:inline-block; text-decoration:none; text-align:center;">
+        <a class="btn full" id="scoresBtn" href="/nakes/leaderboard.html" role="button" style="display:inline-block; text-decoration:none; text-align:center;">
           🏆 Leaderboard
         </a>
       </div>
@@ -155,9 +155,13 @@
           Keys: Arrows/WASD. Space/P = Pause. R = Restart. + / – = Speed.
           Wrap edges • 69 levels • Top-10 scoreboard • Offline PWA.
         </div>
+
+        <!-- ✅ Prize widget container -->
+        <div id="prize-root" style="margin:8px 0"></div>
+
         <div class="linkbar">
           <a href="/" rel="home">← Back to Home</a> ·
-          <a href="/snake/leaderboard.html">Leaderboard</a>
+          <a href="/nakes/leaderboard.html">Leaderboard</a>
         </div>
       </div>
     </div>
@@ -169,8 +173,8 @@
     const SPEEDS=[{label:"Chill",ms:160},{label:"Normal",ms:120},{label:"Snappy",ms:90},{label:"Turbo",ms:65}];
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
 
-    // Cloudflare Worker API
-    const GLOBAL_API = "https://snake-scoreboard.snake-scoreboard.workers.dev/api";
+    // Cloudflare Worker API (existing global scoreboard)
+    const GLOBAL_API = "https://nakes-scoreboard.nakes-scoreboard.workers.dev/api";
 
     // ====== DOM ======
     const canvas = document.getElementById('board');
@@ -185,13 +189,13 @@
     const speedBtnLabel = document.getElementById('speedBtnLabel');
 
     // ====== Game State ======
-    let SIZE, snake, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
+    let SIZE, nakes, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
     let LOGICAL_PX=480, DPR=1;
     function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
     function cellPx(){ return Math.floor(LOGICAL_PX / SIZE); }
 
     // ====== Local scores (for offline) ======
-    const STORAGE_HIGH="snake_highscore_v1", STORAGE_BOARD="snake_scoreboard_v1";
+    const STORAGE_HIGH="nakes_highscore_v1", STORAGE_BOARD="nakes_scoreboard_v1";
     function readBoard(){ try{const raw=localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[]}catch{return[]}}
     function writeBoard(list){ try{localStorage.setItem(STORAGE_BOARD, JSON.stringify(list))}catch{} }
     function addScoreToBoard(name,score,level){
@@ -275,7 +279,7 @@
     // ====== Core ======
     function reset(){
       setLevel(1);
-      snake=[
+      nakes=[
         {x:Math.floor(SIZE/2), y:Math.floor(SIZE/2)},
         {x:Math.floor(SIZE/2)-1, y:Math.floor(SIZE/2)},
         {x:Math.floor(SIZE/2)-2, y:Math.floor(SIZE/2)}
@@ -287,7 +291,7 @@
     function placeFood(){
       while(true){
         const x=Math.floor(Math.random()*SIZE), y=Math.floor(Math.random()*SIZE);
-        if(!snake.some(s=>s.x===x && s.y===y)){ food={x,y}; return; }
+        if(!nakes.some(s=>s.x===x && s.y===y)){ food={x,y}; return; }
       }
     }
     function setDirection(dx,dy){ if(dx===-direction.x && dy===-direction.y) return; nextDirection={x:dx,y:dy}; }
@@ -299,7 +303,7 @@
       for(let i=1;i<SIZE;i++){ const g=offset+i*cp+0.5; ctx.moveTo(g,offset); ctx.lineTo(g,offset+px); ctx.moveTo(offset,g); ctx.lineTo(offset+px,g); }
       ctx.stroke();
       fillCell(food.x,food.y,getVar('--food'),cp,offset);
-      for(let i=0;i<snake.length;i++){ const seg=snake[i]; fillCell(seg.x,seg.y, i===0?getVar('--snakeHead'):getVar('--snake'),cp,offset); }
+      for(let i=0;i<nakes.length;i++){ const seg=nakes[i]; fillCell(seg.x,seg.y, i===0?getVar('--nakesHead'):getVar('--nakes'),cp,offset); }
     }
     function fillCell(x,y,color,cp,offset){ ctx.fillStyle=color; ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp); }
 
@@ -311,26 +315,27 @@
       if(ts-lastTick>=interval){
         lastTick=ts;
         direction=nextDirection;
-        const head=snake[0];
+        const head=nakes[0];
         let nx=head.x+direction.x, ny=head.y+direction.y;
         // wrap
         if(nx<0) nx=SIZE-1; else if(nx>=SIZE) nx=0;
         if(ny<0) ny=SIZE-1; else if(ny>=SIZE) ny=0;
         // self collision
-        if(snake.some(s=>s.x===nx && s.y===ny)){
+        if(nakes.some(s=>s.x===nx && s.y===ny)){
           alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
           setTimeout(()=>{
             const name=prompt("Game Over! Enter your name for the leaderboard:", "") || "Player";
             addScoreToBoard(name, score, level);   // local (offline)
             submitGlobalScore(name, score, level); // global (online)
+            window.__sendPrize?.(level);           // ✅ trigger prize flow (non-blocking)
           }, 20);
           requestAnimationFrame(step); return;
         }
-        snake.unshift({x:nx,y:ny});
+        nakes.unshift({x:nx,y:ny});
         if(nx===food.x && ny===food.y){
           score+=1; foodsThisLevel+=1; scoreEl.textContent=score; placeFood(); maybeLevelUp();
         }else{
-          snake.pop();
+          nakes.pop();
         }
       }
       draw(); requestAnimationFrame(step);
@@ -398,8 +403,22 @@
 
     // ====== Service worker ======
     if('serviceWorker' in navigator){
-      window.addEventListener('load', ()=> navigator.serviceWorker.register('/snake/service-worker.js'));
+      window.addEventListener('load', ()=> navigator.serviceWorker.register('/nakes/service-worker.js'));
     }
+  </script>
+
+  <!-- ✅ Prize module: mounts widget and exposes window.__sendPrize -->
+  <script type="module">
+    import { mountPrizeWidget, prizeFinish } from "/nakes/prize.js";
+    mountPrizeWidget("#prize-root");
+    window.__sendPrize = async (finalLevel) => {
+      try {
+        const res = await prizeFinish(finalLevel);
+        console.log("[Prize] result:", res);
+      } catch (e) {
+        console.warn("[Prize] error:", e);
+      }
+    };
   </script>
 </body>
 </html>

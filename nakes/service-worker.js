@@ -1,11 +1,11 @@
-const CACHE_NAME = "snake-v4";
+const CACHE_NAME = "nakes-v4";
 const ASSETS = [
-  "/snake/",
-  "/snake/index.html",
-  "/snake/leaderboard.html",
-  "/snake/manifest.json",
-  "/snake/icon-192.png",
-  "/snake/icon-512.png"
+  "/nakes/",
+  "/nakes/index.html",
+  "/nakes/leaderboard.html",
+  "/nakes/manifest.json",
+  "/nakes/icon-192.png",
+  "/nakes/icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {
@@ -33,7 +33,7 @@ self.addEventListener("fetch", (e) => {
           caches.open(CACHE_NAME).then(c => c.put(req, clone));
         }
         return resp;
-      }).catch(() => caches.match("/snake/index.html"))
+      }).catch(() => caches.match("/nakes/index.html"))
     )
   );
 });

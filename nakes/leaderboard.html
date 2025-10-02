@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Snake — Leaderboard</title>
+  <title>nakes — Leaderboard</title>
   <meta name="theme-color" content="#0a0f0a">
-  <link rel="manifest" href="/snake/manifest.json">
+  <link rel="manifest" href="/nakes/manifest.json">
   <style>
     :root{ --bg:#0a0f0a; --panel:#0c150c; --border:#1c2a1c; --ui:#d2ffd2; --accent:#4dff4d; }
     *{box-sizing:border-box} html,body{height:100%}
@@ -33,7 +33,7 @@
     <div class="card">
       <h1>Top Scores</h1>
       <div class="linkbar">
-        <a href="/snake/">← Back to Game</a> · <a href="/">Home</a>
+        <a href="/nakes/">← Back to Game</a> · <a href="/">Home</a>
       </div>
 
       <div class="actions">
@@ -49,8 +49,8 @@
   </div>
 
   <script>
-    const GLOBAL_API = "https://snake-scoreboard.snake-scoreboard.workers.dev/api";
-    const STORAGE_BOARD = "snake_scoreboard_v1";
+    const GLOBAL_API = "https://nakes-scoreboard.nakes-scoreboard.workers.dev/api";
+    const STORAGE_BOARD = "nakes_scoreboard_v1";
 
     const scoresGrid = document.getElementById('scoresGrid');
     const btn = document.getElementById('refreshBtn');
@@ -81,7 +81,7 @@
     load();
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/snake/service-worker.js'));
+      window.addEventListener('load', () => navigator.serviceWorker.register('/nakes/service-worker.js'));
     }
   </script>
 </body>
