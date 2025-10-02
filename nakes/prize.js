@@ -1,5 +1,5 @@
 // /nakes/prize.js  (ES module)
-const API_BASE = "https://nakes-prize.nakes-scoreboard.workers.dev";
+const API_BASE = "https://prize.tylerlengyel.com";
 
 const STORE = {
   sessionId: "nakes_prize_session_id",
