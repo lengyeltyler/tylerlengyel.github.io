@@ -14,7 +14,7 @@
   .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
   .h { margin:0 0 8px; font-weight:700; letter-spacing:.2px; }
   .subtle { color:#a9a9b3; font-size:12px; }
-  .row { display:flex; gap:8px; align-items:center; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .col { display:flex; flex-direction:column; gap:8px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   input[type="text"], input[type="number"], textarea, .btn, .file {
@@ -25,16 +25,22 @@
   .btn:active { transform: translateY(1px); }
   .btn.secondary { background:#101016; }
   .btn.danger { background:#2b171a; border-color:#412326; }
+  .btn[disabled] { opacity:.45; cursor:not-allowed; transform:none; }
   .list { max-height:280px; overflow:auto; border:1px solid var(--line); border-radius:10px; padding:6px; }
   .list button { width:100%; text-align:left; background:transparent; border:0; color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer; }
   .list button:hover { background:#1a1a22; }
   .list .active { background:#20202a; }
   .canvas-wrap { position:relative; height:70vh; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#0e0e12; }
   .scene { position:absolute; inset:0; transform-origin:0 0; }
-  .toolrow { display:flex; gap:8px; align-items:center; margin-top:8px; }
+  .toolrow { display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
   .small { font-size:12px; }
   .kbd { background:#222; border:1px solid var(--line); padding:0 6px; border-radius:6px; font-size:12px; color:#ddd; }
   .footer { text-align:center; padding:10px; color:#8a8aa0; }
+  @media (max-width: 1024px) {
+    .app { grid-template-columns: 1fr; }
+  }
+  .chip { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#101016;}
+  .chip input { transform: translateY(1px); }
 </style>
 </head>
 <body>
@@ -45,13 +51,31 @@
     <div class="row">
       <input id="file" class="file" type="file" accept=".svg" />
       <button class="btn" id="btnUpload">Upload</button>
+      <span class="subtle small">or paste into Source ↓</span>
     </div>
+
     <textarea id="source"></textarea>
     <div class="grid2">
       <button class="btn" id="btnApply">Apply source → editor</button>
       <button class="btn secondary" id="btnPull">Pull editor → source</button>
     </div>
-    <div class="subtle">Tip: paste a createPhil SVG into the source box. “Apply” will parse it into the editor.</div>
+
+    <div class="row" style="margin-top:8px;">
+      <button class="btn secondary" id="btnUndo" title="Undo (⌘/Ctrl+Z)">⟲ Undo</button>
+      <button class="btn secondary" id="btnRedo" title="Redo (⇧⌘/Ctrl+Z / Ctrl+Y)">⟳ Redo</button>
+    </div>
+
+    <div class="row">
+      <button class="btn secondary" id="btnUndoView" title="View Undo (⌘/Ctrl+Alt+Z)">⟲ View Undo</button>
+      <button class="btn secondary" id="btnRedoView" title="View Redo (⌘/Ctrl+Alt+⇧Z / Alt+Y)">⟳ View Redo</button>
+      <span class="subtle small">Pan/Zoom history</span>
+    </div>
+
+    <div class="row">
+      <label class="chip"><input id="clampToggle" type="checkbox" checked /> Clamp to viewBox (clip + clamp)</label>
+    </div>
+
+    <div class="subtle" style="margin-top:6px;">Tip: paste a createPhil SVG into the source box. “Apply” will parse it into the editor.</div>
 
     <h2 class="h" style="margin-top:12px;">Layers</h2>
     <div id="layers" class="list"></div>
@@ -138,6 +162,19 @@
   let pan = { x: 0, y: 0 };
   let isPanning = false;
   let last = { x: 0, y: 0 };
+  let clampToViewBox = true;
+
+  // --- History (Content) ---
+  const HISTORY_LIMIT = 100;
+  const history = []; // array of serialized SVG strings
+  let histPtr = -1;
+  let recordTimer = null;
+
+  // --- History (View: pan/zoom) ---
+  const VIEW_HISTORY_LIMIT = 100;
+  const viewHistory = []; // {pan:{x,y}, zoom:number}
+  let viewPtr = -1;
+  let viewRecordTimer = null;
 
   // --- DOM ---
   const source = document.getElementById('source');
@@ -147,6 +184,7 @@
   const layersBox = document.getElementById('layers');
   const selInfo = document.getElementById('selInfo');
   const zoomVal = document.getElementById('zoomVal');
+  const clampToggle = document.getElementById('clampToggle');
 
   // Inspector inputs
   const $fill = document.getElementById('fill');
@@ -159,14 +197,25 @@
   const $rt = document.getElementById('rt');
 
   // Buttons
+  const btnUndo = document.getElementById('btnUndo');
+  const btnRedo = document.getElementById('btnRedo');
+  const btnUndoView = document.getElementById('btnUndoView');
+  const btnRedoView = document.getElementById('btnRedoView');
+
   document.getElementById('btnUpload').onclick = () => file.click();
   document.getElementById('btnApply').onclick = () => { setSVGFromText(source.value); };
   document.getElementById('btnPull').onclick = () => { if (currentSVG) source.value = serializeSVG(currentSVG); };
-  document.getElementById('btnReset').onclick = () => { zoom = 1; pan = {x:0,y:0}; updateView(); };
-  document.getElementById('btnDelete').onclick = removeSelected;
+  document.getElementById('btnReset').onclick = () => { setView({x:0,y:0}, 1, true); };
+  document.getElementById('btnDelete').onclick = () => { removeSelected(); pushHistory('delete'); };
   document.getElementById('btnSaveSvg').onclick = downloadSVG;
   document.getElementById('btnSavePng').onclick = downloadPNG;
+  btnUndo.onclick = undo;
+  btnRedo.onclick = redo;
+  btnUndoView.onclick = undoView;
+  btnRedoView.onclick = redoView;
+  clampToggle.addEventListener('change', () => { clampToViewBox = clampToggle.checked; ensureClip(); });
 
+  // File upload
   file.addEventListener('change', async (e) => {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -175,13 +224,31 @@
     setSVGFromText(text);
   });
 
+  // Keyboard shortcuts: Content vs View
+  window.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    const meta = (e.ctrlKey || e.metaKey);
+
+    if (!meta) return;
+
+    // View history when Alt is held
+    if (e.altKey) {
+      if (key === 'z' && !e.shiftKey) { e.preventDefault(); undoView(); return; }
+      if ((key === 'y') || (key === 'z' && e.shiftKey)) { e.preventDefault(); redoView(); return; }
+    }
+
+    // Content history (no Alt)
+    if (key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+    if ((key === 'y') || (key === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; }
+  });
+
   // Canvas pan/zoom
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const delta = -e.deltaY;
     const factor = delta > 0 ? 1.06 : 0.94;
-    zoom = Math.min(10, Math.max(0.1, zoom * factor));
-    updateView();
+    const nextZoom = Math.min(10, Math.max(0.1, zoom * factor));
+    setView(pan, nextZoom); // record in view history (debounced)
   }, { passive:false });
 
   canvas.addEventListener('mousedown', (e) => {
@@ -190,10 +257,9 @@
   window.addEventListener('mouseup', () => isPanning = false);
   window.addEventListener('mousemove', (e) => {
     if (!isPanning) return;
-    pan.x += (e.clientX - last.x);
-    pan.y += (e.clientY - last.y);
+    const nextPan = { x: pan.x + (e.clientX - last.x), y: pan.y + (e.clientY - last.y) };
     last.x = e.clientX; last.y = e.clientY;
-    updateView();
+    setView(nextPan, zoom); // record in view history (debounced)
   });
 
   function updateView() {
@@ -201,17 +267,81 @@
     zoomVal.textContent = zoom.toFixed(2) + '×';
   }
 
+  // ---- View history helpers ----
+  function pushViewDebounced() {
+    clearTimeout(viewRecordTimer);
+    viewRecordTimer = setTimeout(pushView, 120);
+  }
+  function pushView() {
+    const state = { pan: { ...pan }, zoom };
+    if (viewHistory.length && shallowEqualView(viewHistory[viewPtr], state)) return;
+    if (viewPtr < viewHistory.length - 1) viewHistory.splice(viewPtr + 1);
+    viewHistory.push(state);
+    if (viewHistory.length > VIEW_HISTORY_LIMIT) viewHistory.shift();
+    viewPtr = viewHistory.length - 1;
+    updateViewButtons();
+  }
+  function shallowEqualView(a,b){ return a && b && a.zoom===b.zoom && a.pan.x===b.pan.x && a.pan.y===b.pan.y; }
+  function undoView(){ if (viewPtr > 0){ applyView(viewHistory[viewPtr-1]); viewPtr--; updateViewButtons(); } }
+  function redoView(){ if (viewPtr >=0 && viewPtr < viewHistory.length-1){ applyView(viewHistory[viewPtr+1]); viewPtr++; updateViewButtons(); } }
+  function updateViewButtons(){
+    btnUndoView.disabled = !(viewPtr > 0);
+    btnRedoView.disabled = !(viewPtr >=0 && viewPtr < viewHistory.length-1);
+  }
+  function applyView(v){ pan = { ...v.pan }; zoom = v.zoom; updateView(); }
+  function setView(nextPan, nextZoom, recordImmediate=false){
+    pan = { ...nextPan }; zoom = nextZoom; updateView();
+    if (recordImmediate) pushView(); else pushViewDebounced();
+  }
+
+  // ---- Content history ----
+  function serializeSVG(svg) {
+    return `<?xml version="1.0" encoding="UTF-8"?>\n` + new XMLSerializer().serializeToString(svg);
+  }
+  function pushHistoryDebounced() { clearTimeout(recordTimer); recordTimer = setTimeout(pushHistory, 200); }
+  function pushHistory() {
+    if (!currentSVG) return;
+    const state = serializeCurrent();
+    if (history.length && history[histPtr] === state) return;
+    if (histPtr < history.length - 1) history.splice(histPtr + 1);
+    history.push(state);
+    if (history.length > HISTORY_LIMIT) history.shift();
+    histPtr = history.length - 1;
+    updateHistoryButtons();
+  }
+  function serializeCurrent() { return currentSVG ? serializeSVG(currentSVG) : ''; }
+  function restoreFromHistory(index) {
+    if (index < 0 || index >= history.length) return;
+    const text = history[index];
+    setSVGFromText(text, /*record*/ false);
+    histPtr = index;
+    updateHistoryButtons();
+  }
+  function canUndo() { return histPtr > 0; }
+  function canRedo() { return histPtr >= 0 && histPtr < history.length - 1; }
+  function undo() { if (canUndo()) restoreFromHistory(histPtr - 1); }
+  function redo() { if (canRedo()) restoreFromHistory(histPtr + 1); }
+  function updateHistoryButtons() {
+    btnUndo.disabled = !canUndo();
+    btnRedo.disabled = !canRedo();
+  }
+
   // Parse SVG from text and mount into scene
-  function setSVGFromText(text) {
+  function setSVGFromText(text, record=true) {
     const svg = parseSVG(text);
     if (!svg) { alert('Could not parse SVG'); return; }
-    // Ensure xmlns
     if (!svg.getAttribute('xmlns')) svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
     currentSVG = svg;
+    ensureClip(); // set up initial clip if enabled
     scene.replaceChildren(svg);
     selectedEl = null;
     refreshLayers();
     bindSvgClicks();
+    if (record) pushHistory();
+    // Reset view history on new load (start fresh)
+    viewHistory.length = 0; viewPtr = -1;
+    setView({x:0,y:0}, 1, true);
   }
 
   function parseSVG(text) {
@@ -220,10 +350,6 @@
       const svg = doc.querySelector('svg');
       return svg || null;
     } catch(_) { return null; }
-  }
-
-  function serializeSVG(svg) {
-    return `<?xml version="1.0" encoding="UTF-8"?>\n` + new XMLSerializer().serializeToString(svg);
   }
 
   // Layers
@@ -267,10 +393,7 @@
     });
   }
 
-  function selectElement(el, idx = -1) {
-    selectedEl = el;
-    refreshLayers();
-  }
+  function selectElement(el, idx = -1) { selectedEl = el; refreshLayers(); }
 
   // Inspector <-> element
   function getAttr(el, name, fallback='') { return el ? (el.getAttribute(name) ?? fallback) : ''; }
@@ -295,11 +418,48 @@
   }
 
   function applyTransform(el, tx) {
+    // Try applying, clamp to viewBox if enabled, then finalize
+    const vb = readViewBox(currentSVG);
+    if (!vb) {
+      setAttr(el, 'transform', buildTransform(tx));
+      return;
+    }
+
+    const proposed = { ...tx };
+    // Temporarily set to measure bbox post-transform
+    const prev = el.getAttribute('transform');
+    el.setAttribute('transform', buildTransform(proposed));
+
+    if (clampToViewBox) {
+      try {
+        const bb = el.getBBox(); // post-transform bbox
+        const [vx, vy, vw, vh] = vb;
+        let dx = 0, dy = 0;
+
+        if (bb.x < vx) dx = vx - bb.x;
+        if (bb.x + bb.width > vx + vw) dx = (vx + vw) - (bb.x + bb.width);
+        if (bb.y < vy) dy = vy - bb.y;
+        if (bb.y + bb.height > vy + vh) dy = (vy + vh) - (bb.y + bb.height);
+
+        if (dx || dy) {
+          proposed.x += dx;
+          proposed.y += dy;
+          el.setAttribute('transform', buildTransform(proposed));
+        }
+      } catch (_) {
+        // Some elements may not have bbox; fallback to proposed as-is
+      }
+    }
+
+    // done
+  }
+
+  function buildTransform(t) {
     const parts = [];
-    if (tx.x || tx.y) parts.push(`translate(${tx.x},${tx.y})`);
-    if (tx.rotate) parts.push(`rotate(${tx.rotate})`);
-    if (tx.scale !== 1) parts.push(`scale(${tx.scale})`);
-    setAttr(el, 'transform', parts.join(' '));
+    if (t.x || t.y) parts.push(`translate(${t.x},${t.y})`);
+    if (t.rotate) parts.push(`rotate(${t.rotate})`);
+    if (t.scale !== 1) parts.push(`scale(${t.scale})`);
+    return parts.join(' ');
   }
 
   function populateInspector() {
@@ -317,15 +477,15 @@
   }
 
   function hookupInspector() {
-    $fill.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'fill',$fill.value||null); }});
-    $stroke.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke',$stroke.value||null); }});
-    $sw.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke-width',$sw.value||null); }});
-    $op.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'opacity',$op.value||null); }});
+    $fill.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'fill',$fill.value||null); pushHistoryDebounced(); }});
+    $stroke.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke',$stroke.value||null); pushHistoryDebounced(); }});
+    $sw.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke-width',$sw.value||null); pushHistoryDebounced(); }});
+    $op.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'opacity',$op.value||null); pushHistoryDebounced(); }});
 
-    $tx.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.x=Number($tx.value||0); applyTransform(selectedEl,t);} });
-    $ty.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.y=Number($ty.value||0); applyTransform(selectedEl,t);} });
-    $sc.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.scale=Number($sc.value||1); applyTransform(selectedEl,t);} });
-    $rt.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.rotate=Number($rt.value||0); applyTransform(selectedEl,t);} });
+    $tx.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.x=Number($tx.value||0); applyTransform(selectedEl,t); pushHistoryDebounced(); }});
+    $ty.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.y=Number($ty.value||0); applyTransform(selectedEl,t); pushHistoryDebounced(); }});
+    $sc.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.scale=Number($sc.value||1); applyTransform(selectedEl,t); pushHistoryDebounced(); }});
+    $rt.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.rotate=Number($rt.value||0); applyTransform(selectedEl,t); pushHistoryDebounced(); }});
   }
   hookupInspector();
 
@@ -336,6 +496,7 @@
     refreshLayers();
   }
 
+  // Export
   function downloadSVG() {
     if (!currentSVG) return;
     const text = serializeSVG(currentSVG);
@@ -354,9 +515,9 @@
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
 
     // width/height from viewBox or attributes
-    const vb = (currentSVG.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
-    const w = vb.length === 4 ? vb[2] : Number(currentSVG.getAttribute('width') || 420);
-    const h = vb.length === 4 ? vb[3] : Number(currentSVG.getAttribute('height') || 420);
+    const vb = readViewBox(currentSVG);
+    const w = vb ? vb[2] : Number(currentSVG.getAttribute('width') || 420);
+    const h = vb ? vb[3] : Number(currentSVG.getAttribute('height') || 420);
 
     const scale = 3; // 3x for crisper png
     const canvasEl = document.createElement('canvas');
@@ -377,6 +538,47 @@
     URL.revokeObjectURL(url);
   }
 
+  // viewBox helpers & clip
+  function readViewBox(svg){
+    if (!svg) return null;
+    const v = (svg.getAttribute('viewBox')||'').split(/\s+/).map(Number);
+    if (v.length===4 && v.every(n=>!Number.isNaN(n))) return v;
+    // fallback to width/height
+    const w = Number(svg.getAttribute('width')||420);
+    const h = Number(svg.getAttribute('height')||420);
+    return [0,0,w,h];
+  }
+
+  function ensureClip(){
+    if (!currentSVG) return;
+    const [x,y,w,h] = readViewBox(currentSVG);
+    if (!clampToViewBox) {
+      // remove our clipPath if present
+      const existing = currentSVG.querySelector('#__wbClip');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      currentSVG.removeAttribute('clip-path');
+      return;
+    }
+
+    // Put a defs/clipPath
+    let defs = currentSVG.querySelector('defs');
+    if (!defs) { defs = document.createElementNS('http://www.w3.org/2000/svg','defs'); currentSVG.prepend(defs); }
+
+    let clip = currentSVG.querySelector('#__wbClip');
+    if (!clip) {
+      clip = document.createElementNS('http://www.w3.org/2000/svg','clipPath');
+      clip.setAttribute('id','__wbClip');
+      defs.appendChild(clip);
+    }
+    clip.replaceChildren(); // clear
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+    clip.appendChild(r);
+
+    // Apply at root level so everything stays inside workspace
+    currentSVG.setAttribute('clip-path','url(#__wbClip)');
+  }
+
   // Default sample so page isn't blank
   const defaultSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420">
   <rect width="420" height="420" fill="#fff"/>
@@ -384,7 +586,9 @@
   <circle cx="210" cy="210" r="80" fill="none" stroke="#111" stroke-width="3"/>
 </svg>`;
   source.value = defaultSVG;
-  setSVGFromText(defaultSVG);
+  setSVGFromText(defaultSVG); // records initial state
+  updateHistoryButtons();
+
 })();
 </script>
 </body>
