@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SVG Editor — tylerlengyel.com</title>
+<meta name="description" content="Lightweight in-browser SVG editor for createPhil outputs. No subscriptions, no build step." />
+<style>
+  :root { --bg:#0b0b0d; --panel:#121216; --muted:#c8c8d0; --accent:#69a7ff; --text:#f2f2f5; --line:#1e1e25; --btn:#1b1b22; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  a { color: var(--accent); text-decoration: none; }
+  .app { display:grid; grid-template-columns: 320px 1fr 320px; gap:12px; padding:12px; min-height:100vh; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .h { margin:0 0 8px; font-weight:700; letter-spacing:.2px; }
+  .subtle { color:#a9a9b3; font-size:12px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .col { display:flex; flex-direction:column; gap:8px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  input[type="text"], input[type="number"], textarea, .btn, .file {
+    background:var(--btn); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:8px 10px;
+  }
+  textarea { width:100%; height:160px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; }
+  .btn { cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; }
+  .btn:active { transform: translateY(1px); }
+  .btn.secondary { background:#101016; }
+  .btn.danger { background:#2b171a; border-color:#412326; }
+  .list { max-height:280px; overflow:auto; border:1px solid var(--line); border-radius:10px; padding:6px; }
+  .list button { width:100%; text-align:left; background:transparent; border:0; color:var(--text); padding:6px 8px; border-radius:8px; cursor:pointer; }
+  .list button:hover { background:#1a1a22; }
+  .list .active { background:#20202a; }
+  .canvas-wrap { position:relative; height:70vh; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#0e0e12; }
+  .scene { position:absolute; inset:0; transform-origin:0 0; }
+  .toolrow { display:flex; gap:8px; align-items:center; margin-top:8px; }
+  .small { font-size:12px; }
+  .kbd { background:#222; border:1px solid var(--line); padding:0 6px; border-radius:6px; font-size:12px; color:#ddd; }
+  .footer { text-align:center; padding:10px; color:#8a8aa0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Load + Layers -->
+  <section class="card col">
+    <h2 class="h">Load SVG</h2>
+    <div class="row">
+      <input id="file" class="file" type="file" accept=".svg" />
+      <button class="btn" id="btnUpload">Upload</button>
+    </div>
+    <textarea id="source"></textarea>
+    <div class="grid2">
+      <button class="btn" id="btnApply">Apply source → editor</button>
+      <button class="btn secondary" id="btnPull">Pull editor → source</button>
+    </div>
+    <div class="subtle">Tip: paste a createPhil SVG into the source box. “Apply” will parse it into the editor.</div>
+
+    <h2 class="h" style="margin-top:12px;">Layers</h2>
+    <div id="layers" class="list"></div>
+  </section>
+
+  <!-- CENTER: Canvas -->
+  <section class="card">
+    <h2 class="h">Canvas</h2>
+    <div id="canvas" class="canvas-wrap">
+      <div id="scene" class="scene"></div>
+    </div>
+    <div class="toolrow">
+      <span class="small">Zoom: <span id="zoomVal">1.00×</span></span>
+      <button class="btn secondary" id="btnReset">Reset View</button>
+      <span class="small">Pan: hold <span class="kbd">Drag</span> / Zoom: <span class="kbd">Wheel</span></span>
+    </div>
+  </section>
+
+  <!-- RIGHT: Inspector + Export -->
+  <section class="card col">
+    <h2 class="h">Inspector</h2>
+    <div id="selInfo" class="subtle">No element selected</div>
+    <div class="grid2">
+      <div class="col">
+        <label for="fill">Fill</label>
+        <input id="fill" type="text" placeholder="none | #000 | rgb()" />
+      </div>
+      <div class="col">
+        <label for="stroke">Stroke</label>
+        <input id="stroke" type="text" placeholder="#000" />
+      </div>
+      <div class="col">
+        <label for="sw">Stroke Width</label>
+        <input id="sw" type="number" step="0.5" />
+      </div>
+      <div class="col">
+        <label for="op">Opacity</label>
+        <input id="op" type="number" min="0" max="1" step="0.05" />
+      </div>
+    </div>
+
+    <h3 class="h" style="margin-top:6px;">Transform</h3>
+    <div class="grid2">
+      <div class="col">
+        <label for="tx">Translate X</label>
+        <input id="tx" type="number" />
+      </div>
+      <div class="col">
+        <label for="ty">Translate Y</label>
+        <input id="ty" type="number" />
+      </div>
+      <div class="col">
+        <label for="sc">Scale</label>
+        <input id="sc" type="number" step="0.05" />
+      </div>
+      <div class="col">
+        <label for="rt">Rotate (deg)</label>
+        <input id="rt" type="number" step="1" />
+      </div>
+    </div>
+
+    <div class="toolrow">
+      <button class="btn danger" id="btnDelete">Delete selected</button>
+    </div>
+
+    <h2 class="h" style="margin-top:12px;">Export</h2>
+    <div class="grid2">
+      <button class="btn" id="btnSaveSvg">Download SVG</button>
+      <button class="btn" id="btnSavePng">Download PNG</button>
+    </div>
+    <div class="subtle">PNG export uses the SVG’s viewBox/size and renders client-side.</div>
+  </section>
+</div>
+
+<div class="footer small">Made for createPhil. No subscriptions, fully client-side.</div>
+
+<script>
+(() => {
+  // --- State ---
+  let currentSVG = null;          // <svg> element in the scene
+  let selectedEl = null;          // currently selected element
+  let layers = [];                // flattened element list
+  let zoom = 1;
+  let pan = { x: 0, y: 0 };
+  let isPanning = false;
+  let last = { x: 0, y: 0 };
+
+  // --- DOM ---
+  const source = document.getElementById('source');
+  const file   = document.getElementById('file');
+  const scene  = document.getElementById('scene');
+  const canvas = document.getElementById('canvas');
+  const layersBox = document.getElementById('layers');
+  const selInfo = document.getElementById('selInfo');
+  const zoomVal = document.getElementById('zoomVal');
+
+  // Inspector inputs
+  const $fill = document.getElementById('fill');
+  const $stroke = document.getElementById('stroke');
+  const $sw = document.getElementById('sw');
+  const $op = document.getElementById('op');
+  const $tx = document.getElementById('tx');
+  const $ty = document.getElementById('ty');
+  const $sc = document.getElementById('sc');
+  const $rt = document.getElementById('rt');
+
+  // Buttons
+  document.getElementById('btnUpload').onclick = () => file.click();
+  document.getElementById('btnApply').onclick = () => { setSVGFromText(source.value); };
+  document.getElementById('btnPull').onclick = () => { if (currentSVG) source.value = serializeSVG(currentSVG); };
+  document.getElementById('btnReset').onclick = () => { zoom = 1; pan = {x:0,y:0}; updateView(); };
+  document.getElementById('btnDelete').onclick = removeSelected;
+  document.getElementById('btnSaveSvg').onclick = downloadSVG;
+  document.getElementById('btnSavePng').onclick = downloadPNG;
+
+  file.addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const text = await f.text();
+    source.value = text;
+    setSVGFromText(text);
+  });
+
+  // Canvas pan/zoom
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = -e.deltaY;
+    const factor = delta > 0 ? 1.06 : 0.94;
+    zoom = Math.min(10, Math.max(0.1, zoom * factor));
+    updateView();
+  }, { passive:false });
+
+  canvas.addEventListener('mousedown', (e) => {
+    isPanning = true; last.x = e.clientX; last.y = e.clientY;
+  });
+  window.addEventListener('mouseup', () => isPanning = false);
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    pan.x += (e.clientX - last.x);
+    pan.y += (e.clientY - last.y);
+    last.x = e.clientX; last.y = e.clientY;
+    updateView();
+  });
+
+  function updateView() {
+    scene.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+    zoomVal.textContent = zoom.toFixed(2) + '×';
+  }
+
+  // Parse SVG from text and mount into scene
+  function setSVGFromText(text) {
+    const svg = parseSVG(text);
+    if (!svg) { alert('Could not parse SVG'); return; }
+    // Ensure xmlns
+    if (!svg.getAttribute('xmlns')) svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    currentSVG = svg;
+    scene.replaceChildren(svg);
+    selectedEl = null;
+    refreshLayers();
+    bindSvgClicks();
+  }
+
+  function parseSVG(text) {
+    try {
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      return svg || null;
+    } catch(_) { return null; }
+  }
+
+  function serializeSVG(svg) {
+    return `<?xml version="1.0" encoding="UTF-8"?>\n` + new XMLSerializer().serializeToString(svg);
+  }
+
+  // Layers
+  function refreshLayers() {
+    layers = flattenElements(currentSVG);
+    layersBox.innerHTML = '';
+    layers.forEach((el, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = `${i}. <${el.tagName.toLowerCase()}> ${el.getAttribute('id') ? '#' + el.getAttribute('id') : ''}`;
+      btn.onclick = () => selectElement(el, i);
+      if (el === selectedEl) btn.classList.add('active');
+      layersBox.appendChild(btn);
+    });
+    selInfo.textContent = selectedEl ?
+      `Selected: <${selectedEl.tagName.toLowerCase()}> ${selectedEl.getAttribute('id') ? '#' + selectedEl.getAttribute('id') : ''}` :
+      'No element selected';
+    populateInspector();
+  }
+
+  function flattenElements(svg) {
+    if (!svg) return [];
+    const out = [];
+    const walker = document.createTreeWalker(svg, NodeFilter.SHOW_ELEMENT, {
+      acceptNode(node) {
+        const tag = node.tagName && node.tagName.toLowerCase();
+        if (['defs','title','desc','metadata'].includes(tag)) return NodeFilter.FILTER_REJECT;
+        if (tag === 'svg') return NodeFilter.FILTER_SKIP;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let n; while ((n = walker.nextNode())) out.push(n);
+    return out;
+  }
+
+  function bindSvgClicks() {
+    if (!currentSVG) return;
+    currentSVG.addEventListener('click', (e) => {
+      if (e.target === currentSVG) { selectElement(null); return; }
+      const idx = layers.indexOf(e.target);
+      if (idx >= 0) selectElement(e.target, idx);
+    });
+  }
+
+  function selectElement(el, idx = -1) {
+    selectedEl = el;
+    refreshLayers();
+  }
+
+  // Inspector <-> element
+  function getAttr(el, name, fallback='') { return el ? (el.getAttribute(name) ?? fallback) : ''; }
+  function setAttr(el, name, value) {
+    if (!el) return;
+    if (value === '' || value === null || value === undefined) el.removeAttribute(name);
+    else el.setAttribute(name, String(value));
+  }
+
+  function parseTransform(el) {
+    const t = getAttr(el, 'transform', '');
+    const res = { x:0, y:0, scale:1, rotate:0 };
+    const re = /(translate|scale|rotate)\(([^)]*)\)/g;
+    let m;
+    while ((m = re.exec(t))) {
+      const kind = m[1]; const nums = m[2].split(/[ ,]+/).map(Number);
+      if (kind === 'translate') { res.x = nums[0]||0; res.y = nums[1]||0; }
+      if (kind === 'scale')     { res.scale = nums[0]||1; }
+      if (kind === 'rotate')    { res.rotate = nums[0]||0; }
+    }
+    return res;
+  }
+
+  function applyTransform(el, tx) {
+    const parts = [];
+    if (tx.x || tx.y) parts.push(`translate(${tx.x},${tx.y})`);
+    if (tx.rotate) parts.push(`rotate(${tx.rotate})`);
+    if (tx.scale !== 1) parts.push(`scale(${tx.scale})`);
+    setAttr(el, 'transform', parts.join(' '));
+  }
+
+  function populateInspector() {
+    if (!selectedEl) {
+      [$fill,$stroke,$sw,$op,$tx,$ty,$sc,$rt].forEach(i => i.value = '');
+      return;
+    }
+    $fill.value = getAttr(selectedEl,'fill','');
+    $stroke.value = getAttr(selectedEl,'stroke','');
+    $sw.value = getAttr(selectedEl,'stroke-width','');
+    $op.value = getAttr(selectedEl,'opacity','');
+
+    const tx = parseTransform(selectedEl);
+    $tx.value = tx.x; $ty.value = tx.y; $sc.value = tx.scale; $rt.value = tx.rotate;
+  }
+
+  function hookupInspector() {
+    $fill.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'fill',$fill.value||null); }});
+    $stroke.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke',$stroke.value||null); }});
+    $sw.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'stroke-width',$sw.value||null); }});
+    $op.addEventListener('input', () => { if (selectedEl) { setAttr(selectedEl,'opacity',$op.value||null); }});
+
+    $tx.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.x=Number($tx.value||0); applyTransform(selectedEl,t);} });
+    $ty.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.y=Number($ty.value||0); applyTransform(selectedEl,t);} });
+    $sc.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.scale=Number($sc.value||1); applyTransform(selectedEl,t);} });
+    $rt.addEventListener('input', () => { if (selectedEl) { const t=parseTransform(selectedEl); t.rotate=Number($rt.value||0); applyTransform(selectedEl,t);} });
+  }
+  hookupInspector();
+
+  function removeSelected() {
+    if (!selectedEl || !selectedEl.parentElement) return;
+    selectedEl.parentElement.removeChild(selectedEl);
+    selectedEl = null;
+    refreshLayers();
+  }
+
+  function downloadSVG() {
+    if (!currentSVG) return;
+    const text = serializeSVG(currentSVG);
+    const blob = new Blob([text], { type: 'image/svg+xml;charset=utf-8' });
+    triggerDownload(blob, 'export.svg');
+  }
+
+  async function downloadPNG() {
+    if (!currentSVG) return;
+    const text = serializeSVG(currentSVG);
+    const svgBlob = new Blob([text], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.decoding = 'async';
+    img.crossOrigin = 'anonymous';
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+    // width/height from viewBox or attributes
+    const vb = (currentSVG.getAttribute('viewBox') || '').trim().split(/\s+/).map(Number);
+    const w = vb.length === 4 ? vb[2] : Number(currentSVG.getAttribute('width') || 420);
+    const h = vb.length === 4 ? vb[3] : Number(currentSVG.getAttribute('height') || 420);
+
+    const scale = 3; // 3x for crisper png
+    const canvasEl = document.createElement('canvas');
+    canvasEl.width = Math.max(1, Math.round(w * scale));
+    canvasEl.height = Math.max(1, Math.round(h * scale));
+    const ctx = canvasEl.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
+    URL.revokeObjectURL(url);
+
+    canvasEl.toBlob((blob) => triggerDownload(blob, 'export.png'), 'image/png');
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Default sample so page isn't blank
+  const defaultSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420">
+  <rect width="420" height="420" fill="#fff"/>
+  <text x="18" y="34" font-family="monospace" font-size="14" fill="#111">Paste or upload your createPhil SVG →</text>
+  <circle cx="210" cy="210" r="80" fill="none" stroke="#111" stroke-width="3"/>
+</svg>`;
+  source.value = defaultSVG;
+  setSVGFromText(defaultSVG);
+})();
+</script>
+</body>
+</html>
