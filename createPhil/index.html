@@ -53,7 +53,38 @@
   </nav>
   <div class="content">
     <!-- Embed the working project site -->
-    <iframe src="https://lengyeltyler.github.io/createPhil/" title="createPhil"></iframe>
+    <iframe
+      id="createPhilFrame"
+      src="https://lengyeltyler.github.io/createPhil/"
+      title="createPhil"
+      loading="eager"
+      referrerpolicy="no-referrer">
+    </iframe>
   </div>
+
+  <!-- Listener to download files at the top-level (fixes cross-origin iframe download blocking) -->
+  <script>
+    window.addEventListener('message', (e) => {
+      // (Optional) tighten security by restricting allowed origin:
+      // if (e.origin !== 'https://lengyeltyler.github.io') return;
+
+      const msg = e.data || {};
+      if (msg && msg.source === 'createPhil' && msg.kind === 'download-svg') {
+        try {
+          const blob = new Blob([msg.data], { type: msg.mime || 'image/svg+xml;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = msg.filename || 'download.svg';
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+        } catch (err) {
+          console.warn('Top-level SVG download failed:', err);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
