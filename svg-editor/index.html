@@ -6,6 +6,18 @@
 <title>SVG Editor — tylerlengyel.com</title>
 <meta name="description" content="Lightweight in-browser SVG editor for createPhil outputs. No subscriptions, no build step." />
 <style>
+  /* Site navbar (matches your main site) */
+.site-nav{
+  position: sticky; top: 0; z-index: 100;
+  display:flex; gap:24px; justify-content:center; align-items:center;
+  background: rgba(0,0,0,0.85);
+  border-bottom: 1px solid rgba(155,255,176,0.25);
+  padding: 10px 12px;
+}
+.site-nav a{
+  color: #9bffb0; text-decoration: none; font-size: 20px;
+}
+.site-nav a:hover, .site-nav a:focus{ text-decoration: underline; }
   :root { --bg:#0b0b0d; --panel:#121216; --muted:#c8c8d0; --accent:#69a7ff; --text:#f2f2f5; --line:#1e1e25; --btn:#1b1b22; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
@@ -44,6 +56,13 @@
 </style>
 </head>
 <body>
+  <nav class="site-nav">
+  <a href="/">Home</a>
+  <a href="/writing.html">Hypotheses Page</a>
+  <a href="/linearA/">Linear A</a>
+  <a href="/createPhil/">createPhil</a>
+  <a href="/svg-editor/">SVG Editor</a>
+</nav>
 <div class="app">
   <!-- LEFT: Load + Layers -->
   <section class="card col">
