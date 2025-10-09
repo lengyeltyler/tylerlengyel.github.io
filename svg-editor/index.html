@@ -6,6 +6,14 @@
 <title>SVG Editor — tylerlengyel.com</title>
 <meta name="description" content="Lightweight in-browser SVG editor for createPhil outputs. No subscriptions, no build step." />
 <style>
+  /* === point-editing handles === */
+.handle {
+  position:absolute; width:10px; height:10px; margin:-5px 0 0 -5px;
+  border-radius:50%; border:1px solid #69a7ff; background:#0b0b0d;
+  box-shadow:0 0 0 2px rgba(105,167,255,.25);
+  cursor:grab; z-index:10;
+}
+.handle:active { cursor:grabbing; }
   /* Site navbar (matches your main site) */
 .site-nav{
   position: sticky; top: 0; z-index: 100;
@@ -110,6 +118,9 @@
       <span class="small">Zoom: <span id="zoomVal">1.00×</span></span>
       <button class="btn secondary" id="btnReset">Reset View</button>
       <span class="small">Pan: hold <span class="kbd">Drag</span> / Zoom: <span class="kbd">Wheel</span></span>
+
+      <button class="btn" id="btnEditPoints" title="Toggle edit vertices">✏️ Edit Points</button>
+      <button class="btn secondary" id="btnPathToPolyline" title="Sample selected path into editable polyline">Convert path → polyline</button>
     </div>
   </section>
 
@@ -174,24 +185,27 @@
 <script>
 (() => {
   // --- State ---
-  let currentSVG = null;          // <svg> element in the scene
-  let selectedEl = null;          // currently selected element
-  let layers = [];                // flattened element list
+  let currentSVG = null;
+  let selectedEl = null;
+  let layers = [];
   let zoom = 1;
   let pan = { x: 0, y: 0 };
   let isPanning = false;
   let last = { x: 0, y: 0 };
   let clampToViewBox = true;
+  // --- Point editing state ---
+  let editMode = false;
+  let handles = [];
 
   // --- History (Content) ---
   const HISTORY_LIMIT = 100;
-  const history = []; // array of serialized SVG strings
+  const history = [];
   let histPtr = -1;
   let recordTimer = null;
 
   // --- History (View: pan/zoom) ---
   const VIEW_HISTORY_LIMIT = 100;
-  const viewHistory = []; // {pan:{x,y}, zoom:number}
+  const viewHistory = [];
   let viewPtr = -1;
   let viewRecordTimer = null;
 
@@ -220,6 +234,8 @@
   const btnRedo = document.getElementById('btnRedo');
   const btnUndoView = document.getElementById('btnUndoView');
   const btnRedoView = document.getElementById('btnRedoView');
+  const btnEditPoints = document.getElementById('btnEditPoints');
+  const btnPathToPolyline = document.getElementById('btnPathToPolyline');
 
   document.getElementById('btnUpload').onclick = () => file.click();
   document.getElementById('btnApply').onclick = () => { setSVGFromText(source.value); };
@@ -233,6 +249,21 @@
   btnUndoView.onclick = undoView;
   btnRedoView.onclick = redoView;
   clampToggle.addEventListener('change', () => { clampToViewBox = clampToggle.checked; ensureClip(); });
+  btnEditPoints.onclick = () => {
+  editMode = !editMode;
+  btnEditPoints.classList.toggle('secondary', !editMode);
+  rebuildHandles();
+};
+
+btnPathToPolyline.onclick = () => {
+  if (!selectedEl) return;
+  if (selectedEl.tagName.toLowerCase() !== 'path') { alert('Select a <path> first.'); return; }
+  const poly = pathToPolyline(selectedEl, 128); // sample 128 points
+  selectedEl.replaceWith(poly);
+  selectElement(poly);
+  pushHistoryDebounced();
+  rebuildHandles();
+};
 
   // File upload
   file.addEventListener('change', async (e) => {
@@ -310,6 +341,7 @@
   function applyView(v){ pan = { ...v.pan }; zoom = v.zoom; updateView(); }
   function setView(nextPan, nextZoom, recordImmediate=false){
     pan = { ...nextPan }; zoom = nextZoom; updateView();
+    if (editMode) rebuildHandles();
     if (recordImmediate) pushView(); else pushViewDebounced();
   }
 
@@ -412,7 +444,11 @@
     });
   }
 
-  function selectElement(el, idx = -1) { selectedEl = el; refreshLayers(); }
+  function selectElement(el, idx = -1) {
+    selectedEl = el;
+    refreshLayers();
+    rebuildHandles();   // keep handles in sync with selection
+  }
 
   // Inspector <-> element
   function getAttr(el, name, fallback='') { return el ? (el.getAttribute(name) ?? fallback) : ''; }
@@ -469,9 +505,176 @@
         // Some elements may not have bbox; fallback to proposed as-is
       }
     }
-
-    // done
   }
+  // ====== HANDLE RENDERING ======
+function clearHandles(){
+  handles.forEach(h => h.remove());
+  handles = [];
+}
+function rebuildHandles(){
+  clearHandles();
+  if (!editMode || !selectedEl || !currentSVG) return;
+  const tag = selectedEl.tagName.toLowerCase();
+  if (tag === 'polygon' || tag === 'polyline') addVertexHandlesForPoints(selectedEl);
+  else if (tag === 'rect') addHandlesForRect(selectedEl);
+  else if (tag === 'circle') addHandlesForCircle(selectedEl);
+  else if (tag === 'ellipse') addHandlesForEllipse(selectedEl);
+  // paths are handled via conversion
+}
+
+function svgPT(svg, x, y){
+  const pt = svg.createSVGPoint(); pt.x = x; pt.y = y;
+  const m = svg.getScreenCTM();
+  const p = pt.matrixTransform(m);
+  return { x:p.x, y:p.y };
+}
+function inverseClientToSVG(svg, clientX, clientY){
+  const pt = svg.createSVGPoint(); pt.x = clientX; pt.y = clientY;
+  const m = (svg.getScreenCTM() || svg.getCTM()).inverse();
+  const p = pt.matrixTransform(m);
+  return { x:p.x, y:p.y };
+}
+function placeHandleAt(svg, x, y, onDrag){
+  const sceneEl = document.getElementById('scene'); // absolute parent
+  const screen = svgPT(svg, x, y);
+  const h = document.createElement('div');
+  h.className = 'handle';
+  h.style.left = screen.x + 'px';
+  h.style.top  = screen.y + 'px';
+  sceneEl.appendChild(h);
+  handles.push(h);
+
+  let dragging = false;
+  function onMove(ev){
+    if (!dragging) return;
+    const { x:svgX, y:svgY } = inverseClientToSVG(svg, ev.clientX, ev.clientY);
+    onDrag(svgX, svgY);
+    // keep handle glued to new spot
+    const screen2 = svgPT(svg, svgX, svgY);
+    h.style.left = screen2.x + 'px';
+    h.style.top  = screen2.y + 'px';
+  }
+  h.addEventListener('mousedown', (ev)=>{ dragging = true; ev.preventDefault(); window.addEventListener('mousemove', onMove); });
+  window.addEventListener('mouseup', ()=>{ if (dragging){ dragging=false; window.removeEventListener('mousemove', onMove); pushHistoryDebounced(); }});
+  return h;
+}
+
+// --- polygon/polyline ---
+function parsePointsAttr(el){
+  const raw = (el.getAttribute('points') || '').trim();
+  if (!raw) return [];
+  return raw.split(/[\s,]+/).reduce((acc, v, i, arr)=>{
+    if (i % 2 === 0) acc.push({ x: parseFloat(arr[i]), y: parseFloat(arr[i+1]) });
+    return acc;
+  }, []);
+}
+function writePointsAttr(el, pts){
+  el.setAttribute('points', pts.map(p => `${p.x},${p.y}`).join(' '));
+}
+function addVertexHandlesForPoints(el){
+  const svg = currentSVG;
+  const pts = parsePointsAttr(el);
+  pts.forEach((p, idx) => {
+    placeHandleAt(svg, p.x, p.y, (nx, ny) => {
+      pts[idx].x = nx; pts[idx].y = ny;
+      writePointsAttr(el, pts);
+    });
+  });
+}
+
+// --- rect (edit via 4 corners) ---
+function addHandlesForRect(el){
+  const svg = currentSVG;
+  let x = +el.getAttribute('x') || 0;
+  let y = +el.getAttribute('y') || 0;
+  let w = +el.getAttribute('width') || 0;
+  let h = +el.getAttribute('height') || 0;
+
+  const corners = [
+    {name:'tl', x:x,     y:y    },
+    {name:'tr', x:x+w,   y:y    },
+    {name:'br', x:x+w,   y:y+h  },
+    {name:'bl', x:x,     y:y+h  },
+  ];
+  corners.forEach((c, i)=>{
+    placeHandleAt(svg, c.x, c.y, (nx, ny) => {
+      if (i===0){ // tl
+        w += (x - nx); h += (y - ny); x = nx; y = ny;
+      } else if (i===1){ // tr
+        w = (nx - x); h += (y - ny); y = ny;
+      } else if (i===2){ // br
+        w = (nx - x); h = (ny - y);
+      } else { // bl
+        w += (x - nx); x = nx; h = (ny - y);
+      }
+      if (w<0){ x += w; w = -w; }
+      if (h<0){ y += h; h = -h; }
+      el.setAttribute('x', x); el.setAttribute('y', y);
+      el.setAttribute('width',  w); el.setAttribute('height', h);
+      rebuildHandles(); // reposition other handles
+    });
+  });
+}
+
+// --- circle (center + radius handle) ---
+function addHandlesForCircle(el){
+  const svg = currentSVG;
+  let cx = +el.getAttribute('cx') || 0;
+  let cy = +el.getAttribute('cy') || 0;
+  let r  = +el.getAttribute('r')  || 0;
+
+  // center
+  placeHandleAt(svg, cx, cy, (nx, ny) => {
+    cx = nx; cy = ny;
+    el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+    rebuildHandles();
+  });
+  // radius (drag any direction)
+  placeHandleAt(svg, cx + r, cy, (nx, ny) => {
+    r = Math.hypot(nx - cx, ny - cy);
+    el.setAttribute('r', r);
+    rebuildHandles();
+  });
+}
+
+// --- ellipse (center + rx handle + ry handle) ---
+function addHandlesForEllipse(el){
+  const svg = currentSVG;
+  let cx = +el.getAttribute('cx') || 0;
+  let cy = +el.getAttribute('cy') || 0;
+  let rx = +el.getAttribute('rx') || 0;
+  let ry = +el.getAttribute('ry') || 0;
+
+  placeHandleAt(svg, cx, cy, (nx, ny) => {
+    cx = nx; cy = ny;
+    el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+    rebuildHandles();
+  });
+  placeHandleAt(svg, cx + rx, cy, (nx) => {
+    rx = Math.abs(nx - cx); el.setAttribute('rx', rx); rebuildHandles();
+  });
+  placeHandleAt(svg, cx, cy + ry, (_nx, ny) => {
+    ry = Math.abs(ny - cy); el.setAttribute('ry', ry); rebuildHandles();
+  });
+}
+
+// ====== PATH → POLYLINE SAMPLER ======
+function pathToPolyline(pathEl, samples = 128){
+  const path = pathEl;
+  const len = path.getTotalLength();
+  const pts = [];
+  for (let i=0; i<samples; i++){
+    const p = path.getPointAtLength((i/(samples-1)) * len);
+    pts.push(`${p.x},${p.y}`);
+  }
+  const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  pl.setAttribute('points', pts.join(' '));
+  // copy some presentational attrs
+  ['fill','stroke','stroke-width','opacity','transform'].forEach(a=>{
+    const v = path.getAttribute(a); if (v!=null) pl.setAttribute(a, v);
+  });
+  return pl;
+}
 
   function buildTransform(t) {
     const parts = [];
