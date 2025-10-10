@@ -1,14 +1,42 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/svg-editor/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>svg-editor-pro-react</title>
-    <script type="module" crossorigin src="/svg-editor/assets/index-B-BPY9Va.js"></script>
-    <link rel="stylesheet" crossorigin href="/svg-editor/assets/index-CfQ38thf.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SVG Editor — tylerlengyel.com</title>
+  <meta name="description" content="React SVG Editor embedded from its own GitHub repo." />
+  <style>
+    html,body {height:100%;margin:0;background:#0b0b0d;color:#f2f2f5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .wrap{display:flex;flex-direction:column;min-height:100%}
+    header{position:sticky;top:0;z-index:10;display:flex;gap:16px;
+      align-items:center;padding:10px 12px;background:rgba(0,0,0,.85);
+      border-bottom:1px solid rgba(155,255,176,.25)}
+    header a{color:#9bffb0;text-decoration:none}
+    header a:hover{text-decoration:underline}
+    .frame{flex:1;min-height:calc(100vh - 52px);border:0;width:100%}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a href="/">Home</a>
+      <a href="/writing.html">Hypotheses Page</a>
+      <a href="/linearA/">Linear A</a>
+      <a href="/createPhil/">createPhil</a>
+      <strong>SVG Editor</strong>
+    </header>
+
+    <!-- Embed the build from the svg-editor repo -->
+    <iframe
+      class="frame"
+      src="https://lengyeltyler.github.io/svg-editor/"
+      title="SVG Editor"
+      loading="eager"
+      allow="clipboard-write *; clipboard-read *">
+    </iframe>
+
+    <noscript>This page embeds the SVG Editor from the <code>svg-editor</code> repo. Enable JavaScript to use it.</noscript>
+  </div>
+</body>
 </html>
