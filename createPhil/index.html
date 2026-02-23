@@ -65,9 +65,12 @@
 
   <!-- Listener to download files at the top-level (fixes cross-origin iframe download blocking) -->
   <script>
+    const createPhilFrame = document.getElementById('createPhilFrame');
+    const TRUSTED_CREATEPHIL_ORIGIN = 'https://lengyeltyler.github.io';
+
     window.addEventListener('message', (e) => {
-      // (Optional) tighten security by restricting allowed origin:
-      // if (e.origin !== 'https://lengyeltyler.github.io') return;
+      if (e.origin !== TRUSTED_CREATEPHIL_ORIGIN) return;
+      if (createPhilFrame?.contentWindow && e.source !== createPhilFrame.contentWindow) return;
 
       const msg = e.data || {};
       if (msg && msg.source === 'createPhil' && msg.kind === 'download-svg') {
