@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SVG Editor Local Runtime</title>
+  <link rel="stylesheet" href="./illustrator-lite.css" />
+</head>
+<body>
+  <div class="editor-shell">
+    <header class="toolbar" role="toolbar" aria-label="Editor toolbar">
+      <div class="tool-group" id="tool-group">
+        <button type="button" class="tool-button is-active" data-tool="select">Select</button>
+        <button type="button" class="tool-button" data-tool="rect">Rect</button>
+        <button type="button" class="tool-button" data-tool="ellipse">Ellipse</button>
+        <button type="button" class="tool-button" data-tool="pen">Pen</button>
+        <button type="button" class="tool-button" data-tool="direct">Direct</button>
+      </div>
+      <div class="toolbar-actions">
+        <button type="button" id="undo-btn" class="text-button">Undo</button>
+        <button type="button" id="redo-btn" class="text-button">Redo</button>
+        <button type="button" id="download-svg-btn" class="text-button">Download SVG</button>
+        <button type="button" id="copy-svg-btn" class="text-button">Copy SVG</button>
+      </div>
+    </header>
+
+    <div class="editor-body">
+      <aside class="panel" aria-label="Inspector panel">
+        <h2>Document</h2>
+        <div class="field-row">
+          <label for="doc-width-input">Width</label>
+          <input id="doc-width-input" type="number" min="64" max="10000" step="1" value="1200" />
+        </div>
+        <div class="field-row">
+          <label for="doc-height-input">Height</label>
+          <input id="doc-height-input" type="number" min="64" max="10000" step="1" value="800" />
+        </div>
+        <p class="panel-note" id="selection-summary">No selection</p>
+      </aside>
+
+      <main class="canvas-shell" aria-label="Drawing area">
+        <svg id="editor-canvas" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" tabindex="0">
+          <rect id="canvas-bg" x="0" y="0" width="1200" height="800" fill="#ffffff" />
+          <g id="scene-root"></g>
+          <g id="overlay-root"></g>
+        </svg>
+      </main>
+
+      <aside class="panel" aria-label="Layers panel">
+        <h2>Layers</h2>
+        <div id="layers-list" class="layers-list"></div>
+      </aside>
+    </div>
+
+    <footer class="statusbar">
+      <span id="status-left">Ready</span>
+      <span id="status-right">Object model: canonical v1</span>
+    </footer>
+  </div>
+  <script type="module" src="./illustrator-lite.js"></script>
+</body>
+</html>

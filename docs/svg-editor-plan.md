@@ -28,3 +28,16 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
 - Main constraints discovered:
   - Editor route currently embeds the editor via iframe.
   - Runtime initialization failures were not previously guarded with user-visible feedback in this repo route wrapper.
+
+## Canonical model (Milestone 2)
+
+- Added local runtime files: `svg-editor/editor.html`, `svg-editor/illustrator-lite.css`, `svg-editor/illustrator-lite.js`.
+- Canonical shape contract:
+  - `id`, `type`, `zIndex`, `name`, `visible`, `locked`
+  - `transform` as `{ tx, ty, sx, sy, rotation }`
+  - `style` as `{ fill, stroke, strokeWidth, opacity }`
+  - `geometry` payload per type (`rect`, `ellipse`, `path`)
+- Added compatibility adapter:
+  - `fromLegacyShape(...)` and `toLegacyShape(...)` bridge legacy shape payloads.
+  - `adaptShapeArray(...)` normalizes canonical or legacy arrays to one render pipeline.
+- Rendering now consumes canonical object data and serializes clean SVG from that model.
