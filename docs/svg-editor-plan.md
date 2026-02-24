@@ -79,3 +79,11 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - click anchor to select
   - drag anchor to edit straight-segment geometry
 - Existing non-path objects continue to use object-level selection and transforms unchanged.
+
+## Pen tool v1 (Milestone 7)
+
+- Pen flow implemented on canonical path objects:
+  - click to create anchors
+  - click near first anchor to close path
+  - `Escape` cancels active path creation draft
+- New paths are persisted/rendered through object model and included in SVG export.

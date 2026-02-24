@@ -1867,7 +1867,7 @@ function moveSelectionBy(dx, dy) {
   render();
 }
 
-function finishActivePathIfAny() {
+function finishActivePathIfAny(cancel = false) {
   if (!state.activePathId) {
     return;
   }
@@ -1878,10 +1878,13 @@ function finishActivePathIfAny() {
     return;
   }
 
-  if (found.object.geometry.anchors.length <= 1) {
+  if (cancel || found.object.geometry.anchors.length <= 1) {
     state.objects = state.objects.filter((shape) => shape.id !== state.activePathId);
     sortAndReindexObjects();
     state.selection = [];
+    setStatus("Path creation cancelled");
+  } else {
+    setStatus("Path finalized");
   }
 
   state.activePathId = null;
@@ -1900,7 +1903,7 @@ function handleToolGroupClick(event) {
   }
 
   if (state.tool === TOOLS.PEN && nextTool !== TOOLS.PEN) {
-    finishActivePathIfAny();
+    finishActivePathIfAny(false);
   }
 
   state.tool = nextTool;
@@ -1961,7 +1964,7 @@ function bindEvents() {
     }
 
     if (event.key === "Escape") {
-      finishActivePathIfAny();
+      finishActivePathIfAny(true);
       state.interaction.mode = null;
       setStatus("Ready");
       render();
