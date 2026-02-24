@@ -102,3 +102,14 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - stroke width
   - opacity
 - Style changes are applied through canonical object model updates for current selection.
+
+## Undo/redo (Milestone 10)
+
+- History stack covers:
+  - object create/delete
+  - move/scale/rotate transforms
+  - path edits (anchor move, handle move, pen anchor add, close path)
+  - style inspector changes
+- Keyboard shortcuts:
+  - `Cmd/Ctrl+Z` undo
+  - `Shift+Cmd/Ctrl+Z` and `Cmd/Ctrl+Y` redo

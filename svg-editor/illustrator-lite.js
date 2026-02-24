@@ -1679,6 +1679,7 @@ function beginOrExtendPath(point) {
     const first = anchors[0];
     const dist = Math.hypot(first.x - point.x, first.y - point.y);
     if (dist < 10) {
+      pushHistory();
       found.object.geometry.closed = true;
       state.activePathId = null;
       setStatus("Path closed");
@@ -1687,6 +1688,7 @@ function beginOrExtendPath(point) {
     }
   }
 
+  pushHistory();
   anchors.push({
     x: point.x,
     y: point.y,
