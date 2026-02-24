@@ -80,6 +80,10 @@ const state = {
   objects: [],
   selection: [],
   activePathId: null,
+  directSelection: {
+    pathId: null,
+    anchorIndex: null
+  },
   interaction: {
     mode: null,
     pointerId: null,
@@ -646,6 +650,19 @@ function applyInverseTransform(point, transform) {
   return { x, y };
 }
 
+function applyTransformToPoint(point, transform) {
+  const t = normalizeTransform(transform);
+  const sx = point.x * (t.sx || 1);
+  const sy = point.y * (t.sy || 1);
+  const radians = (t.rotation * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  return {
+    x: sx * cos - sy * sin + t.tx,
+    y: sx * sin + sy * cos + t.ty
+  };
+}
+
 function pointHitsShapeGeometry(shape, point) {
   const local = applyInverseTransform(point, shape.transform);
 
@@ -912,6 +929,37 @@ function drawSelectionOutline() {
     handle.style.cursor = config.cursor;
     dom.overlay.appendChild(handle);
   }
+
+  if (state.tool === TOOLS.DIRECT) {
+    drawDirectSelectionAnchors();
+  }
+}
+
+function drawDirectSelectionAnchors() {
+  for (const id of state.selection) {
+    const found = getObjectById(id);
+    if (!found || found.object.type !== "path") {
+      continue;
+    }
+
+    const path = found.object;
+    const anchors = path.geometry.anchors || [];
+    for (let index = 0; index < anchors.length; index += 1) {
+      const anchor = anchors[index];
+      const world = applyTransformToPoint(anchor, path.transform);
+      const node = createSvgElement("circle");
+      node.setAttribute("class", "path-anchor-handle");
+      node.setAttribute("cx", String(round(world.x)));
+      node.setAttribute("cy", String(round(world.y)));
+      node.setAttribute("r", state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index ? "5.5" : "4.5");
+      node.dataset.anchorPathId = path.id;
+      node.dataset.anchorIndex = String(index);
+      if (state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index) {
+        node.classList.add("is-active");
+      }
+      dom.overlay.appendChild(node);
+    }
+  }
 }
 
 function updateLayersPanel() {
@@ -965,6 +1013,13 @@ function updateLayersPanel() {
         state.selection = [shape.id];
       }
       state.activePathId = shape.type === "path" ? shape.id : null;
+      if (state.tool === TOOLS.DIRECT && shape.type === "path") {
+        state.directSelection.pathId = shape.id;
+        state.directSelection.anchorIndex = 0;
+      } else if (!state.selection.includes(state.directSelection.pathId)) {
+        state.directSelection.pathId = null;
+        state.directSelection.anchorIndex = null;
+      }
       render();
     });
 
@@ -1019,6 +1074,8 @@ function render() {
 function deselectAll() {
   state.selection = [];
   state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
 }
 
 function applyToolButtonState() {
@@ -1526,6 +1583,32 @@ function pointerDownOnCanvas(event) {
   event.preventDefault();
 
   const point = svgPointFromEvent(event);
+  const anchorNode = event.target.closest("[data-anchor-path-id]");
+  if (state.tool === TOOLS.DIRECT && anchorNode) {
+    const pathId = anchorNode.dataset.anchorPathId;
+    const anchorIndex = Number(anchorNode.dataset.anchorIndex);
+    const foundPath = pathId ? getObjectById(pathId) : null;
+    if (
+      foundPath &&
+      foundPath.object.type === "path" &&
+      Number.isInteger(anchorIndex) &&
+      anchorIndex >= 0 &&
+      anchorIndex < (foundPath.object.geometry.anchors || []).length
+    ) {
+      pushHistory();
+      state.selection = [pathId];
+      state.activePathId = pathId;
+      state.directSelection.pathId = pathId;
+      state.directSelection.anchorIndex = anchorIndex;
+      state.interaction.mode = "anchor-moving";
+      state.interaction.pointerId = event.pointerId;
+      state.interaction.start = point;
+      setStatus("Editing path anchor");
+      render();
+      return;
+    }
+  }
+
   const handleNode = event.target.closest("[data-handle-type]");
   if (
     handleNode &&
@@ -1568,6 +1651,13 @@ function pointerDownOnCanvas(event) {
 
       if (found.object.type === "path") {
         state.activePathId = found.object.id;
+        if (state.tool === TOOLS.DIRECT) {
+          state.directSelection.pathId = found.object.id;
+          state.directSelection.anchorIndex = 0;
+        }
+      } else {
+        state.directSelection.pathId = null;
+        state.directSelection.anchorIndex = null;
       }
     } else {
       deselectAll();
@@ -1580,6 +1670,22 @@ function pointerDownOnCanvas(event) {
 
 function pointerMoveOnCanvas(event) {
   const point = svgPointFromEvent(event);
+
+  if (state.interaction.mode === "anchor-moving") {
+    const pathId = state.directSelection.pathId;
+    const anchorIndex = state.directSelection.anchorIndex;
+    const found = pathId ? getObjectById(pathId) : null;
+    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
+      const local = applyInverseTransform(point, found.object.transform);
+      const anchor = found.object.geometry.anchors[anchorIndex];
+      if (anchor) {
+        anchor.x = local.x;
+        anchor.y = local.y;
+      }
+    }
+    render();
+    return;
+  }
 
   if (state.interaction.mode === "creating") {
     continueCreateShape(point);
@@ -1600,6 +1706,15 @@ function pointerMoveOnCanvas(event) {
 }
 
 function pointerUpOnCanvas() {
+  if (state.interaction.mode === "anchor-moving") {
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    state.interaction.start = null;
+    setStatus("Ready");
+    render();
+    return;
+  }
+
   if (state.interaction.mode === "creating") {
     finishCreateShape();
     return;

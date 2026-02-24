@@ -70,3 +70,12 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
 - Grouping v1:
   - `Group` wraps selected top-level objects in a container object (`type: group`)
   - `Ungroup` promotes children back to top-level and propagates parent transform to each child
+
+## Direct selection foundation (Milestone 6)
+
+- Added `direct` mode anchor rendering for selected path objects.
+- Direct selection behavior:
+  - shows path anchors in overlay
+  - click anchor to select
+  - drag anchor to edit straight-segment geometry
+- Existing non-path objects continue to use object-level selection and transforms unchanged.

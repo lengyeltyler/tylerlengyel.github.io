@@ -222,6 +222,18 @@ input {
   fill: #b5ddff;
 }
 
+.path-anchor-handle {
+  fill: #f4fbff;
+  stroke: #1976d2;
+  stroke-width: 1.2;
+  cursor: move;
+}
+
+.path-anchor-handle.is-active {
+  fill: #82c5ff;
+  stroke: #0d5dad;
+}
+
 .statusbar {
   border-top: 1px solid var(--panel-border);
   background: #10161e;
