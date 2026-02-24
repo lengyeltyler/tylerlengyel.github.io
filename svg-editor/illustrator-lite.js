@@ -30,6 +30,10 @@ const dom = {
   scene: document.getElementById("scene-root"),
   overlay: document.getElementById("overlay-root"),
   layers: document.getElementById("layers-list"),
+  layerForwardBtn: document.getElementById("layer-forward-btn"),
+  layerBackwardBtn: document.getElementById("layer-backward-btn"),
+  groupBtn: document.getElementById("group-btn"),
+  ungroupBtn: document.getElementById("ungroup-btn"),
   statusLeft: document.getElementById("status-left"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
@@ -47,6 +51,10 @@ const requiredDomKeys = [
   "scene",
   "overlay",
   "layers",
+  "layerForwardBtn",
+  "layerBackwardBtn",
+  "groupBtn",
+  "ungroupBtn",
   "statusLeft",
   "docWidth",
   "docHeight",
@@ -909,34 +917,72 @@ function drawSelectionOutline() {
 function updateLayersPanel() {
   dom.layers.innerHTML = "";
 
-  const sorted = [...state.objects].sort((a, b) => b.zIndex - a.zIndex);
-  for (const shape of sorted) {
+  const rows = [];
+  const walk = (shapes, depth) => {
+    const ordered = [...shapes].sort((a, b) => b.zIndex - a.zIndex);
+    for (const shape of ordered) {
+      rows.push({ shape, depth });
+      if (shape.type === "group" && Array.isArray(shape.children) && shape.children.length > 0) {
+        walk(shape.children, depth + 1);
+      }
+    }
+  };
+  walk(state.objects, 0);
+
+  for (const row of rows) {
+    const { shape, depth } = row;
     const item = document.createElement("button");
     item.type = "button";
     item.className = "layer-item";
+    item.style.paddingLeft = `${8 + depth * 14}px`;
     if (state.selection.includes(shape.id)) {
       item.classList.add("is-selected");
     }
 
     const left = document.createElement("span");
-    left.className = "layer-name";
-    left.textContent = shape.name || shape.type;
+    left.className = "layer-name-wrap";
 
-    const right = document.createElement("span");
-    right.className = "layer-type";
-    right.textContent = shape.type;
+    const name = document.createElement("span");
+    name.className = "layer-name";
+    name.textContent = shape.name || shape.type;
 
+    const type = document.createElement("span");
+    type.className = "layer-type";
+    type.textContent = shape.type;
+
+    left.appendChild(name);
+    left.appendChild(type);
     item.appendChild(left);
-    item.appendChild(right);
 
-    item.addEventListener("click", () => {
-      state.selection = [shape.id];
+    item.addEventListener("click", (event) => {
+      if (event.shiftKey) {
+        if (state.selection.includes(shape.id)) {
+          state.selection = state.selection.filter((id) => id !== shape.id);
+        } else {
+          state.selection = [...state.selection, shape.id];
+        }
+      } else {
+        state.selection = [shape.id];
+      }
       state.activePathId = shape.type === "path" ? shape.id : null;
       render();
     });
 
     dom.layers.appendChild(item);
   }
+
+  const topLevelSelection = state.selection.filter((id) =>
+    state.objects.some((shape) => shape.id === id)
+  );
+  const hasGroupSelection = state.selection.some((id) => {
+    const found = getObjectById(id);
+    return found?.object.type === "group";
+  });
+
+  dom.groupBtn.disabled = topLevelSelection.length < 2;
+  dom.ungroupBtn.disabled = !hasGroupSelection;
+  dom.layerForwardBtn.disabled = topLevelSelection.length === 0;
+  dom.layerBackwardBtn.disabled = topLevelSelection.length === 0;
 }
 
 function render() {
@@ -999,6 +1045,147 @@ function updateShape(id, updater) {
     return;
   }
   updater(found.object);
+}
+
+function getTopLevelSelectionIds() {
+  return state.selection.filter((id) => state.objects.some((shape) => shape.id === id));
+}
+
+function moveSelectionInLayer(direction) {
+  const selectedIds = new Set(getTopLevelSelectionIds());
+  if (selectedIds.size === 0) {
+    return;
+  }
+
+  pushHistory();
+
+  if (direction > 0) {
+    for (let i = state.objects.length - 2; i >= 0; i -= 1) {
+      const current = state.objects[i];
+      const next = state.objects[i + 1];
+      if (selectedIds.has(current.id) && !selectedIds.has(next.id)) {
+        state.objects[i] = next;
+        state.objects[i + 1] = current;
+      }
+    }
+  } else {
+    for (let i = 1; i < state.objects.length; i += 1) {
+      const current = state.objects[i];
+      const previous = state.objects[i - 1];
+      if (selectedIds.has(current.id) && !selectedIds.has(previous.id)) {
+        state.objects[i] = previous;
+        state.objects[i - 1] = current;
+      }
+    }
+  }
+
+  sortAndReindexObjects();
+  render();
+}
+
+function composeTransforms(parentTransform, childTransform) {
+  const parent = normalizeTransform(parentTransform);
+  const child = normalizeTransform(childTransform);
+  return {
+    tx: parent.tx + child.tx,
+    ty: parent.ty + child.ty,
+    sx: parent.sx * child.sx,
+    sy: parent.sy * child.sy,
+    rotation: parent.rotation + child.rotation
+  };
+}
+
+function groupSelection() {
+  const topLevelSelection = getTopLevelSelectionIds();
+  if (topLevelSelection.length < 2) {
+    return;
+  }
+
+  const selectedSet = new Set(topLevelSelection);
+  const selected = state.objects.filter((shape) => selectedSet.has(shape.id));
+  if (selected.length < 2) {
+    return;
+  }
+
+  pushHistory();
+
+  const minIndex = state.objects.findIndex((shape) => selectedSet.has(shape.id));
+  const remaining = state.objects.filter((shape) => !selectedSet.has(shape.id));
+  const groupId = nextId("group");
+
+  const groupObject = {
+    id: groupId,
+    type: "group",
+    name: `Group ${groupId.slice(-4)}`,
+    zIndex: minIndex,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: {
+      ...deepClone(DEFAULT_STYLE),
+      fill: "none"
+    },
+    geometry: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    },
+    children: selected
+      .sort((a, b) => a.zIndex - b.zIndex)
+      .map((shape, index) => ({
+        ...shape,
+        zIndex: index
+      }))
+  };
+
+  remaining.splice(minIndex, 0, groupObject);
+  state.objects = remaining;
+  sortAndReindexObjects();
+  state.selection = [groupId];
+  setStatus(`Grouped ${selected.length} objects`);
+  render();
+}
+
+function ungroupSelection() {
+  const topLevelSelection = getTopLevelSelectionIds();
+  if (topLevelSelection.length === 0) {
+    return;
+  }
+
+  const selectedSet = new Set(topLevelSelection);
+  const nextObjects = [];
+  const nextSelection = [];
+  let didUngroup = false;
+
+  pushHistory();
+
+  for (const shape of state.objects) {
+    if (selectedSet.has(shape.id) && shape.type === "group") {
+      didUngroup = true;
+      const children = Array.isArray(shape.children) ? shape.children : [];
+      for (const child of children) {
+        const nextChild = deepClone(child);
+        nextChild.transform = composeTransforms(shape.transform, nextChild.transform);
+        nextObjects.push(nextChild);
+        nextSelection.push(nextChild.id);
+      }
+    } else {
+      nextObjects.push(shape);
+    }
+  }
+
+  if (!didUngroup) {
+    state.history.undo.pop();
+    updateHistoryButtons();
+    return;
+  }
+
+  state.objects = nextObjects;
+  sortAndReindexObjects();
+  state.selection = nextSelection;
+  setStatus("Ungrouped selection");
+  render();
 }
 
 function beginCreateShape(type, point) {
@@ -1630,6 +1817,10 @@ function bindEvents() {
   dom.redoBtn.addEventListener("click", redo);
   dom.downloadSvgBtn.addEventListener("click", downloadSvg);
   dom.copySvgBtn.addEventListener("click", copySvg);
+  dom.layerForwardBtn.addEventListener("click", () => moveSelectionInLayer(1));
+  dom.layerBackwardBtn.addEventListener("click", () => moveSelectionInLayer(-1));
+  dom.groupBtn.addEventListener("click", groupSelection);
+  dom.ungroupBtn.addEventListener("click", ungroupSelection);
 
   window.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {

@@ -144,6 +144,19 @@ input {
 .layers-list {
   display: grid;
   gap: 6px;
+  margin-top: 10px;
+}
+
+.layer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.layer-actions .text-button {
+  padding: 5px 8px;
+  font-size: 12px;
 }
 
 .layer-item {
@@ -156,11 +169,18 @@ input {
   background: #111820;
   padding: 6px 8px;
   cursor: pointer;
+  text-align: left;
 }
 
 .layer-item.is-selected {
   border-color: var(--accent);
   background: #16273a;
+}
+
+.layer-item .layer-name-wrap {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .layer-item .layer-name {

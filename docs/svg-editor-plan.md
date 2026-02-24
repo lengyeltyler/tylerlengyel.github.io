@@ -60,3 +60,13 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - rotate via top-center rotate handle
 - Transform writes go through canonical object `transform` values (`tx`, `ty`, `sx`, `sy`, `rotation`) instead of direct DOM mutation.
 - Keyboard nudge is wired to transform translation on selected objects.
+
+## Layers + grouping v1 (Milestone 5)
+
+- Layers panel now includes:
+  - z-order listing
+  - object selection from layers
+  - buttons for `Bring forward` and `Send backward`
+- Grouping v1:
+  - `Group` wraps selected top-level objects in a container object (`type: group`)
+  - `Ungroup` promotes children back to top-level and propagates parent transform to each child
