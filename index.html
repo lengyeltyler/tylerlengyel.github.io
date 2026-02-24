@@ -3,212 +3,640 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GAME OVER</title>
-  <meta name="description" content="GAME OVER with Matrix rain." />
+  <title>Tyler Lengyel | Homebase Lab</title>
+  <meta name="description" content="Tyler Lengyel homebase: a live archive of cryptography, generative systems, and long-term research experiments." />
 
-  <link rel="canonical" href="https://tylerlengyel.com/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="GAME OVER — Tyler Lengyel">
-  <meta property="og:description" content="GAME OVER with Matrix rain.">
-  <meta property="og:url" content="https://tylerlengyel.com/">
-  <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#000000">
+  <link rel="canonical" href="https://tylerlengyel.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Tyler Lengyel | Homebase Lab" />
+  <meta property="og:description" content="A living research lab and system console for ongoing experiments." />
+  <meta property="og:url" content="https://tylerlengyel.com/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#050807" />
 
   <style>
-    :root{
-      --bg:#000;
-      --ink:#fff;
-      --green:#9bffb0;
-      --green-strong:#00e676;
-      --border:rgba(155,255,176,0.22);
-      --muted:rgba(255,255,255,0.72);
-      --glass:rgba(0,0,0,0.65);
+    :root {
+      --bg: #050807;
+      --surface: #0c1210;
+      --surface-2: #121a17;
+      --ink: #dffde8;
+      --muted: #9dbaab;
+      --accent: #69ffad;
+      --accent-strong: #3eff96;
+      --border: rgba(105, 255, 173, 0.26);
+      --shadow: rgba(0, 0, 0, 0.45);
+      --ring: rgba(105, 255, 173, 0.65);
+      --max: 1120px;
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
       margin: 0;
-      background: var(--bg);
+      min-height: 100%;
+    }
+
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       color: var(--ink);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% -10%, rgba(52, 116, 89, 0.28), transparent 34%),
+        radial-gradient(circle at 82% 120%, rgba(40, 90, 72, 0.18), transparent 40%),
+        var(--bg);
+      line-height: 1.5;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+
+    body::before {
+      opacity: 0.28;
+      background:
+        repeating-linear-gradient(0deg, rgba(105, 255, 173, 0.045) 0 1px, transparent 1px 34px),
+        repeating-linear-gradient(90deg, rgba(105, 255, 173, 0.03) 0 1px, transparent 1px 34px);
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(105, 255, 173, 0.07), transparent 42%),
+        radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.95) 60%);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    a:hover {
+      color: var(--accent-strong);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -48px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #111a16;
+      color: var(--ink);
+      z-index: 30;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 12px;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+      background: rgba(5, 8, 7, 0.8);
+      border-bottom: 1px solid rgba(105, 255, 173, 0.16);
+    }
+
+    .nav-shell {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+    }
+
+    .brand {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      padding-bottom: 2px;
+    }
+
+    .nav-links a[aria-current="page"] {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+    }
+
+    .hero {
+      padding: 48px 0 28px;
+    }
+
+    .terminal-window {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(14, 21, 18, 0.95), rgba(9, 14, 12, 0.95));
+      box-shadow:
+        0 20px 50px var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02),
+        inset 0 -24px 80px rgba(0, 0, 0, 0.42);
       overflow: hidden;
     }
 
-    /* Matrix canvas */
-    #matrix {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      display: block;
-      z-index: 0;
+    .terminal-top {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(105, 255, 173, 0.2);
+      background: rgba(7, 11, 9, 0.92);
     }
 
-    /* ---- NAV (restyled) ---- */
-    .nav-wrap {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      backdrop-filter: saturate(120%) blur(8px);
-      background: var(--glass);
-      border-bottom: 1px solid var(--border);
+    .window-dots {
+      display: inline-flex;
+      gap: 8px;
     }
-    nav {
-      display: flex;
-      gap: 18px;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 16px;
-      max-width: 1200px;
-      margin: 0 auto;
-      flex-wrap: wrap;
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 0.88;
     }
-    .nav-link {
-      position: relative;
-      padding: 6px 2px;
-      font-size: clamp(16px, 1.8vw, 20px);
-      color: var(--green);
+
+    .dot:nth-child(1) {
+      background: #ff625c;
+    }
+
+    .dot:nth-child(2) {
+      background: #ffbe2e;
+    }
+
+    .dot:nth-child(3) {
+      background: #2adb71;
+    }
+
+    .terminal-title {
+      font-size: 0.76rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .terminal-body {
+      padding: 22px;
+      font-size: clamp(0.9rem, 1.55vw, 1.06rem);
+    }
+
+    .term-row {
+      margin: 0 0 10px;
+    }
+
+    .term-command {
+      color: var(--accent);
+      margin: 0 0 4px;
+    }
+
+    .term-output {
+      color: var(--ink);
+      margin: 0 0 18px;
+    }
+
+    .term-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .terminal-project-link {
+      display: inline-block;
+      color: var(--ink);
       text-decoration: none;
-      opacity: 0.95;
-      transition: opacity .15s ease;
-    }
-    .nav-link:hover,
-    .nav-link:focus-visible { opacity: 1; outline: none; }
-
-    /* underline animation */
-    .nav-link::after {
-      content: "";
-      position: absolute;
-      left: 0; bottom: -2px;
-      height: 2px; width: 100%;
-      background: var(--border);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform .18s ease-in-out;
-    }
-    .nav-link:hover::after,
-    .nav-link:focus-visible::after { transform: scaleX(1); }
-
-    /* active (current) link style */
-    .nav-link.active { color: #b8ffcb; }
-    .nav-link.active::after {
-      transform: scaleX(1);
-      background: var(--green-strong);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 2px 7px;
+      margin: 0 -7px;
+      max-width: 100%;
+      overflow-wrap: anywhere;
     }
 
-    /* Main hero */
-    main {
-      position: relative;
-      z-index: 1;
-      height: calc(100% - 56px);
+    .terminal-project-link:hover {
+      border-color: rgba(105, 255, 173, 0.3);
+      background: rgba(105, 255, 173, 0.08);
+      color: var(--accent);
+    }
+
+    .prompt-form {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .prompt-line {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(7, 12, 10, 0.9);
       display: flex;
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px 10px;
     }
-    h1 {
-      margin: 0;
-      font-weight: 900;
-      letter-spacing: 2px;
-      font-size: clamp(56px, 14vw, 180px);
-      line-height: 1;
-      text-shadow: 0 2px 10px rgba(0,255,128,0.25);
-    }
-    p { margin-top: 24px; }
-    .hero-link {
-      font-size: clamp(18px, 4.6vw, 30px);
-      color: var(--green);
-      text-decoration: underline;
-    }
-    .hero-link:hover,
-    .hero-link:focus { text-decoration: none; outline: none; }
 
-    /* Respect reduced motion */
+    .prompt-prefix {
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .prompt-input {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      min-width: 80px;
+      width: 90px;
+      font: inherit;
+      padding: 0;
+    }
+
+    .prompt-input::placeholder {
+      color: #7b9285;
+    }
+
+    .cursor {
+      width: 0.62ch;
+      height: 1.1em;
+      background: var(--ink);
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+    }
+
+    .prompt-button {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(105, 255, 173, 0.1);
+      color: var(--ink);
+      font: inherit;
+      padding: 5px 11px;
+      cursor: pointer;
+    }
+
+    .prompt-button:hover {
+      background: rgba(105, 255, 173, 0.18);
+    }
+
+    .prompt-status {
+      margin: 0;
+      color: var(--muted);
+      min-height: 1.4em;
+    }
+
+    .content-section {
+      padding: 26px 0 8px;
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+      color: var(--ink);
+    }
+
+    .section-subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .project-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(8, 14, 11, 0.84);
+      text-decoration: none;
+      color: var(--ink);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .project-card:hover {
+      border-color: rgba(105, 255, 173, 0.48);
+      background: rgba(10, 17, 14, 0.92);
+    }
+
+    .project-card h3 {
+      margin: 0;
+      font-size: 0.99rem;
+      color: var(--ink);
+    }
+
+    .project-path {
+      color: var(--accent);
+      font-size: 0.89rem;
+      margin: 0;
+    }
+
+    .project-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .notes-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 9px;
+    }
+
+    .notes-list li {
+      border: 1px solid rgba(105, 255, 173, 0.18);
+      border-radius: 10px;
+      padding: 12px 13px;
+      background: rgba(8, 12, 10, 0.75);
+      color: var(--ink);
+    }
+
+    .notes-list time {
+      color: var(--accent);
+    }
+
+    .footer-space {
+      height: 36px;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes blink {
+      0%, 49% {
+        opacity: 1;
+      }
+      50%, 100% {
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .hero {
+        padding-top: 34px;
+      }
+
+      .terminal-body {
+        padding: 16px;
+      }
+
+      .prompt-line {
+        gap: 6px;
+      }
+
+      .prompt-button {
+        width: 100%;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .nav-link::after { transition: none; }
+      .cursor {
+        animation: none;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="matrix" aria-hidden="true"></canvas>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <div class="nav-wrap">
-    <nav>
-      <a class="nav-link active" href="/">Home</a>
-      <a class="nav-link" href="/writing.html">Hypotheses Page</a>
-      <a class="nav-link" href="/linearA/index.html">Linear A</a>
-      <a class="nav-link" href="/createPhil/">createPhil</a>
-      <a class="nav-link" href="/nakes/">nakes</a>
-      <a class="nav-link" href="/svg-editor/index.html">SVG Editor</a><!-- new -->
-    </nav>
-  </div>
-
-  <main>
-    <div>
-      <h1>GAME OVER</h1>
-      <p><a class="hero-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">click here for prize</a></p>
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="/">Tyler Lengyel</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/" aria-current="page">Home</a>
+        <a href="/linear-a">Linear A</a>
+        <a href="/createphil">createPhil</a>
+        <a href="/svg-editor/">SVG Editor</a>
+      </nav>
     </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero">
+      <div class="container">
+        <article class="terminal-window" aria-label="Homebase system console">
+          <div class="terminal-top">
+            <div class="window-dots" aria-hidden="true">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="terminal-title">homebase://research-console</div>
+          </div>
+          <div class="terminal-body">
+            <p class="term-command">tyler@homebase:$ whoami</p>
+            <p class="term-output">Tyler Lengyel — independent builder exploring cryptography, generative systems, and ancient puzzles.</p>
+
+            <p class="term-command">tyler@homebase:$ status</p>
+            <p class="term-output">This site is a live archive of ongoing experiments.</p>
+
+            <p class="term-command">tyler@homebase:$ active_projects</p>
+            <div id="terminal-projects" class="term-list" role="list"></div>
+
+            <p class="term-command">tyler@homebase:$ infra</p>
+            <ul class="term-list">
+              <li>- Self-hosted Ethereum full node (Geth + Lighthouse)</li>
+              <li>- Local-first dev workflow</li>
+              <li>- Verify &gt; trust</li>
+            </ul>
+
+            <p class="term-command">tyler@homebase:$ next</p>
+            <p class="term-output">Type a number to open a project.</p>
+
+            <form id="project-prompt" class="prompt-form" novalidate>
+              <div class="prompt-line">
+                <span class="prompt-prefix">tyler@homebase:$</span>
+                <label class="visually-hidden" for="project-number">Type 1, 2, or 3</label>
+                <input
+                  id="project-number"
+                  class="prompt-input"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  spellcheck="false"
+                  pattern="[1-3]"
+                  maxlength="1"
+                  placeholder="1|2|3"
+                />
+                <span class="cursor" aria-hidden="true"></span>
+                <button class="prompt-button" type="submit">Open</button>
+              </div>
+              <p id="prompt-status" class="prompt-status" aria-live="polite"></p>
+            </form>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Projects</h2>
+        <p class="section-subtitle">Current labs and long-horizon systems work.</p>
+        <div class="projects-grid" id="project-cards"></div>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <div class="container">
+        <h2 class="section-title">Notes / Updates</h2>
+        <ul class="notes-list">
+          <li><time datetime="2026-02">Feb 2026</time> — Node stack stabilized on dedicated hardware.</li>
+          <li><time datetime="2026-02">Feb 2026</time> — Proof-gated mint flows being hardened in Phil13 testbed.</li>
+          <li><time datetime="2026-02">Feb 2026</time> — SVG toolchain refactors for on-chain constraints.</li>
+          <li><time datetime="2026-01">Jan 2026</time> — Local RPC + tunnel workflow finalized.</li>
+          <li><time datetime="2026-01">Jan 2026</time> — Linear A notes reorganized.</li>
+        </ul>
+      </div>
+    </section>
   </main>
+
+  <div class="footer-space" aria-hidden="true"></div>
 
   <script>
     (() => {
-      const canvas = document.getElementById('matrix');
-      const ctx = canvas.getContext('2d');
-
-      const resize = () => {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        canvas.width = Math.floor(innerWidth * dpr);
-        canvas.height = Math.floor(innerHeight * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        initColumns();
-      };
-      window.addEventListener('resize', resize, { passive: true });
-
-      const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-      let columns = [];
-      let fontSize = 16;
-      let colCount = 0;
-
-      function initColumns() {
-        fontSize = Math.max(12, Math.floor(Math.min(innerWidth, innerHeight) / 50));
-        ctx.font = `${fontSize}px monospace`;
-        colCount = Math.ceil(innerWidth / fontSize);
-        columns = Array.from({ length: colCount }, () => ({
-          y: Math.floor(Math.random() * -50),
-          speed: 1 + Math.random() * 1.2,
-          fade: 0.75 + Math.random() * 0.2
-        }));
-      }
-
-      function draw() {
-        ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fillRect(0, 0, innerWidth, innerHeight);
-
-        for (let i = 0; i < colCount; i++) {
-          const x = i * fontSize;
-          const c = chars[Math.floor(Math.random() * chars.length)];
-          const col = columns[i];
-
-          ctx.fillStyle = '#b8ffcb';
-          ctx.fillText(c, x, col.y * fontSize);
-
-          ctx.fillStyle = '#00e676';
-          ctx.fillText(c, x, (col.y - 1) * fontSize);
-
-          col.y += col.speed;
-          if (col.y * fontSize > innerHeight + 100) {
-            col.y = Math.floor(Math.random() * -50);
-            col.speed = 0.1 + Math.random() * 1.1;
-          }
+      const projects = [
+        {
+          id: "1",
+          name: "Linear A Research",
+          terminalLine: "[1] Linear A Research  → /linear-a",
+          href: "/linear-a",
+          description: "Tablet-by-tablet proto-decipherment notes and hypothesis tracking."
+        },
+        {
+          id: "2",
+          name: "createPhil (Legacy)",
+          terminalLine: "[2] createPhil (Legacy) → /createphil",
+          href: "/createphil",
+          description: "Legacy Phil build environment and historical generation tooling."
+        },
+        {
+          id: "3",
+          name: "SVG Systems Lab",
+          terminalLine: "[3] SVG Systems Lab     → /svg-editor",
+          href: "/svg-editor",
+          description: "Vector editing workflows and constraint-focused SVG experimentation."
         }
-        requestAnimationFrame(draw);
+      ];
+
+      const terminalProjects = document.getElementById("terminal-projects");
+      const projectCards = document.getElementById("project-cards");
+      const projectPrompt = document.getElementById("project-prompt");
+      const projectNumber = document.getElementById("project-number");
+      const promptStatus = document.getElementById("prompt-status");
+      const projectMap = Object.fromEntries(projects.map((project) => [project.id, project]));
+
+      function createTerminalProjectLink(project) {
+        const link = document.createElement("a");
+        link.className = "terminal-project-link";
+        link.href = project.href;
+        link.dataset.projectId = project.id;
+        link.textContent = project.terminalLine;
+        return link;
       }
 
-      resize();
-      requestAnimationFrame(draw);
+      function createProjectCard(project) {
+        const card = document.createElement("a");
+        card.className = "project-card";
+        card.href = project.href;
+        card.dataset.projectId = project.id;
+
+        const title = document.createElement("h3");
+        title.textContent = project.name;
+
+        const path = document.createElement("p");
+        path.className = "project-path";
+        path.textContent = project.terminalLine.split("→")[1].trim();
+
+        const description = document.createElement("p");
+        description.className = "project-description";
+        description.textContent = project.description;
+
+        card.append(title, path, description);
+        return card;
+      }
+
+      function openProject(projectId) {
+        const target = projectMap[projectId];
+        if (!target) return false;
+        window.location.href = target.href;
+        return true;
+      }
+
+      projects.forEach((project) => {
+        terminalProjects.appendChild(createTerminalProjectLink(project));
+        projectCards.appendChild(createProjectCard(project));
+      });
+
+      projectPrompt.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const value = projectNumber.value.trim();
+        if (openProject(value)) return;
+
+        promptStatus.textContent = "Unknown project. Type 1, 2, or 3.";
+      });
+
+      projectNumber.addEventListener("input", () => {
+        promptStatus.textContent = "";
+      });
     })();
   </script>
 </body>
