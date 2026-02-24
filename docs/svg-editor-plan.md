@@ -41,3 +41,13 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - `fromLegacyShape(...)` and `toLegacyShape(...)` bridge legacy shape payloads.
   - `adaptShapeArray(...)` normalizes canonical or legacy arrays to one render pipeline.
 - Rendering now consumes canonical object data and serializes clean SVG from that model.
+
+## Selection + hit testing (Milestone 3)
+
+- Selection behavior:
+  - click selects topmost hit object
+  - shift-click toggles multi-selection
+  - selection bounds are rendered in an overlay layer
+- Hit testing:
+  - primary path uses `elementsFromPoint(...)` for topmost DOM hit
+  - geometry fallback added for common shapes (rect/ellipse/path bounding checks)

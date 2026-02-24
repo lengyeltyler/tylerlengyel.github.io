@@ -610,6 +610,120 @@ function svgPointFromEvent(event) {
   return { x: transformed.x, y: transformed.y };
 }
 
+function applyInverseTransform(point, transform) {
+  const t = normalizeTransform(transform);
+  let x = point.x - t.tx;
+  let y = point.y - t.ty;
+
+  if (t.rotation) {
+    const radians = (-t.rotation * Math.PI) / 180;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+    const rx = x * cos - y * sin;
+    const ry = x * sin + y * cos;
+    x = rx;
+    y = ry;
+  }
+
+  x /= t.sx || 1;
+  y /= t.sy || 1;
+
+  return { x, y };
+}
+
+function pointHitsShapeGeometry(shape, point) {
+  const local = applyInverseTransform(point, shape.transform);
+
+  if (shape.type === "rect") {
+    const g = shape.geometry;
+    return (
+      local.x >= g.x &&
+      local.x <= g.x + g.width &&
+      local.y >= g.y &&
+      local.y <= g.y + g.height
+    );
+  }
+
+  if (shape.type === "ellipse") {
+    const g = shape.geometry;
+    if (!g.rx || !g.ry) {
+      return false;
+    }
+    const nx = (local.x - g.cx) / g.rx;
+    const ny = (local.y - g.cy) / g.ry;
+    return nx * nx + ny * ny <= 1;
+  }
+
+  if (shape.type === "path") {
+    const anchors = shape.geometry.anchors || [];
+    if (anchors.length === 0) {
+      return false;
+    }
+    const xs = anchors.map((anchor) => anchor.x);
+    const ys = anchors.map((anchor) => anchor.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return local.x >= minX && local.x <= maxX && local.y >= minY && local.y <= maxY;
+  }
+
+  return false;
+}
+
+function geometryHitTest(point, shapes = state.objects) {
+  const ordered = [...shapes].sort((a, b) => b.zIndex - a.zIndex);
+  for (const shape of ordered) {
+    if (shape.visible === false || shape.locked) {
+      continue;
+    }
+    if (shape.type === "group") {
+      const nested = geometryHitTest(point, shape.children || []);
+      if (nested) {
+        return nested;
+      }
+      continue;
+    }
+    if (pointHitsShapeGeometry(shape, point)) {
+      return shape.id;
+    }
+  }
+  return null;
+}
+
+function hitTestTopObject(event, point) {
+  const elements = document.elementsFromPoint(event.clientX, event.clientY);
+  const seen = new Set();
+
+  for (const element of elements) {
+    if (!dom.canvas.contains(element)) {
+      continue;
+    }
+
+    if (element === dom.canvasBackground || element.id === "canvas-bg") {
+      break;
+    }
+
+    const objectNode = element.closest("[data-object-id]");
+    if (!objectNode) {
+      continue;
+    }
+
+    const objectId = objectNode.dataset.objectId;
+    if (!objectId || seen.has(objectId)) {
+      continue;
+    }
+    seen.add(objectId);
+
+    const found = getObjectById(objectId);
+    if (found && found.object.visible !== false) {
+      return objectId;
+    }
+  }
+
+  return geometryHitTest(point);
+}
+
 function createSvgElement(tagName) {
   return document.createElementNS(SVG_NS, tagName);
 }
@@ -1048,8 +1162,7 @@ function pointerDownOnCanvas(event) {
   event.preventDefault();
 
   const point = svgPointFromEvent(event);
-  const objectNode = event.target.closest("[data-object-id]");
-  const objectId = objectNode ? objectNode.dataset.objectId : null;
+  const objectId = hitTestTopObject(event, point);
   const found = objectId ? getObjectById(objectId) : null;
 
   if (state.tool === TOOLS.RECT || state.tool === TOOLS.ELLIPSE) {
