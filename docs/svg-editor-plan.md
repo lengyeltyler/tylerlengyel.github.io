@@ -87,3 +87,9 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - click near first anchor to close path
   - `Escape` cancels active path creation draft
 - New paths are persisted/rendered through object model and included in SVG export.
+
+## Bézier handles v1 (Milestone 8)
+
+- Direct mode now renders Bézier in/out handles for the active anchor.
+- Handle dragging updates canonical anchor `inHandle` / `outHandle` coordinates and path `d` output.
+- Mirrored-handle behavior is default (smooth curve), with `Alt` drag allowing independent handle edits.

@@ -89,7 +89,8 @@ const state = {
     pointerId: null,
     start: null,
     draftId: null,
-    startTransforms: null
+    startTransforms: null,
+    handleKind: null
   },
   history: {
     undo: [],
@@ -958,6 +959,43 @@ function drawDirectSelectionAnchors() {
         node.classList.add("is-active");
       }
       dom.overlay.appendChild(node);
+
+      const isActiveAnchor =
+        state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index;
+      if (!isActiveAnchor) {
+        continue;
+      }
+
+      const handleSpecs = [
+        { kind: "in", value: anchor.inHandle },
+        { kind: "out", value: anchor.outHandle }
+      ];
+
+      for (const spec of handleSpecs) {
+        const localHandle = spec.value || { x: anchor.x, y: anchor.y };
+        const worldHandle = applyTransformToPoint(localHandle, path.transform);
+        const hasDistance = Math.hypot(localHandle.x - anchor.x, localHandle.y - anchor.y) > 0.25;
+
+        if (hasDistance) {
+          const line = createSvgElement("line");
+          line.setAttribute("class", "path-bezier-line");
+          line.setAttribute("x1", String(round(world.x)));
+          line.setAttribute("y1", String(round(world.y)));
+          line.setAttribute("x2", String(round(worldHandle.x)));
+          line.setAttribute("y2", String(round(worldHandle.y)));
+          dom.overlay.appendChild(line);
+        }
+
+        const handleNode = createSvgElement("circle");
+        handleNode.setAttribute("class", "path-bezier-handle");
+        handleNode.setAttribute("cx", String(round(worldHandle.x)));
+        handleNode.setAttribute("cy", String(round(worldHandle.y)));
+        handleNode.setAttribute("r", "4");
+        handleNode.dataset.handlePathId = path.id;
+        handleNode.dataset.handleAnchorIndex = String(index);
+        handleNode.dataset.handleKind = spec.kind;
+        dom.overlay.appendChild(handleNode);
+      }
     }
   }
 }
@@ -1583,6 +1621,35 @@ function pointerDownOnCanvas(event) {
   event.preventDefault();
 
   const point = svgPointFromEvent(event);
+  const bezierHandleNode = event.target.closest("[data-handle-path-id]");
+  if (state.tool === TOOLS.DIRECT && bezierHandleNode) {
+    const pathId = bezierHandleNode.dataset.handlePathId;
+    const anchorIndex = Number(bezierHandleNode.dataset.handleAnchorIndex);
+    const handleKind = bezierHandleNode.dataset.handleKind;
+    const foundPath = pathId ? getObjectById(pathId) : null;
+    if (
+      foundPath &&
+      foundPath.object.type === "path" &&
+      (handleKind === "in" || handleKind === "out") &&
+      Number.isInteger(anchorIndex) &&
+      anchorIndex >= 0 &&
+      anchorIndex < (foundPath.object.geometry.anchors || []).length
+    ) {
+      pushHistory();
+      state.selection = [pathId];
+      state.activePathId = pathId;
+      state.directSelection.pathId = pathId;
+      state.directSelection.anchorIndex = anchorIndex;
+      state.interaction.mode = "handle-moving";
+      state.interaction.pointerId = event.pointerId;
+      state.interaction.start = point;
+      state.interaction.handleKind = handleKind;
+      setStatus("Editing bezier handle");
+      render();
+      return;
+    }
+  }
+
   const anchorNode = event.target.closest("[data-anchor-path-id]");
   if (state.tool === TOOLS.DIRECT && anchorNode) {
     const pathId = anchorNode.dataset.anchorPathId;
@@ -1671,6 +1738,29 @@ function pointerDownOnCanvas(event) {
 function pointerMoveOnCanvas(event) {
   const point = svgPointFromEvent(event);
 
+  if (state.interaction.mode === "handle-moving") {
+    const pathId = state.directSelection.pathId;
+    const anchorIndex = state.directSelection.anchorIndex;
+    const found = pathId ? getObjectById(pathId) : null;
+    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
+      const local = applyInverseTransform(point, found.object.transform);
+      const anchor = found.object.geometry.anchors[anchorIndex];
+      if (anchor) {
+        const kind = state.interaction.handleKind === "in" ? "inHandle" : "outHandle";
+        const oppositeKind = kind === "inHandle" ? "outHandle" : "inHandle";
+        anchor[kind] = { x: local.x, y: local.y };
+        if (!event.altKey) {
+          anchor[oppositeKind] = {
+            x: anchor.x - (local.x - anchor.x),
+            y: anchor.y - (local.y - anchor.y)
+          };
+        }
+      }
+    }
+    render();
+    return;
+  }
+
   if (state.interaction.mode === "anchor-moving") {
     const pathId = state.directSelection.pathId;
     const anchorIndex = state.directSelection.anchorIndex;
@@ -1679,8 +1769,18 @@ function pointerMoveOnCanvas(event) {
       const local = applyInverseTransform(point, found.object.transform);
       const anchor = found.object.geometry.anchors[anchorIndex];
       if (anchor) {
+        const dx = local.x - anchor.x;
+        const dy = local.y - anchor.y;
         anchor.x = local.x;
         anchor.y = local.y;
+        if (anchor.inHandle) {
+          anchor.inHandle.x += dx;
+          anchor.inHandle.y += dy;
+        }
+        if (anchor.outHandle) {
+          anchor.outHandle.x += dx;
+          anchor.outHandle.y += dy;
+        }
       }
     }
     render();
@@ -1706,6 +1806,16 @@ function pointerMoveOnCanvas(event) {
 }
 
 function pointerUpOnCanvas() {
+  if (state.interaction.mode === "handle-moving") {
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    state.interaction.start = null;
+    state.interaction.handleKind = null;
+    setStatus("Ready");
+    render();
+    return;
+  }
+
   if (state.interaction.mode === "anchor-moving") {
     state.interaction.mode = null;
     state.interaction.pointerId = null;
@@ -1966,6 +2076,7 @@ function bindEvents() {
     if (event.key === "Escape") {
       finishActivePathIfAny(true);
       state.interaction.mode = null;
+      state.interaction.handleKind = null;
       setStatus("Ready");
       render();
       return;

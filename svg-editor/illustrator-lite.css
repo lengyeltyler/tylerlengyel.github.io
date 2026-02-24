@@ -234,6 +234,20 @@ input {
   stroke: #0d5dad;
 }
 
+.path-bezier-line {
+  stroke: #69aef0;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.path-bezier-handle {
+  fill: #c5e8ff;
+  stroke: #1471cc;
+  stroke-width: 1.1;
+  cursor: crosshair;
+}
+
 .statusbar {
   border-top: 1px solid var(--panel-border);
   background: #10161e;
