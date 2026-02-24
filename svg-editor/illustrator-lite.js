@@ -1933,12 +1933,28 @@ function shapeToSvgString(shape, indent = "  ") {
   }
 
   const style = normalizeStyle(shape.style);
-  const styleAttributes = [
-    `fill="${shape.type === "path" && !shape.geometry.closed ? "none" : style.fill || "none"}"`,
-    `stroke="${style.stroke || "none"}"`,
-    `stroke-width="${round(style.strokeWidth || 0)}"`,
-    `opacity="${round(clamp(style.opacity, 0, 1))}"`
-  ];
+  const styleAttributes = [];
+  const computedFill = shape.type === "path" && !shape.geometry.closed ? "none" : style.fill || "none";
+  const computedStroke = style.stroke || "none";
+  const computedStrokeWidth = round(clamp(Number(style.strokeWidth) || 0, 0, 999), 3);
+  const computedOpacity = round(clamp(Number(style.opacity) || 1, 0, 1), 3);
+
+  if (computedFill === "none") {
+    styleAttributes.push(`fill="none"`);
+  } else {
+    styleAttributes.push(`fill="${computedFill}"`);
+  }
+
+  if (computedStroke && computedStroke !== "none" && computedStrokeWidth > 0) {
+    styleAttributes.push(`stroke="${computedStroke}"`);
+    styleAttributes.push(`stroke-width="${computedStrokeWidth}"`);
+  } else {
+    styleAttributes.push(`stroke="none"`);
+  }
+
+  if (computedOpacity !== 1) {
+    styleAttributes.push(`opacity="${computedOpacity}"`);
+  }
 
   const transform = transformToString(shape.transform);
   const transformAttribute = transform ? ` transform="${transform}"` : "";
@@ -1957,15 +1973,22 @@ function shapeToSvgString(shape, indent = "  ") {
 
   if (shape.type === "path") {
     const d = buildPathD(shape.geometry.anchors, shape.geometry.closed);
+    if (!d) {
+      return "";
+    }
     return `${indent}<path d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
 
   if (shape.type === "group") {
-    const childLines = (shape.children || [])
+    const childLines = [...(shape.children || [])]
+      .sort((a, b) => a.zIndex - b.zIndex)
       .map((child) => shapeToSvgString(child, `${indent}  `))
       .filter(Boolean)
       .join("\n");
-    return `${indent}<g id="${shape.id}"${transformAttribute}>\n${childLines}\n${indent}</g>`;
+    if (!childLines) {
+      return "";
+    }
+    return `${indent}<g${transformAttribute}>\n${childLines}\n${indent}</g>`;
   }
 
   return "";

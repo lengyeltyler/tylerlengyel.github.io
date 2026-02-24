@@ -113,3 +113,11 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
 - Keyboard shortcuts:
   - `Cmd/Ctrl+Z` undo
   - `Shift+Cmd/Ctrl+Z` and `Cmd/Ctrl+Y` redo
+
+## Clean SVG export (Milestone 11)
+
+- Export pipeline serializes canonical objects with:
+  - deterministic z-order (including sorted group children)
+  - predictable transform serialization
+  - reduced SVG attribute noise (omits default opacity, avoids empty groups)
+- `Copy SVG` and `Download SVG` actions are connected to this serializer.
