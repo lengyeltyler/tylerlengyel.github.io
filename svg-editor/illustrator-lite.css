@@ -186,6 +186,22 @@ input {
   pointer-events: none;
 }
 
+.rotate-guide-line {
+  stroke: #6ab7ff;
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+
+.transform-handle {
+  fill: #f6fbff;
+  stroke: #1674d5;
+  stroke-width: 1.2;
+}
+
+.transform-handle:hover {
+  fill: #b5ddff;
+}
+
 .statusbar {
   border-top: 1px solid var(--panel-border);
   background: #10161e;

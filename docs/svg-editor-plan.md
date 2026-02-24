@@ -51,3 +51,12 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
 - Hit testing:
   - primary path uses `elementsFromPoint(...)` for topmost DOM hit
   - geometry fallback added for common shapes (rect/ellipse/path bounding checks)
+
+## Transform handles (Milestone 4)
+
+- Added transform overlay handles for current selection:
+  - move via object drag
+  - scale via corner handles
+  - rotate via top-center rotate handle
+- Transform writes go through canonical object `transform` values (`tx`, `ty`, `sx`, `sy`, `rotation`) instead of direct DOM mutation.
+- Keyboard nudge is wired to transform translation on selected objects.

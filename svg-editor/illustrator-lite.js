@@ -87,6 +87,13 @@ const state = {
 
 let idCounter = 0;
 
+const SCALE_HANDLE_CONFIG = {
+  nw: { x: 0, y: 0, cursor: "nwse-resize" },
+  ne: { x: 1, y: 0, cursor: "nesw-resize" },
+  se: { x: 1, y: 1, cursor: "nwse-resize" },
+  sw: { x: 0, y: 1, cursor: "nesw-resize" }
+};
+
 function nextId(prefix = "obj") {
   idCounter += 1;
   return `${prefix}_${Date.now().toString(36)}_${idCounter.toString(36)}`;
@@ -794,15 +801,7 @@ function renderShape(shape, parentNode) {
   parentNode.appendChild(group);
 }
 
-function drawSelectionOutline() {
-  while (dom.overlay.firstChild) {
-    dom.overlay.firstChild.remove();
-  }
-
-  if (state.selection.length === 0) {
-    return;
-  }
-
+function getSelectionBounds() {
   const boxes = [];
   for (const id of state.selection) {
     const node = dom.scene.querySelector(`[data-object-id="${CSS.escape(id)}"]`);
@@ -833,7 +832,7 @@ function drawSelectionOutline() {
   }
 
   if (boxes.length === 0) {
-    return;
+    return null;
   }
 
   const minX = Math.min(...boxes.map((box) => box.x));
@@ -841,13 +840,70 @@ function drawSelectionOutline() {
   const maxX = Math.max(...boxes.map((box) => box.x + box.width));
   const maxY = Math.max(...boxes.map((box) => box.y + box.height));
 
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, maxX - minX),
+    height: Math.max(1, maxY - minY)
+  };
+}
+
+function drawSelectionOutline() {
+  while (dom.overlay.firstChild) {
+    dom.overlay.firstChild.remove();
+  }
+
+  const bounds = getSelectionBounds();
+  if (!bounds) {
+    return;
+  }
+
   const rect = createSvgElement("rect");
   rect.setAttribute("class", "selection-outline");
-  rect.setAttribute("x", String(round(minX)));
-  rect.setAttribute("y", String(round(minY)));
-  rect.setAttribute("width", String(round(Math.max(1, maxX - minX))));
-  rect.setAttribute("height", String(round(Math.max(1, maxY - minY))));
+  rect.setAttribute("x", String(round(bounds.x)));
+  rect.setAttribute("y", String(round(bounds.y)));
+  rect.setAttribute("width", String(round(bounds.width)));
+  rect.setAttribute("height", String(round(bounds.height)));
   dom.overlay.appendChild(rect);
+
+  const isTransformTool = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
+  if (!isTransformTool) {
+    return;
+  }
+
+  const centerX = bounds.x + bounds.width / 2;
+
+  const rotateLine = createSvgElement("line");
+  rotateLine.setAttribute("class", "rotate-guide-line");
+  rotateLine.setAttribute("x1", String(round(centerX)));
+  rotateLine.setAttribute("y1", String(round(bounds.y)));
+  rotateLine.setAttribute("x2", String(round(centerX)));
+  rotateLine.setAttribute("y2", String(round(bounds.y - 24)));
+  dom.overlay.appendChild(rotateLine);
+
+  const rotateHandle = createSvgElement("circle");
+  rotateHandle.setAttribute("class", "transform-handle transform-handle-rotate");
+  rotateHandle.setAttribute("cx", String(round(centerX)));
+  rotateHandle.setAttribute("cy", String(round(bounds.y - 28)));
+  rotateHandle.setAttribute("r", "6");
+  rotateHandle.dataset.handleType = "rotate";
+  rotateHandle.style.cursor = "crosshair";
+  dom.overlay.appendChild(rotateHandle);
+
+  for (const [name, config] of Object.entries(SCALE_HANDLE_CONFIG)) {
+    const x = bounds.x + bounds.width * config.x;
+    const y = bounds.y + bounds.height * config.y;
+    const handle = createSvgElement("rect");
+    handle.setAttribute("class", "transform-handle transform-handle-scale");
+    handle.setAttribute("x", String(round(x - 4.5)));
+    handle.setAttribute("y", String(round(y - 4.5)));
+    handle.setAttribute("width", "9");
+    handle.setAttribute("height", "9");
+    handle.setAttribute("rx", "1.5");
+    handle.dataset.handleType = name;
+    handle.style.cursor = config.cursor;
+    dom.overlay.appendChild(handle);
+  }
 }
 
 function updateLayersPanel() {
@@ -1089,6 +1145,127 @@ function finishMoveSelection() {
   render();
 }
 
+function beginHandleTransform(handleType, point, pointerId) {
+  if (!handleType || state.selection.length === 0) {
+    return false;
+  }
+
+  const bounds = getSelectionBounds();
+  if (!bounds) {
+    return false;
+  }
+
+  const startTransforms = new Map();
+  for (const id of state.selection) {
+    const found = getObjectById(id);
+    if (!found || found.object.locked) {
+      continue;
+    }
+    startTransforms.set(id, deepClone(found.object.transform));
+  }
+
+  if (startTransforms.size === 0) {
+    return false;
+  }
+
+  pushHistory();
+  const center = {
+    x: bounds.x + bounds.width / 2,
+    y: bounds.y + bounds.height / 2
+  };
+
+  state.interaction.mode = handleType === "rotate" ? "rotating" : "scaling";
+  state.interaction.pointerId = pointerId;
+  state.interaction.start = point;
+  state.interaction.startTransforms = startTransforms;
+  state.interaction.handleType = handleType;
+  state.interaction.bounds = bounds;
+  state.interaction.center = center;
+  state.interaction.startAngle = Math.atan2(point.y - center.y, point.x - center.x);
+  state.interaction.startVector = {
+    x: point.x - center.x,
+    y: point.y - center.y
+  };
+  setStatus(handleType === "rotate" ? "Rotating selection" : "Scaling selection");
+  return true;
+}
+
+function continueHandleTransform(point, maintainRatio = false) {
+  const mode = state.interaction.mode;
+  if (!state.interaction.startTransforms || (mode !== "scaling" && mode !== "rotating")) {
+    return;
+  }
+
+  const center = state.interaction.center;
+
+  if (mode === "rotating") {
+    const currentAngle = Math.atan2(point.y - center.y, point.x - center.x);
+    const deltaRadians = currentAngle - state.interaction.startAngle;
+    const deltaDegrees = (deltaRadians * 180) / Math.PI;
+    const cos = Math.cos(deltaRadians);
+    const sin = Math.sin(deltaRadians);
+
+    for (const [id, startTransform] of state.interaction.startTransforms.entries()) {
+      updateShape(id, (shape) => {
+        const vx = startTransform.tx - center.x;
+        const vy = startTransform.ty - center.y;
+        shape.transform.rotation = startTransform.rotation + deltaDegrees;
+        shape.transform.tx = center.x + vx * cos - vy * sin;
+        shape.transform.ty = center.y + vx * sin + vy * cos;
+      });
+    }
+    return;
+  }
+
+  const startVector = state.interaction.startVector;
+  let scaleX = startVector.x === 0 ? 1 : (point.x - center.x) / startVector.x;
+  let scaleY = startVector.y === 0 ? 1 : (point.y - center.y) / startVector.y;
+
+  if (!Number.isFinite(scaleX)) {
+    scaleX = 1;
+  }
+  if (!Number.isFinite(scaleY)) {
+    scaleY = 1;
+  }
+
+  if (maintainRatio) {
+    const unified = Math.abs(scaleX) > Math.abs(scaleY) ? scaleX : scaleY;
+    scaleX = unified;
+    scaleY = unified;
+  }
+
+  const minimum = 0.05;
+  scaleX = Math.sign(scaleX || 1) * Math.max(minimum, Math.abs(scaleX));
+  scaleY = Math.sign(scaleY || 1) * Math.max(minimum, Math.abs(scaleY));
+
+  for (const [id, startTransform] of state.interaction.startTransforms.entries()) {
+    updateShape(id, (shape) => {
+      shape.transform.sx = startTransform.sx * scaleX;
+      shape.transform.sy = startTransform.sy * scaleY;
+      shape.transform.tx = center.x + (startTransform.tx - center.x) * scaleX;
+      shape.transform.ty = center.y + (startTransform.ty - center.y) * scaleY;
+    });
+  }
+}
+
+function finishHandleTransform() {
+  if (state.interaction.mode !== "scaling" && state.interaction.mode !== "rotating") {
+    return;
+  }
+
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  state.interaction.start = null;
+  state.interaction.startTransforms = null;
+  state.interaction.handleType = null;
+  state.interaction.bounds = null;
+  state.interaction.center = null;
+  state.interaction.startAngle = null;
+  state.interaction.startVector = null;
+  setStatus("Ready");
+  render();
+}
+
 function beginOrExtendPath(point) {
   if (!state.activePathId) {
     pushHistory();
@@ -1162,6 +1339,16 @@ function pointerDownOnCanvas(event) {
   event.preventDefault();
 
   const point = svgPointFromEvent(event);
+  const handleNode = event.target.closest("[data-handle-type]");
+  if (
+    handleNode &&
+    (state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT) &&
+    beginHandleTransform(handleNode.dataset.handleType, point, event.pointerId)
+  ) {
+    render();
+    return;
+  }
+
   const objectId = hitTestTopObject(event, point);
   const found = objectId ? getObjectById(objectId) : null;
 
@@ -1216,6 +1403,12 @@ function pointerMoveOnCanvas(event) {
   if (state.interaction.mode === "moving") {
     continueMoveSelection(point);
     render();
+    return;
+  }
+
+  if (state.interaction.mode === "scaling" || state.interaction.mode === "rotating") {
+    continueHandleTransform(point, event.shiftKey);
+    render();
   }
 }
 
@@ -1227,6 +1420,11 @@ function pointerUpOnCanvas() {
 
   if (state.interaction.mode === "moving") {
     finishMoveSelection();
+    return;
+  }
+
+  if (state.interaction.mode === "scaling" || state.interaction.mode === "rotating") {
+    finishHandleTransform();
   }
 }
 
