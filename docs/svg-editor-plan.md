@@ -93,3 +93,12 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
 - Direct mode now renders Bézier in/out handles for the active anchor.
 - Handle dragging updates canonical anchor `inHandle` / `outHandle` coordinates and path `d` output.
 - Mirrored-handle behavior is default (smooth curve), with `Alt` drag allowing independent handle edits.
+
+## Style inspector (Milestone 9)
+
+- Added inspector controls for selected object style:
+  - fill color
+  - stroke color
+  - stroke width
+  - opacity
+- Style changes are applied through canonical object model updates for current selection.

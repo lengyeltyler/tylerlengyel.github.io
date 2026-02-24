@@ -37,6 +37,10 @@ const dom = {
   statusLeft: document.getElementById("status-left"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
+  fillInput: document.getElementById("fill-input"),
+  strokeInput: document.getElementById("stroke-input"),
+  strokeWidthInput: document.getElementById("stroke-width-input"),
+  opacityInput: document.getElementById("opacity-input"),
   selectionSummary: document.getElementById("selection-summary"),
   undoBtn: document.getElementById("undo-btn"),
   redoBtn: document.getElementById("redo-btn"),
@@ -58,6 +62,10 @@ const requiredDomKeys = [
   "statusLeft",
   "docWidth",
   "docHeight",
+  "fillInput",
+  "strokeInput",
+  "strokeWidthInput",
+  "opacityInput",
   "selectionSummary",
   "undoBtn",
   "redoBtn",
@@ -119,6 +127,47 @@ function clamp(value, min, max) {
 function round(value, precision = 3) {
   const m = 10 ** precision;
   return Math.round(value * m) / m;
+}
+
+const colorCanvas = document.createElement("canvas");
+const colorContext = colorCanvas.getContext("2d");
+
+function colorToHex(value, fallback = "#000000") {
+  if (typeof value !== "string" || value === "" || value === "none" || value === "transparent") {
+    return fallback;
+  }
+
+  const hexMatch = value.trim().match(/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (hexMatch) {
+    const raw = hexMatch[1].toLowerCase();
+    if (raw.length === 3) {
+      return `#${raw[0]}${raw[0]}${raw[1]}${raw[1]}${raw[2]}${raw[2]}`;
+    }
+    if (raw.length === 4) {
+      return `#${raw[0]}${raw[0]}${raw[1]}${raw[1]}${raw[2]}${raw[2]}`;
+    }
+    if (raw.length === 8) {
+      return `#${raw.slice(0, 6)}`;
+    }
+    return `#${raw}`;
+  }
+
+  if (!colorContext) {
+    return fallback;
+  }
+
+  try {
+    colorContext.fillStyle = "#000000";
+    colorContext.fillStyle = value;
+    const normalized = colorContext.fillStyle;
+    if (typeof normalized === "string") {
+      return colorToHex(normalized, fallback);
+    }
+  } catch (error) {
+    return fallback;
+  }
+
+  return fallback;
 }
 
 function deepClone(value) {
@@ -1101,6 +1150,17 @@ function render() {
     dom.selectionSummary.textContent = `${state.selection.length} selected`;
   }
 
+  const primary = getPrimarySelectedObject();
+  const style = primary ? normalizeStyle(primary.style) : deepClone(DEFAULT_STYLE);
+  dom.fillInput.value = colorToHex(style.fill, "#90caf9");
+  dom.strokeInput.value = colorToHex(style.stroke, "#1976d2");
+  dom.strokeWidthInput.value = String(round(clamp(Number(style.strokeWidth) || 0, 0, 64), 2));
+  dom.opacityInput.value = String(round(clamp(Number(style.opacity) || 1, 0, 1), 2));
+  dom.fillInput.disabled = state.selection.length === 0;
+  dom.strokeInput.disabled = state.selection.length === 0;
+  dom.strokeWidthInput.disabled = state.selection.length === 0;
+  dom.opacityInput.disabled = state.selection.length === 0;
+
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
 
@@ -1140,6 +1200,31 @@ function updateShape(id, updater) {
     return;
   }
   updater(found.object);
+}
+
+function getPrimarySelectedObject() {
+  if (state.selection.length === 0) {
+    return null;
+  }
+  const found = getObjectById(state.selection[0]);
+  return found ? found.object : null;
+}
+
+function applyStyleToSelection(patch) {
+  if (state.selection.length === 0) {
+    return;
+  }
+
+  pushHistory();
+  for (const id of state.selection) {
+    updateShape(id, (shape) => {
+      shape.style = {
+        ...shape.style,
+        ...patch
+      };
+    });
+  }
+  render();
 }
 
 function getTopLevelSelectionIds() {
@@ -2039,6 +2124,24 @@ function bindEvents() {
     pushHistory();
     state.doc.height = clamp(Number(dom.docHeight.value), 64, 10000);
     render();
+  });
+
+  dom.fillInput.addEventListener("change", () => {
+    applyStyleToSelection({ fill: dom.fillInput.value });
+  });
+
+  dom.strokeInput.addEventListener("change", () => {
+    applyStyleToSelection({ stroke: dom.strokeInput.value });
+  });
+
+  dom.strokeWidthInput.addEventListener("change", () => {
+    const next = clamp(Number(dom.strokeWidthInput.value), 0, 64);
+    applyStyleToSelection({ strokeWidth: Number.isFinite(next) ? next : 0 });
+  });
+
+  dom.opacityInput.addEventListener("change", () => {
+    const next = clamp(Number(dom.opacityInput.value), 0, 1);
+    applyStyleToSelection({ opacity: Number.isFinite(next) ? next : 1 });
   });
 
   dom.undoBtn.addEventListener("click", undo);

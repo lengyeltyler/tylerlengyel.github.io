@@ -97,6 +97,10 @@ input {
   text-transform: uppercase;
 }
 
+.panel h2:not(:first-child) {
+  margin-top: 14px;
+}
+
 .field-row {
   display: flex;
   align-items: center;
@@ -116,6 +120,17 @@ input {
   background: #111820;
   color: var(--text);
   padding: 4px 8px;
+}
+
+.field-row input[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+}
+
+.field-row input[type="range"] {
+  width: 110px;
+  padding: 0;
 }
 
 .panel-note {
