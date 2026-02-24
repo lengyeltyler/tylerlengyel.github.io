@@ -15,6 +15,9 @@
     header a{color:#9bffb0;text-decoration:none}
     header a:hover{text-decoration:underline}
     .frame{flex:1;min-height:calc(100vh - 52px);border:0;width:100%}
+    .health{padding:10px 12px;border-top:1px solid rgba(255,120,120,.35);
+      color:#ffd7d7;background:rgba(90,0,0,.35);font-size:14px}
+    .health[hidden]{display:none}
   </style>
 </head>
 <body>
@@ -29,14 +32,49 @@
 
     <!-- Embed the build from the svg-editor repo -->
     <iframe
+      id="editor-frame"
       class="frame"
       src="https://lengyeltyler.github.io/svg-editor/"
       title="SVG Editor"
       loading="eager"
       allow="clipboard-write *; clipboard-read *">
     </iframe>
+    <div id="editor-health" class="health" hidden></div>
 
     <noscript>This page embeds the SVG Editor from the <code>svg-editor</code> repo. Enable JavaScript to use it.</noscript>
   </div>
+  <script>
+    (() => {
+      const frame = document.getElementById("editor-frame");
+      const health = document.getElementById("editor-health");
+      if (!frame || !health) {
+        console.error("[svg-editor] Missing frame health check elements.");
+        return;
+      }
+
+      const fail = (message) => {
+        health.hidden = false;
+        health.textContent = message;
+        console.error(`[svg-editor] ${message}`);
+      };
+
+      let loaded = false;
+      const timeoutId = setTimeout(() => {
+        if (!loaded) {
+          fail("SVG editor initialization timed out. Try reloading the page.");
+        }
+      }, 5000);
+
+      frame.addEventListener("load", () => {
+        loaded = true;
+        clearTimeout(timeoutId);
+      });
+
+      frame.addEventListener("error", () => {
+        clearTimeout(timeoutId);
+        fail("SVG editor failed to load in the embedded frame.");
+      });
+    })();
+  </script>
 </body>
 </html>
