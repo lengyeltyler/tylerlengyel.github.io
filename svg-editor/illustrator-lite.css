@@ -70,6 +70,11 @@ input {
   background: #1f334a;
 }
 
+.text-button.is-active {
+  border-color: var(--accent);
+  background: #1f334a;
+}
+
 .editor-body {
   min-height: 0;
   display: grid;
@@ -131,6 +136,25 @@ input {
 .field-row input[type="range"] {
   width: 110px;
   padding: 0;
+}
+
+.action-grid {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.action-grid-two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.action-grid-three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.action-grid .text-button {
+  padding: 5px 6px;
+  font-size: 12px;
 }
 
 .panel-note {
@@ -280,6 +304,13 @@ input {
   stroke: #3b90f2;
   stroke-width: 1;
   stroke-dasharray: 4 2;
+  pointer-events: none;
+}
+
+.smart-guide {
+  stroke: #16b3ff;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
   pointer-events: none;
 }
 

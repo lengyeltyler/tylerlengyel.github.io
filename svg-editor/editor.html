@@ -17,6 +17,7 @@
         <button type="button" class="tool-button" data-tool="direct">Direct</button>
       </div>
       <div class="toolbar-actions">
+        <button type="button" id="snap-toggle-btn" class="text-button is-active">Snap</button>
         <button type="button" id="undo-btn" class="text-button">Undo</button>
         <button type="button" id="redo-btn" class="text-button">Redo</button>
         <button type="button" id="download-svg-btn" class="text-button">Download SVG</button>
@@ -72,6 +73,27 @@
         <div class="field-row">
           <label for="transform-rotate-input">Rotate</label>
           <input id="transform-rotate-input" type="number" step="0.5" value="0" />
+        </div>
+        <h2>Arrange</h2>
+        <div class="action-grid action-grid-three">
+          <button type="button" id="align-left-btn" class="text-button">Left</button>
+          <button type="button" id="align-hcenter-btn" class="text-button">H-Center</button>
+          <button type="button" id="align-right-btn" class="text-button">Right</button>
+        </div>
+        <div class="action-grid action-grid-three">
+          <button type="button" id="align-top-btn" class="text-button">Top</button>
+          <button type="button" id="align-vcenter-btn" class="text-button">V-Center</button>
+          <button type="button" id="align-bottom-btn" class="text-button">Bottom</button>
+        </div>
+        <div class="action-grid action-grid-two">
+          <button type="button" id="distribute-h-btn" class="text-button">Distribute H</button>
+          <button type="button" id="distribute-v-btn" class="text-button">Distribute V</button>
+        </div>
+        <h2>Boolean</h2>
+        <div class="action-grid action-grid-three">
+          <button type="button" id="boolean-unite-btn" class="text-button">Unite</button>
+          <button type="button" id="boolean-subtract-btn" class="text-button">Subtract</button>
+          <button type="button" id="boolean-intersect-btn" class="text-button">Intersect</button>
         </div>
         <p class="panel-note" id="selection-summary">No selection</p>
       </aside>

@@ -34,6 +34,18 @@ const dom = {
   layerBackwardBtn: document.getElementById("layer-backward-btn"),
   groupBtn: document.getElementById("group-btn"),
   ungroupBtn: document.getElementById("ungroup-btn"),
+  alignLeftBtn: document.getElementById("align-left-btn"),
+  alignHCenterBtn: document.getElementById("align-hcenter-btn"),
+  alignRightBtn: document.getElementById("align-right-btn"),
+  alignTopBtn: document.getElementById("align-top-btn"),
+  alignVCenterBtn: document.getElementById("align-vcenter-btn"),
+  alignBottomBtn: document.getElementById("align-bottom-btn"),
+  distributeHBtn: document.getElementById("distribute-h-btn"),
+  distributeVBtn: document.getElementById("distribute-v-btn"),
+  booleanUniteBtn: document.getElementById("boolean-unite-btn"),
+  booleanSubtractBtn: document.getElementById("boolean-subtract-btn"),
+  booleanIntersectBtn: document.getElementById("boolean-intersect-btn"),
+  snapToggleBtn: document.getElementById("snap-toggle-btn"),
   statusLeft: document.getElementById("status-left"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
@@ -64,6 +76,18 @@ const requiredDomKeys = [
   "layerBackwardBtn",
   "groupBtn",
   "ungroupBtn",
+  "alignLeftBtn",
+  "alignHCenterBtn",
+  "alignRightBtn",
+  "alignTopBtn",
+  "alignVCenterBtn",
+  "alignBottomBtn",
+  "distributeHBtn",
+  "distributeVBtn",
+  "booleanUniteBtn",
+  "booleanSubtractBtn",
+  "booleanIntersectBtn",
+  "snapToggleBtn",
   "statusLeft",
   "docWidth",
   "docHeight",
@@ -111,11 +135,17 @@ const state = {
     handleKind: null,
     marqueeStart: null,
     marqueeCurrent: null,
-    marqueeAdditive: false
+    marqueeAdditive: false,
+    snapGuides: [],
+    startSelectionBounds: null
   },
   history: {
     undo: [],
     redo: []
+  },
+  snap: {
+    enabled: true,
+    threshold: 6
   }
 };
 
@@ -431,6 +461,26 @@ function normalizeCanonicalShape(raw, fallbackZ) {
     };
   }
 
+  if (normalized.type === "boolean") {
+    const geometry = normalized.geometry || {};
+    normalized.geometry = {
+      op:
+        geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
+          ? geometry.op
+          : "unite",
+      aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
+      bPath: typeof geometry.bPath === "string" ? geometry.bPath : "",
+      bounds: geometry.bounds
+        ? {
+            x: Number(geometry.bounds.x) || 0,
+            y: Number(geometry.bounds.y) || 0,
+            width: Math.max(1, Number(geometry.bounds.width) || 1),
+            height: Math.max(1, Number(geometry.bounds.height) || 1)
+          }
+        : { x: 0, y: 0, width: 1, height: 1 }
+    };
+  }
+
   return normalized;
 }
 
@@ -496,6 +546,30 @@ function fromLegacyShape(raw, fallbackZ) {
       geometry: {
         anchors: parsed.anchors,
         closed: parsed.closed
+      }
+    };
+  }
+
+  if (type === "boolean") {
+    const geometry = raw?.geometry || {};
+    return {
+      ...base,
+      type: "boolean",
+      geometry: {
+        op:
+          geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
+            ? geometry.op
+            : "unite",
+        aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
+        bPath: typeof geometry.bPath === "string" ? geometry.bPath : "",
+        bounds: geometry.bounds
+          ? {
+              x: Number(geometry.bounds.x) || 0,
+              y: Number(geometry.bounds.y) || 0,
+              width: Math.max(1, Number(geometry.bounds.width) || 1),
+              height: Math.max(1, Number(geometry.bounds.height) || 1)
+            }
+          : { x: 0, y: 0, width: 1, height: 1 }
       }
     };
   }
@@ -580,6 +654,21 @@ function toLegacyShape(shape) {
       type: "group",
       name: shape.name,
       children: (shape.children || []).map(toLegacyShape),
+      transform: transformToString(shape.transform),
+      visible: shape.visible,
+      locked: shape.locked
+    };
+  }
+
+  if (shape.type === "boolean") {
+    return {
+      id: shape.id,
+      type: "boolean",
+      name: shape.name,
+      geometry: deepClone(shape.geometry),
+      fill: { color: shape.style.fill },
+      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
+      opacity: shape.style.opacity,
       transform: transformToString(shape.transform),
       visible: shape.visible,
       locked: shape.locked
@@ -726,6 +815,341 @@ function applyTransformToPoint(point, transform) {
   };
 }
 
+function pathCommandsToD(commands) {
+  return commands
+    .map((command) => {
+      if (command.type === "M") {
+        return `M ${round(command.x)} ${round(command.y)}`;
+      }
+      if (command.type === "L") {
+        return `L ${round(command.x)} ${round(command.y)}`;
+      }
+      if (command.type === "C") {
+        return `C ${round(command.x1)} ${round(command.y1)} ${round(command.x2)} ${round(command.y2)} ${round(command.x)} ${round(command.y)}`;
+      }
+      if (command.type === "Z") {
+        return "Z";
+      }
+      return "";
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
+function getRectPathCommands(shape) {
+  const g = shape.geometry;
+  return [
+    { type: "M", x: g.x, y: g.y },
+    { type: "L", x: g.x + g.width, y: g.y },
+    { type: "L", x: g.x + g.width, y: g.y + g.height },
+    { type: "L", x: g.x, y: g.y + g.height },
+    { type: "Z" }
+  ];
+}
+
+function getEllipsePathCommands(shape) {
+  const g = shape.geometry;
+  const k = 0.5522847498307936;
+  const ox = g.rx * k;
+  const oy = g.ry * k;
+  return [
+    { type: "M", x: g.cx + g.rx, y: g.cy },
+    { type: "C", x1: g.cx + g.rx, y1: g.cy + oy, x2: g.cx + ox, y2: g.cy + g.ry, x: g.cx, y: g.cy + g.ry },
+    { type: "C", x1: g.cx - ox, y1: g.cy + g.ry, x2: g.cx - g.rx, y2: g.cy + oy, x: g.cx - g.rx, y: g.cy },
+    { type: "C", x1: g.cx - g.rx, y1: g.cy - oy, x2: g.cx - ox, y2: g.cy - g.ry, x: g.cx, y: g.cy - g.ry },
+    { type: "C", x1: g.cx + ox, y1: g.cy - g.ry, x2: g.cx + g.rx, y2: g.cy - oy, x: g.cx + g.rx, y: g.cy },
+    { type: "Z" }
+  ];
+}
+
+function getPathShapeCommands(shape) {
+  const anchors = shape.geometry.anchors || [];
+  if (anchors.length === 0) {
+    return [];
+  }
+
+  const commands = [{ type: "M", x: anchors[0].x, y: anchors[0].y }];
+  for (let i = 1; i < anchors.length; i += 1) {
+    const prev = anchors[i - 1];
+    const current = anchors[i];
+    if (prev.outHandle || current.inHandle) {
+      commands.push({
+        type: "C",
+        x1: prev.outHandle ? prev.outHandle.x : prev.x,
+        y1: prev.outHandle ? prev.outHandle.y : prev.y,
+        x2: current.inHandle ? current.inHandle.x : current.x,
+        y2: current.inHandle ? current.inHandle.y : current.y,
+        x: current.x,
+        y: current.y
+      });
+    } else {
+      commands.push({ type: "L", x: current.x, y: current.y });
+    }
+  }
+
+  if (shape.geometry.closed && anchors.length > 1) {
+    const last = anchors[anchors.length - 1];
+    const first = anchors[0];
+    if (last.outHandle || first.inHandle) {
+      commands.push({
+        type: "C",
+        x1: last.outHandle ? last.outHandle.x : last.x,
+        y1: last.outHandle ? last.outHandle.y : last.y,
+        x2: first.inHandle ? first.inHandle.x : first.x,
+        y2: first.inHandle ? first.inHandle.y : first.y,
+        x: first.x,
+        y: first.y
+      });
+    }
+    commands.push({ type: "Z" });
+  }
+
+  return commands;
+}
+
+function shapeToPathCommands(shape) {
+  if (shape.type === "rect") {
+    return getRectPathCommands(shape);
+  }
+  if (shape.type === "ellipse") {
+    return getEllipsePathCommands(shape);
+  }
+  if (shape.type === "path") {
+    return getPathShapeCommands(shape);
+  }
+  return null;
+}
+
+function transformPathCommands(commands, transform) {
+  return commands.map((command) => {
+    if (command.type === "Z") {
+      return { type: "Z" };
+    }
+    if (command.type === "C") {
+      const p1 = applyTransformToPoint({ x: command.x1, y: command.y1 }, transform);
+      const p2 = applyTransformToPoint({ x: command.x2, y: command.y2 }, transform);
+      const p = applyTransformToPoint({ x: command.x, y: command.y }, transform);
+      return {
+        type: "C",
+        x1: p1.x,
+        y1: p1.y,
+        x2: p2.x,
+        y2: p2.y,
+        x: p.x,
+        y: p.y
+      };
+    }
+    const p = applyTransformToPoint({ x: command.x, y: command.y }, transform);
+    return { type: command.type, x: p.x, y: p.y };
+  });
+}
+
+function getCommandsBounds(commands) {
+  const points = [];
+  for (const command of commands) {
+    if (command.type === "Z") {
+      continue;
+    }
+    if (command.type === "C") {
+      points.push({ x: command.x1, y: command.y1 });
+      points.push({ x: command.x2, y: command.y2 });
+    }
+    points.push({ x: command.x, y: command.y });
+  }
+  if (points.length === 0) {
+    return null;
+  }
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  return {
+    x: Math.min(...xs),
+    y: Math.min(...ys),
+    width: Math.max(...xs) - Math.min(...xs),
+    height: Math.max(...ys) - Math.min(...ys)
+  };
+}
+
+function shapeToWorldPathData(shape) {
+  if (shape.type === "boolean") {
+    if (shape.geometry?.op === "unite") {
+      const d = `${shape.geometry.aPath || ""} ${shape.geometry.bPath || ""}`.trim();
+      if (!d) {
+        return null;
+      }
+      return {
+        d,
+        bounds: shape.geometry?.bounds || null
+      };
+    }
+    return null;
+  }
+
+  const commands = shapeToPathCommands(shape);
+  if (!commands || commands.length === 0) {
+    return null;
+  }
+  const worldCommands = transformPathCommands(commands, shape.transform);
+  const d = pathCommandsToD(worldCommands);
+  if (!d) {
+    return null;
+  }
+  return {
+    d,
+    bounds: getCommandsBounds(worldCommands)
+  };
+}
+
+function collectObjectIds(shapes = state.objects, out = []) {
+  for (const shape of shapes) {
+    out.push(shape.id);
+    if (shape.type === "group" && Array.isArray(shape.children)) {
+      collectObjectIds(shape.children, out);
+    }
+  }
+  return out;
+}
+
+function collectSnapCandidates(excludedIds) {
+  const xCandidates = [
+    { value: 0, spanStart: 0, spanEnd: state.doc.height, source: "artboard" },
+    { value: state.doc.width / 2, spanStart: 0, spanEnd: state.doc.height, source: "artboard" },
+    { value: state.doc.width, spanStart: 0, spanEnd: state.doc.height, source: "artboard" }
+  ];
+  const yCandidates = [
+    { value: 0, spanStart: 0, spanEnd: state.doc.width, source: "artboard" },
+    { value: state.doc.height / 2, spanStart: 0, spanEnd: state.doc.width, source: "artboard" },
+    { value: state.doc.height, spanStart: 0, spanEnd: state.doc.width, source: "artboard" }
+  ];
+
+  for (const id of collectObjectIds()) {
+    if (excludedIds.has(id)) {
+      continue;
+    }
+    const bounds = getObjectWorldBoundsById(id);
+    if (!bounds) {
+      continue;
+    }
+
+    xCandidates.push({
+      value: bounds.x,
+      spanStart: bounds.y,
+      spanEnd: bounds.y + bounds.height,
+      source: id
+    });
+    xCandidates.push({
+      value: bounds.x + bounds.width / 2,
+      spanStart: bounds.y,
+      spanEnd: bounds.y + bounds.height,
+      source: id
+    });
+    xCandidates.push({
+      value: bounds.x + bounds.width,
+      spanStart: bounds.y,
+      spanEnd: bounds.y + bounds.height,
+      source: id
+    });
+
+    yCandidates.push({
+      value: bounds.y,
+      spanStart: bounds.x,
+      spanEnd: bounds.x + bounds.width,
+      source: id
+    });
+    yCandidates.push({
+      value: bounds.y + bounds.height / 2,
+      spanStart: bounds.x,
+      spanEnd: bounds.x + bounds.width,
+      source: id
+    });
+    yCandidates.push({
+      value: bounds.y + bounds.height,
+      spanStart: bounds.x,
+      spanEnd: bounds.x + bounds.width,
+      source: id
+    });
+  }
+
+  return { xCandidates, yCandidates };
+}
+
+function computeSnapAdjustment(startBounds, rawDx, rawDy, excludedIds) {
+  if (!startBounds) {
+    return { dx: rawDx, dy: rawDy, guides: [] };
+  }
+
+  const moved = {
+    x: startBounds.x + rawDx,
+    y: startBounds.y + rawDy,
+    width: startBounds.width,
+    height: startBounds.height
+  };
+
+  const edgesX = [
+    { key: "left", value: moved.x },
+    { key: "center", value: moved.x + moved.width / 2 },
+    { key: "right", value: moved.x + moved.width }
+  ];
+  const edgesY = [
+    { key: "top", value: moved.y },
+    { key: "center", value: moved.y + moved.height / 2 },
+    { key: "bottom", value: moved.y + moved.height }
+  ];
+
+  const { xCandidates, yCandidates } = collectSnapCandidates(excludedIds);
+  let bestX = null;
+  for (const edge of edgesX) {
+    for (const candidate of xCandidates) {
+      const diff = candidate.value - edge.value;
+      const abs = Math.abs(diff);
+      if (abs <= state.snap.threshold && (!bestX || abs < bestX.abs)) {
+        bestX = { abs, diff, edge, candidate };
+      }
+    }
+  }
+
+  let bestY = null;
+  for (const edge of edgesY) {
+    for (const candidate of yCandidates) {
+      const diff = candidate.value - edge.value;
+      const abs = Math.abs(diff);
+      if (abs <= state.snap.threshold && (!bestY || abs < bestY.abs)) {
+        bestY = { abs, diff, edge, candidate };
+      }
+    }
+  }
+
+  const guides = [];
+  const snappedDx = rawDx + (bestX ? bestX.diff : 0);
+  const snappedDy = rawDy + (bestY ? bestY.diff : 0);
+
+  if (bestX) {
+    const y1 = Math.min(moved.y, bestX.candidate.spanStart) - 24;
+    const y2 = Math.max(moved.y + moved.height, bestX.candidate.spanEnd) + 24;
+    guides.push({
+      orientation: "vertical",
+      position: bestX.candidate.value,
+      start: y1,
+      end: y2
+    });
+  }
+  if (bestY) {
+    const x1 = Math.min(moved.x, bestY.candidate.spanStart) - 24;
+    const x2 = Math.max(moved.x + moved.width, bestY.candidate.spanEnd) + 24;
+    guides.push({
+      orientation: "horizontal",
+      position: bestY.candidate.value,
+      start: x1,
+      end: x2
+    });
+  }
+
+  return {
+    dx: snappedDx,
+    dy: snappedDy,
+    guides
+  };
+}
+
 function pointHitsShapeGeometry(shape, point) {
   const local = applyInverseTransform(point, shape.transform);
 
@@ -761,6 +1185,19 @@ function pointHitsShapeGeometry(shape, point) {
     const minY = Math.min(...ys);
     const maxY = Math.max(...ys);
     return local.x >= minX && local.x <= maxX && local.y >= minY && local.y <= maxY;
+  }
+
+  if (shape.type === "boolean") {
+    const b = shape.geometry?.bounds;
+    if (!b) {
+      return false;
+    }
+    return (
+      local.x >= b.x &&
+      local.x <= b.x + b.width &&
+      local.y >= b.y &&
+      local.y <= b.y + b.height
+    );
   }
 
   return false;
@@ -823,6 +1260,14 @@ function createSvgElement(tagName) {
   return document.createElementNS(SVG_NS, tagName);
 }
 
+function applyPaintAttributes(node, style, fillOverride = null) {
+  const fill = fillOverride ?? style.fill ?? "none";
+  node.setAttribute("fill", fill);
+  node.setAttribute("stroke", style.stroke || "none");
+  node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
+  node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
+}
+
 function renderShape(shape, parentNode) {
   if (shape.visible === false) {
     return;
@@ -856,10 +1301,7 @@ function renderShape(shape, parentNode) {
     if (shape.geometry.ry) {
       node.setAttribute("ry", String(round(shape.geometry.ry)));
     }
-    node.setAttribute("fill", style.fill || "none");
-    node.setAttribute("stroke", style.stroke || "none");
-    node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
-    node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
+    applyPaintAttributes(node, style);
     group.appendChild(node);
   } else if (shape.type === "ellipse") {
     const node = createSvgElement("ellipse");
@@ -867,19 +1309,83 @@ function renderShape(shape, parentNode) {
     node.setAttribute("cy", String(round(shape.geometry.cy)));
     node.setAttribute("rx", String(round(Math.max(1, shape.geometry.rx))));
     node.setAttribute("ry", String(round(Math.max(1, shape.geometry.ry))));
-    node.setAttribute("fill", style.fill || "none");
-    node.setAttribute("stroke", style.stroke || "none");
-    node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
-    node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
+    applyPaintAttributes(node, style);
     group.appendChild(node);
   } else if (shape.type === "path") {
     const node = createSvgElement("path");
     node.setAttribute("d", buildPathD(shape.geometry.anchors, shape.geometry.closed));
-    node.setAttribute("fill", shape.geometry.closed ? style.fill || "none" : "none");
-    node.setAttribute("stroke", style.stroke || "none");
-    node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
-    node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
+    applyPaintAttributes(node, style, shape.geometry.closed ? style.fill || "none" : "none");
     group.appendChild(node);
+  } else if (shape.type === "boolean") {
+    const op = shape.geometry?.op;
+    const aPath = shape.geometry?.aPath;
+    const bPath = shape.geometry?.bPath;
+    if (typeof aPath !== "string" || typeof bPath !== "string") {
+      parentNode.appendChild(group);
+      return;
+    }
+
+    if (op === "unite") {
+      const node = createSvgElement("path");
+      node.setAttribute("d", `${aPath} ${bPath}`);
+      applyPaintAttributes(node, style, style.fill || "none");
+      group.appendChild(node);
+    } else if (op === "intersect") {
+      const clipId = `clip-${shape.id}`;
+      const defs = createSvgElement("defs");
+      const clipPath = createSvgElement("clipPath");
+      clipPath.setAttribute("id", clipId);
+      clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
+      const clipPathNode = createSvgElement("path");
+      clipPathNode.setAttribute("d", bPath);
+      clipPath.appendChild(clipPathNode);
+      defs.appendChild(clipPath);
+      group.appendChild(defs);
+
+      const node = createSvgElement("path");
+      node.setAttribute("d", aPath);
+      node.setAttribute("clip-path", `url(#${clipId})`);
+      applyPaintAttributes(node, style, style.fill || "none");
+      group.appendChild(node);
+    } else if (op === "subtract") {
+      const bounds = shape.geometry?.bounds || {
+        x: 0,
+        y: 0,
+        width: state.doc.width,
+        height: state.doc.height
+      };
+      const maskId = `mask-${shape.id}`;
+      const defs = createSvgElement("defs");
+      const mask = createSvgElement("mask");
+      mask.setAttribute("id", maskId);
+      mask.setAttribute("maskUnits", "userSpaceOnUse");
+      mask.setAttribute("x", String(round(bounds.x - 4)));
+      mask.setAttribute("y", String(round(bounds.y - 4)));
+      mask.setAttribute("width", String(round(bounds.width + 8)));
+      mask.setAttribute("height", String(round(bounds.height + 8)));
+
+      const white = createSvgElement("rect");
+      white.setAttribute("x", String(round(bounds.x - 4)));
+      white.setAttribute("y", String(round(bounds.y - 4)));
+      white.setAttribute("width", String(round(bounds.width + 8)));
+      white.setAttribute("height", String(round(bounds.height + 8)));
+      white.setAttribute("fill", "#ffffff");
+
+      const black = createSvgElement("path");
+      black.setAttribute("d", bPath);
+      black.setAttribute("fill", "#000000");
+
+      mask.appendChild(white);
+      mask.appendChild(black);
+      defs.appendChild(mask);
+      group.appendChild(defs);
+
+      const node = createSvgElement("path");
+      node.setAttribute("d", aPath);
+      node.setAttribute("mask", `url(#${maskId})`);
+      applyPaintAttributes(node, style, style.fill || "none");
+      group.appendChild(node);
+    }
   } else if (shape.type === "group") {
     for (const child of shape.children || []) {
       renderShape(child, group);
@@ -1020,6 +1526,25 @@ function drawSelectionOutline() {
 
     if (state.tool === TOOLS.DIRECT) {
       drawDirectSelectionAnchors();
+    }
+  }
+
+  if (Array.isArray(state.interaction.snapGuides) && state.interaction.snapGuides.length > 0) {
+    for (const guide of state.interaction.snapGuides) {
+      const line = createSvgElement("line");
+      line.setAttribute("class", "smart-guide");
+      if (guide.orientation === "vertical") {
+        line.setAttribute("x1", String(round(guide.position)));
+        line.setAttribute("x2", String(round(guide.position)));
+        line.setAttribute("y1", String(round(guide.start)));
+        line.setAttribute("y2", String(round(guide.end)));
+      } else {
+        line.setAttribute("x1", String(round(guide.start)));
+        line.setAttribute("x2", String(round(guide.end)));
+        line.setAttribute("y1", String(round(guide.position)));
+        line.setAttribute("y2", String(round(guide.position)));
+      }
+      dom.overlay.appendChild(line);
     }
   }
 
@@ -1262,6 +1787,23 @@ function render() {
   dom.transformHInput.disabled = disableTransform;
   dom.transformRotateInput.disabled = disableTransform;
 
+  const selectionCount = state.selection.length;
+  const disableArrange = selectionCount < 2;
+  dom.alignLeftBtn.disabled = disableArrange;
+  dom.alignHCenterBtn.disabled = disableArrange;
+  dom.alignRightBtn.disabled = disableArrange;
+  dom.alignTopBtn.disabled = disableArrange;
+  dom.alignVCenterBtn.disabled = disableArrange;
+  dom.alignBottomBtn.disabled = disableArrange;
+  dom.distributeHBtn.disabled = selectionCount < 3;
+  dom.distributeVBtn.disabled = selectionCount < 3;
+  const topLevelCount = getTopLevelSelectionIds().length;
+  const disableBoolean = topLevelCount !== 2;
+  dom.booleanUniteBtn.disabled = disableBoolean;
+  dom.booleanSubtractBtn.disabled = disableBoolean;
+  dom.booleanIntersectBtn.disabled = disableBoolean;
+  dom.snapToggleBtn.classList.toggle("is-active", state.snap.enabled);
+
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
 
@@ -1392,6 +1934,188 @@ function applyTransformInputsToSelection() {
   render();
 }
 
+function getSelectionBoundsEntries() {
+  return state.selection
+    .map((id) => ({ id, bounds: getObjectWorldBoundsById(id) }))
+    .filter((entry) => entry.bounds);
+}
+
+function alignSelection(mode) {
+  const entries = getSelectionBoundsEntries();
+  if (entries.length < 2) {
+    setStatus("Select at least two objects to align");
+    return;
+  }
+
+  const union = getBoundsForIds(entries.map((entry) => entry.id));
+  if (!union) {
+    return;
+  }
+
+  pushHistory();
+  for (const entry of entries) {
+    let dx = 0;
+    let dy = 0;
+    const b = entry.bounds;
+    if (mode === "left") {
+      dx = union.x - b.x;
+    } else if (mode === "hcenter") {
+      dx = union.x + union.width / 2 - (b.x + b.width / 2);
+    } else if (mode === "right") {
+      dx = union.x + union.width - (b.x + b.width);
+    } else if (mode === "top") {
+      dy = union.y - b.y;
+    } else if (mode === "vcenter") {
+      dy = union.y + union.height / 2 - (b.y + b.height / 2);
+    } else if (mode === "bottom") {
+      dy = union.y + union.height - (b.y + b.height);
+    }
+
+    if (dx || dy) {
+      updateShape(entry.id, (shape) => {
+        shape.transform.tx += dx;
+        shape.transform.ty += dy;
+      });
+    }
+  }
+
+  setStatus("Aligned selection");
+  render();
+}
+
+function distributeSelection(axis) {
+  const entries = getSelectionBoundsEntries();
+  if (entries.length < 3) {
+    setStatus("Select at least three objects to distribute");
+    return;
+  }
+
+  const ordered = [...entries].sort((a, b) =>
+    axis === "x"
+      ? a.bounds.x + a.bounds.width / 2 - (b.bounds.x + b.bounds.width / 2)
+      : a.bounds.y + a.bounds.height / 2 - (b.bounds.y + b.bounds.height / 2)
+  );
+  const firstCenter =
+    axis === "x"
+      ? ordered[0].bounds.x + ordered[0].bounds.width / 2
+      : ordered[0].bounds.y + ordered[0].bounds.height / 2;
+  const lastCenter =
+    axis === "x"
+      ? ordered[ordered.length - 1].bounds.x + ordered[ordered.length - 1].bounds.width / 2
+      : ordered[ordered.length - 1].bounds.y + ordered[ordered.length - 1].bounds.height / 2;
+  const step = (lastCenter - firstCenter) / (ordered.length - 1);
+
+  pushHistory();
+  for (let i = 1; i < ordered.length - 1; i += 1) {
+    const current = ordered[i];
+    const currentCenter =
+      axis === "x"
+        ? current.bounds.x + current.bounds.width / 2
+        : current.bounds.y + current.bounds.height / 2;
+    const target = firstCenter + step * i;
+    const delta = target - currentCenter;
+    if (!delta) {
+      continue;
+    }
+    updateShape(current.id, (shape) => {
+      if (axis === "x") {
+        shape.transform.tx += delta;
+      } else {
+        shape.transform.ty += delta;
+      }
+    });
+  }
+
+  setStatus(axis === "x" ? "Distributed horizontally" : "Distributed vertically");
+  render();
+}
+
+function applyBooleanOperation(operation) {
+  const selectedIds = getTopLevelSelectionIds();
+  if (selectedIds.length !== 2) {
+    setStatus("Select exactly two top-level objects for boolean operations");
+    return;
+  }
+
+  const sourceA = getObjectById(selectedIds[0])?.object;
+  const sourceB = getObjectById(selectedIds[1])?.object;
+  if (!sourceA || !sourceB) {
+    return;
+  }
+
+  if (sourceA.type === "group" || sourceB.type === "group") {
+    setStatus("Ungroup before running boolean operations");
+    return;
+  }
+  if (
+    (sourceA.type === "path" && sourceA.geometry?.closed !== true) ||
+    (sourceB.type === "path" && sourceB.geometry?.closed !== true)
+  ) {
+    setStatus("Close paths before running boolean operations");
+    return;
+  }
+
+  const aData = shapeToWorldPathData(sourceA);
+  const bData = shapeToWorldPathData(sourceB);
+  if (!aData || !bData) {
+    setStatus("Boolean operations currently support rect, ellipse, path, and unite results");
+    return;
+  }
+
+  const unionBounds = getBoundsForIds(selectedIds);
+  if (!unionBounds) {
+    return;
+  }
+
+  const newId = nextId("bool");
+  const minIndex = Math.min(
+    state.objects.findIndex((shape) => shape.id === selectedIds[0]),
+    state.objects.findIndex((shape) => shape.id === selectedIds[1])
+  );
+
+  pushHistory();
+
+  state.objects = state.objects.filter((shape) => !selectedIds.includes(shape.id));
+  state.objects.splice(
+    clamp(minIndex, 0, state.objects.length),
+    0,
+    {
+      id: newId,
+      type: "boolean",
+      name:
+        operation === "unite"
+          ? "Unite"
+          : operation === "subtract"
+            ? "Subtract"
+            : "Intersect",
+      zIndex: minIndex,
+      visible: true,
+      locked: false,
+      transform: deepClone(DEFAULT_TRANSFORM),
+      style: normalizeStyle(sourceA.style),
+      geometry: {
+        op: operation,
+        aPath: aData.d,
+        bPath: bData.d,
+        bounds: {
+          x: unionBounds.x,
+          y: unionBounds.y,
+          width: Math.max(1, unionBounds.width),
+          height: Math.max(1, unionBounds.height)
+        }
+      }
+    }
+  );
+
+  sortAndReindexObjects();
+  state.selection = [newId];
+  state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
+  setStatus(`Boolean ${operation} applied`);
+  render();
+}
+
 function resetMarqueeInteractionState() {
   state.interaction.marqueeStart = null;
   state.interaction.marqueeCurrent = null;
@@ -1404,6 +2128,7 @@ function beginMarqueeSelection(point, pointerId, additive) {
   state.interaction.marqueeStart = point;
   state.interaction.marqueeCurrent = point;
   state.interaction.marqueeAdditive = additive;
+  state.interaction.snapGuides = [];
   setStatus("Marquee select");
 }
 
@@ -1462,6 +2187,7 @@ function finishMarqueeSelection() {
   state.interaction.mode = null;
   state.interaction.pointerId = null;
   resetMarqueeInteractionState();
+  state.interaction.snapGuides = [];
   setStatus("Ready");
   render();
 }
@@ -1739,17 +2465,35 @@ function beginMoveSelection(point, pointerId) {
   state.interaction.pointerId = pointerId;
   state.interaction.start = point;
   state.interaction.startTransforms = startTransforms;
+  state.interaction.startSelectionBounds = getSelectionBounds();
+  state.interaction.snapGuides = [];
   setStatus(`Moving ${startTransforms.size} object(s)`);
 }
 
-function continueMoveSelection(point) {
+function continueMoveSelection(point, event) {
   if (state.interaction.mode !== "moving" || !state.interaction.startTransforms) {
     return;
   }
 
   const start = state.interaction.start;
-  const dx = point.x - start.x;
-  const dy = point.y - start.y;
+  const rawDx = point.x - start.x;
+  const rawDy = point.y - start.y;
+  let dx = rawDx;
+  let dy = rawDy;
+
+  if (state.snap.enabled && !event.altKey) {
+    const snapped = computeSnapAdjustment(
+      state.interaction.startSelectionBounds,
+      rawDx,
+      rawDy,
+      new Set(state.selection)
+    );
+    dx = snapped.dx;
+    dy = snapped.dy;
+    state.interaction.snapGuides = snapped.guides;
+  } else {
+    state.interaction.snapGuides = [];
+  }
 
   for (const [id, transform] of state.interaction.startTransforms.entries()) {
     updateShape(id, (shape) => {
@@ -1767,6 +2511,8 @@ function finishMoveSelection() {
   state.interaction.pointerId = null;
   state.interaction.start = null;
   state.interaction.startTransforms = null;
+  state.interaction.startSelectionBounds = null;
+  state.interaction.snapGuides = [];
   setStatus("Ready");
   render();
 }
@@ -2154,7 +2900,7 @@ function pointerMoveOnCanvas(event) {
   }
 
   if (state.interaction.mode === "moving") {
-    continueMoveSelection(point);
+    continueMoveSelection(point, event);
     render();
     return;
   }
@@ -2255,6 +3001,50 @@ function shapeToSvgString(shape, indent = "  ") {
       return "";
     }
     return `${indent}<path d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+  }
+
+  if (shape.type === "boolean") {
+    const op = shape.geometry?.op;
+    const aPath = shape.geometry?.aPath;
+    const bPath = shape.geometry?.bPath;
+    if (!aPath || !bPath) {
+      return "";
+    }
+
+    if (op === "unite") {
+      return `${indent}<path d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    }
+
+    if (op === "intersect") {
+      const clipId = `clip-${shape.id}`;
+      return `${indent}<g${transformAttribute}>
+${indent}  <defs>
+${indent}    <clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">
+${indent}      <path d="${bPath}" />
+${indent}    </clipPath>
+${indent}  </defs>
+${indent}  <path d="${aPath}" clip-path="url(#${clipId})" ${styleAttributes.join(" ")} />
+${indent}</g>`;
+    }
+
+    if (op === "subtract") {
+      const b = shape.geometry?.bounds || {
+        x: 0,
+        y: 0,
+        width: state.doc.width,
+        height: state.doc.height
+      };
+      const maskId = `mask-${shape.id}`;
+      return `${indent}<g${transformAttribute}>
+${indent}  <defs>
+${indent}    <mask id="${maskId}" maskUnits="userSpaceOnUse" x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}">
+${indent}      <rect x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}" fill="#fff" />
+${indent}      <path d="${bPath}" fill="#000" />
+${indent}    </mask>
+${indent}  </defs>
+${indent}  <path d="${aPath}" mask="url(#${maskId})" ${styleAttributes.join(" ")} />
+${indent}</g>`;
+    }
   }
 
   if (shape.type === "group") {
@@ -2409,6 +3199,8 @@ function handleToolGroupClick(event) {
     state.interaction.pointerId = null;
     resetMarqueeInteractionState();
   }
+  state.interaction.snapGuides = [];
+  state.interaction.startSelectionBounds = null;
 
   state.tool = nextTool;
   applyToolButtonState();
@@ -2471,6 +3263,25 @@ function bindEvents() {
   dom.layerBackwardBtn.addEventListener("click", () => moveSelectionInLayer(-1));
   dom.groupBtn.addEventListener("click", groupSelection);
   dom.ungroupBtn.addEventListener("click", ungroupSelection);
+  dom.alignLeftBtn.addEventListener("click", () => alignSelection("left"));
+  dom.alignHCenterBtn.addEventListener("click", () => alignSelection("hcenter"));
+  dom.alignRightBtn.addEventListener("click", () => alignSelection("right"));
+  dom.alignTopBtn.addEventListener("click", () => alignSelection("top"));
+  dom.alignVCenterBtn.addEventListener("click", () => alignSelection("vcenter"));
+  dom.alignBottomBtn.addEventListener("click", () => alignSelection("bottom"));
+  dom.distributeHBtn.addEventListener("click", () => distributeSelection("x"));
+  dom.distributeVBtn.addEventListener("click", () => distributeSelection("y"));
+  dom.booleanUniteBtn.addEventListener("click", () => applyBooleanOperation("unite"));
+  dom.booleanSubtractBtn.addEventListener("click", () => applyBooleanOperation("subtract"));
+  dom.booleanIntersectBtn.addEventListener("click", () => applyBooleanOperation("intersect"));
+  dom.snapToggleBtn.addEventListener("click", () => {
+    state.snap.enabled = !state.snap.enabled;
+    if (!state.snap.enabled) {
+      state.interaction.snapGuides = [];
+    }
+    render();
+    setStatus(state.snap.enabled ? "Snapping enabled" : "Snapping disabled");
+  });
 
   window.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
@@ -2500,6 +3311,8 @@ function bindEvents() {
       state.interaction.mode = null;
       state.interaction.handleKind = null;
       resetMarqueeInteractionState();
+      state.interaction.snapGuides = [];
+      state.interaction.startSelectionBounds = null;
       setStatus("Ready");
       render();
       return;
