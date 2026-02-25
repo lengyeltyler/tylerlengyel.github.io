@@ -41,6 +41,11 @@ const dom = {
   strokeInput: document.getElementById("stroke-input"),
   strokeWidthInput: document.getElementById("stroke-width-input"),
   opacityInput: document.getElementById("opacity-input"),
+  transformXInput: document.getElementById("transform-x-input"),
+  transformYInput: document.getElementById("transform-y-input"),
+  transformWInput: document.getElementById("transform-w-input"),
+  transformHInput: document.getElementById("transform-h-input"),
+  transformRotateInput: document.getElementById("transform-rotate-input"),
   selectionSummary: document.getElementById("selection-summary"),
   undoBtn: document.getElementById("undo-btn"),
   redoBtn: document.getElementById("redo-btn"),
@@ -66,6 +71,11 @@ const requiredDomKeys = [
   "strokeInput",
   "strokeWidthInput",
   "opacityInput",
+  "transformXInput",
+  "transformYInput",
+  "transformWInput",
+  "transformHInput",
+  "transformRotateInput",
   "selectionSummary",
   "undoBtn",
   "redoBtn",
@@ -98,7 +108,10 @@ const state = {
     start: null,
     draftId: null,
     startTransforms: null,
-    handleKind: null
+    handleKind: null,
+    marqueeStart: null,
+    marqueeCurrent: null,
+    marqueeAdditive: false
   },
   history: {
     undo: [],
@@ -876,35 +889,61 @@ function renderShape(shape, parentNode) {
   parentNode.appendChild(group);
 }
 
-function getSelectionBounds() {
-  const boxes = [];
-  for (const id of state.selection) {
-    const node = dom.scene.querySelector(`[data-object-id="${CSS.escape(id)}"]`);
-    if (!node || typeof node.getBBox !== "function") {
-      continue;
-    }
-    const bbox = node.getBBox();
-    const matrix = node.getCTM();
-    if (!matrix) {
-      continue;
-    }
+function rectFromPoints(start, end) {
+  return {
+    x: Math.min(start.x, end.x),
+    y: Math.min(start.y, end.y),
+    width: Math.abs(end.x - start.x),
+    height: Math.abs(end.y - start.y)
+  };
+}
 
-    const points = [
-      new DOMPoint(bbox.x, bbox.y),
-      new DOMPoint(bbox.x + bbox.width, bbox.y),
-      new DOMPoint(bbox.x + bbox.width, bbox.y + bbox.height),
-      new DOMPoint(bbox.x, bbox.y + bbox.height)
-    ].map((point) => point.matrixTransform(matrix));
+function rectsIntersect(a, b) {
+  return !(
+    a.x + a.width < b.x ||
+    b.x + b.width < a.x ||
+    a.y + a.height < b.y ||
+    b.y + b.height < a.y
+  );
+}
 
-    const xs = points.map((point) => point.x);
-    const ys = points.map((point) => point.y);
-    boxes.push({
-      x: Math.min(...xs),
-      y: Math.min(...ys),
-      width: Math.max(...xs) - Math.min(...xs),
-      height: Math.max(...ys) - Math.min(...ys)
-    });
+function getNodeWorldBounds(node) {
+  if (!node || typeof node.getBBox !== "function") {
+    return null;
   }
+
+  const bbox = node.getBBox();
+  const matrix = node.getCTM();
+  if (!matrix) {
+    return null;
+  }
+
+  const points = [
+    new DOMPoint(bbox.x, bbox.y),
+    new DOMPoint(bbox.x + bbox.width, bbox.y),
+    new DOMPoint(bbox.x + bbox.width, bbox.y + bbox.height),
+    new DOMPoint(bbox.x, bbox.y + bbox.height)
+  ].map((point) => point.matrixTransform(matrix));
+
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  return {
+    x: Math.min(...xs),
+    y: Math.min(...ys),
+    width: Math.max(...xs) - Math.min(...xs),
+    height: Math.max(...ys) - Math.min(...ys)
+  };
+}
+
+function getObjectWorldBoundsById(id) {
+  const node = dom.scene.querySelector(`[data-object-id="${CSS.escape(id)}"]`);
+  return getNodeWorldBounds(node);
+}
+
+function getBoundsForIds(ids) {
+  const boxes = ids
+    .map((id) => getObjectWorldBoundsById(id))
+    .filter(Boolean);
 
   if (boxes.length === 0) {
     return null;
@@ -923,65 +962,76 @@ function getSelectionBounds() {
   };
 }
 
+function getSelectionBounds() {
+  return getBoundsForIds(state.selection);
+}
+
 function drawSelectionOutline() {
   while (dom.overlay.firstChild) {
     dom.overlay.firstChild.remove();
   }
 
   const bounds = getSelectionBounds();
-  if (!bounds) {
-    return;
+  if (bounds) {
+    const rect = createSvgElement("rect");
+    rect.setAttribute("class", "selection-outline");
+    rect.setAttribute("x", String(round(bounds.x)));
+    rect.setAttribute("y", String(round(bounds.y)));
+    rect.setAttribute("width", String(round(bounds.width)));
+    rect.setAttribute("height", String(round(bounds.height)));
+    dom.overlay.appendChild(rect);
+
+    const isTransformTool = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
+    if (isTransformTool) {
+      const centerX = bounds.x + bounds.width / 2;
+
+      const rotateLine = createSvgElement("line");
+      rotateLine.setAttribute("class", "rotate-guide-line");
+      rotateLine.setAttribute("x1", String(round(centerX)));
+      rotateLine.setAttribute("y1", String(round(bounds.y)));
+      rotateLine.setAttribute("x2", String(round(centerX)));
+      rotateLine.setAttribute("y2", String(round(bounds.y - 24)));
+      dom.overlay.appendChild(rotateLine);
+
+      const rotateHandle = createSvgElement("circle");
+      rotateHandle.setAttribute("class", "transform-handle transform-handle-rotate");
+      rotateHandle.setAttribute("cx", String(round(centerX)));
+      rotateHandle.setAttribute("cy", String(round(bounds.y - 28)));
+      rotateHandle.setAttribute("r", "6");
+      rotateHandle.dataset.handleType = "rotate";
+      rotateHandle.style.cursor = "crosshair";
+      dom.overlay.appendChild(rotateHandle);
+
+      for (const [name, config] of Object.entries(SCALE_HANDLE_CONFIG)) {
+        const x = bounds.x + bounds.width * config.x;
+        const y = bounds.y + bounds.height * config.y;
+        const handle = createSvgElement("rect");
+        handle.setAttribute("class", "transform-handle transform-handle-scale");
+        handle.setAttribute("x", String(round(x - 4.5)));
+        handle.setAttribute("y", String(round(y - 4.5)));
+        handle.setAttribute("width", "9");
+        handle.setAttribute("height", "9");
+        handle.setAttribute("rx", "1.5");
+        handle.dataset.handleType = name;
+        handle.style.cursor = config.cursor;
+        dom.overlay.appendChild(handle);
+      }
+    }
+
+    if (state.tool === TOOLS.DIRECT) {
+      drawDirectSelectionAnchors();
+    }
   }
 
-  const rect = createSvgElement("rect");
-  rect.setAttribute("class", "selection-outline");
-  rect.setAttribute("x", String(round(bounds.x)));
-  rect.setAttribute("y", String(round(bounds.y)));
-  rect.setAttribute("width", String(round(bounds.width)));
-  rect.setAttribute("height", String(round(bounds.height)));
-  dom.overlay.appendChild(rect);
-
-  const isTransformTool = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
-  if (!isTransformTool) {
-    return;
-  }
-
-  const centerX = bounds.x + bounds.width / 2;
-
-  const rotateLine = createSvgElement("line");
-  rotateLine.setAttribute("class", "rotate-guide-line");
-  rotateLine.setAttribute("x1", String(round(centerX)));
-  rotateLine.setAttribute("y1", String(round(bounds.y)));
-  rotateLine.setAttribute("x2", String(round(centerX)));
-  rotateLine.setAttribute("y2", String(round(bounds.y - 24)));
-  dom.overlay.appendChild(rotateLine);
-
-  const rotateHandle = createSvgElement("circle");
-  rotateHandle.setAttribute("class", "transform-handle transform-handle-rotate");
-  rotateHandle.setAttribute("cx", String(round(centerX)));
-  rotateHandle.setAttribute("cy", String(round(bounds.y - 28)));
-  rotateHandle.setAttribute("r", "6");
-  rotateHandle.dataset.handleType = "rotate";
-  rotateHandle.style.cursor = "crosshair";
-  dom.overlay.appendChild(rotateHandle);
-
-  for (const [name, config] of Object.entries(SCALE_HANDLE_CONFIG)) {
-    const x = bounds.x + bounds.width * config.x;
-    const y = bounds.y + bounds.height * config.y;
-    const handle = createSvgElement("rect");
-    handle.setAttribute("class", "transform-handle transform-handle-scale");
-    handle.setAttribute("x", String(round(x - 4.5)));
-    handle.setAttribute("y", String(round(y - 4.5)));
-    handle.setAttribute("width", "9");
-    handle.setAttribute("height", "9");
-    handle.setAttribute("rx", "1.5");
-    handle.dataset.handleType = name;
-    handle.style.cursor = config.cursor;
-    dom.overlay.appendChild(handle);
-  }
-
-  if (state.tool === TOOLS.DIRECT) {
-    drawDirectSelectionAnchors();
+  if (state.interaction.mode === "marquee-select" && state.interaction.marqueeStart && state.interaction.marqueeCurrent) {
+    const marquee = rectFromPoints(state.interaction.marqueeStart, state.interaction.marqueeCurrent);
+    const marqueeRect = createSvgElement("rect");
+    marqueeRect.setAttribute("class", "marquee-rect");
+    marqueeRect.setAttribute("x", String(round(marquee.x)));
+    marqueeRect.setAttribute("y", String(round(marquee.y)));
+    marqueeRect.setAttribute("width", String(round(Math.max(1, marquee.width))));
+    marqueeRect.setAttribute("height", String(round(Math.max(1, marquee.height))));
+    dom.overlay.appendChild(marqueeRect);
   }
 }
 
@@ -1069,6 +1119,7 @@ function updateLayersPanel() {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "layer-item";
+    item.dataset.layerId = shape.id;
     item.style.paddingLeft = `${8 + depth * 14}px`;
     if (state.selection.includes(shape.id)) {
       item.classList.add("is-selected");
@@ -1088,6 +1139,42 @@ function updateLayersPanel() {
     left.appendChild(name);
     left.appendChild(type);
     item.appendChild(left);
+
+    if (depth === 0) {
+      item.draggable = true;
+      item.addEventListener("dragstart", (event) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", shape.id);
+        item.classList.add("is-dragging");
+      });
+      item.addEventListener("dragend", () => {
+        item.classList.remove("is-dragging");
+        for (const candidate of dom.layers.querySelectorAll(".layer-item")) {
+          candidate.classList.remove("drop-before", "drop-after");
+        }
+      });
+      item.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        const rect = item.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        item.classList.toggle("drop-before", before);
+        item.classList.toggle("drop-after", !before);
+      });
+      item.addEventListener("dragleave", () => {
+        item.classList.remove("drop-before", "drop-after");
+      });
+      item.addEventListener("drop", (event) => {
+        event.preventDefault();
+        item.classList.remove("drop-before", "drop-after");
+        const sourceId = event.dataTransfer.getData("text/plain");
+        if (!sourceId || sourceId === shape.id) {
+          return;
+        }
+        const rect = item.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        moveTopLevelObjectById(sourceId, shape.id, before ? "before" : "after");
+      });
+    }
 
     item.addEventListener("click", (event) => {
       if (event.shiftKey) {
@@ -1161,6 +1248,20 @@ function render() {
   dom.strokeWidthInput.disabled = state.selection.length === 0;
   dom.opacityInput.disabled = state.selection.length === 0;
 
+  const singleSelection = state.selection.length === 1 ? primary : null;
+  const singleBounds = state.selection.length === 1 ? getSelectionBounds() : null;
+  dom.transformXInput.value = String(round(singleBounds?.x ?? 0, 2));
+  dom.transformYInput.value = String(round(singleBounds?.y ?? 0, 2));
+  dom.transformWInput.value = String(round(Math.max(1, singleBounds?.width ?? 1), 2));
+  dom.transformHInput.value = String(round(Math.max(1, singleBounds?.height ?? 1), 2));
+  dom.transformRotateInput.value = String(round(singleSelection?.transform?.rotation ?? 0, 2));
+  const disableTransform = !singleSelection;
+  dom.transformXInput.disabled = disableTransform;
+  dom.transformYInput.disabled = disableTransform;
+  dom.transformWInput.disabled = disableTransform;
+  dom.transformHInput.disabled = disableTransform;
+  dom.transformRotateInput.disabled = disableTransform;
+
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
 
@@ -1227,8 +1328,166 @@ function applyStyleToSelection(patch) {
   render();
 }
 
+function applyTransformInputsToSelection() {
+  const primary = getPrimarySelectedObject();
+  if (!primary || state.selection.length !== 1) {
+    return;
+  }
+
+  const currentBounds = getSelectionBounds();
+  if (!currentBounds) {
+    return;
+  }
+
+  const nextX = Number(dom.transformXInput.value);
+  const nextY = Number(dom.transformYInput.value);
+  const nextW = Number(dom.transformWInput.value);
+  const nextH = Number(dom.transformHInput.value);
+  const nextRotate = Number(dom.transformRotateInput.value);
+
+  const hasX = Number.isFinite(nextX);
+  const hasY = Number.isFinite(nextY);
+  const hasW = Number.isFinite(nextW) && nextW > 0;
+  const hasH = Number.isFinite(nextH) && nextH > 0;
+  const hasRotate = Number.isFinite(nextRotate);
+  if (!hasX && !hasY && !hasW && !hasH && !hasRotate) {
+    return;
+  }
+
+  pushHistory();
+  const id = state.selection[0];
+  const center = {
+    x: currentBounds.x + currentBounds.width / 2,
+    y: currentBounds.y + currentBounds.height / 2
+  };
+
+  updateShape(id, (shape) => {
+    const transform = shape.transform;
+    if (hasRotate) {
+      transform.rotation = nextRotate;
+    }
+
+    const widthFactor = hasW ? clamp(nextW / Math.max(1e-4, currentBounds.width), 0.01, 100) : 1;
+    const heightFactor = hasH ? clamp(nextH / Math.max(1e-4, currentBounds.height), 0.01, 100) : 1;
+    if (hasW || hasH) {
+      transform.sx *= widthFactor;
+      transform.sy *= heightFactor;
+      transform.tx = center.x + (transform.tx - center.x) * widthFactor;
+      transform.ty = center.y + (transform.ty - center.y) * heightFactor;
+    }
+  });
+
+  render();
+
+  const adjustedBounds = getSelectionBounds();
+  if (adjustedBounds && (hasX || hasY)) {
+    const dx = hasX ? nextX - adjustedBounds.x : 0;
+    const dy = hasY ? nextY - adjustedBounds.y : 0;
+    updateShape(id, (shape) => {
+      shape.transform.tx += dx;
+      shape.transform.ty += dy;
+    });
+  }
+
+  render();
+}
+
+function resetMarqueeInteractionState() {
+  state.interaction.marqueeStart = null;
+  state.interaction.marqueeCurrent = null;
+  state.interaction.marqueeAdditive = false;
+}
+
+function beginMarqueeSelection(point, pointerId, additive) {
+  state.interaction.mode = "marquee-select";
+  state.interaction.pointerId = pointerId;
+  state.interaction.marqueeStart = point;
+  state.interaction.marqueeCurrent = point;
+  state.interaction.marqueeAdditive = additive;
+  setStatus("Marquee select");
+}
+
+function getMarqueeSelectionIds(start, end) {
+  const rect = rectFromPoints(start, end);
+  if (rect.width < 1 && rect.height < 1) {
+    return [];
+  }
+
+  const candidates = state.objects
+    .filter((shape) => shape.visible !== false && shape.locked !== true)
+    .map((shape) => shape.id);
+
+  return candidates.filter((id) => {
+    const bounds = getObjectWorldBoundsById(id);
+    return bounds ? rectsIntersect(bounds, rect) : false;
+  });
+}
+
+function finishMarqueeSelection() {
+  const start = state.interaction.marqueeStart;
+  const current = state.interaction.marqueeCurrent;
+  const additive = state.interaction.marqueeAdditive;
+  if (!start || !current) {
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    resetMarqueeInteractionState();
+    setStatus("Ready");
+    render();
+    return;
+  }
+
+  const pickedIds = getMarqueeSelectionIds(start, current);
+  if (additive) {
+    const merged = new Set([...state.selection, ...pickedIds]);
+    state.selection = Array.from(merged);
+  } else {
+    state.selection = pickedIds;
+  }
+
+  if (state.selection.length === 1) {
+    const found = getObjectById(state.selection[0]);
+    state.activePathId = found?.object?.type === "path" ? found.object.id : null;
+  } else {
+    state.activePathId = null;
+  }
+
+  if (state.activePathId && state.tool === TOOLS.DIRECT) {
+    state.directSelection.pathId = state.activePathId;
+    state.directSelection.anchorIndex = 0;
+  } else if (!state.selection.includes(state.directSelection.pathId)) {
+    state.directSelection.pathId = null;
+    state.directSelection.anchorIndex = null;
+  }
+
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  resetMarqueeInteractionState();
+  setStatus("Ready");
+  render();
+}
+
 function getTopLevelSelectionIds() {
   return state.selection.filter((id) => state.objects.some((shape) => shape.id === id));
+}
+
+function moveTopLevelObjectById(sourceId, targetId, placement) {
+  const fromIndex = state.objects.findIndex((shape) => shape.id === sourceId);
+  const targetIndex = state.objects.findIndex((shape) => shape.id === targetId);
+  if (fromIndex < 0 || targetIndex < 0) {
+    return;
+  }
+
+  const destination = placement === "before" ? targetIndex : targetIndex + 1;
+  const adjustedDestination = fromIndex < destination ? destination - 1 : destination;
+  if (adjustedDestination === fromIndex) {
+    return;
+  }
+
+  pushHistory();
+  const [moved] = state.objects.splice(fromIndex, 1);
+  state.objects.splice(adjustedDestination, 0, moved);
+  sortAndReindexObjects();
+  render();
 }
 
 function moveSelectionInLayer(direction) {
@@ -1814,8 +2073,16 @@ function pointerDownOnCanvas(event) {
         state.directSelection.anchorIndex = null;
       }
     } else {
-      deselectAll();
-      setStatus("Ready");
+      const canMarquee = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
+      if (canMarquee) {
+        if (!event.shiftKey) {
+          deselectAll();
+        }
+        beginMarqueeSelection(point, event.pointerId, event.shiftKey);
+      } else {
+        deselectAll();
+        setStatus("Ready");
+      }
     }
 
     render();
@@ -1824,6 +2091,12 @@ function pointerDownOnCanvas(event) {
 
 function pointerMoveOnCanvas(event) {
   const point = svgPointFromEvent(event);
+
+  if (state.interaction.mode === "marquee-select") {
+    state.interaction.marqueeCurrent = point;
+    render();
+    return;
+  }
 
   if (state.interaction.mode === "handle-moving") {
     const pathId = state.directSelection.pathId;
@@ -1893,6 +2166,11 @@ function pointerMoveOnCanvas(event) {
 }
 
 function pointerUpOnCanvas() {
+  if (state.interaction.mode === "marquee-select") {
+    finishMarqueeSelection();
+    return;
+  }
+
   if (state.interaction.mode === "handle-moving") {
     state.interaction.mode = null;
     state.interaction.pointerId = null;
@@ -2126,6 +2404,12 @@ function handleToolGroupClick(event) {
     finishActivePathIfAny(false);
   }
 
+  if (state.interaction.mode === "marquee-select") {
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    resetMarqueeInteractionState();
+  }
+
   state.tool = nextTool;
   applyToolButtonState();
   setStatus(`Tool: ${nextTool}`);
@@ -2169,6 +2453,16 @@ function bindEvents() {
     applyStyleToSelection({ opacity: Number.isFinite(next) ? next : 1 });
   });
 
+  for (const input of [
+    dom.transformXInput,
+    dom.transformYInput,
+    dom.transformWInput,
+    dom.transformHInput,
+    dom.transformRotateInput
+  ]) {
+    input.addEventListener("change", applyTransformInputsToSelection);
+  }
+
   dom.undoBtn.addEventListener("click", undo);
   dom.redoBtn.addEventListener("click", redo);
   dom.downloadSvgBtn.addEventListener("click", downloadSvg);
@@ -2205,6 +2499,7 @@ function bindEvents() {
       finishActivePathIfAny(true);
       state.interaction.mode = null;
       state.interaction.handleKind = null;
+      resetMarqueeInteractionState();
       setStatus("Ready");
       render();
       return;

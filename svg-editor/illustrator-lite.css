@@ -209,6 +209,18 @@ input {
   font-size: 12px;
 }
 
+.layer-item.is-dragging {
+  opacity: 0.4;
+}
+
+.layer-item.drop-before {
+  box-shadow: inset 0 2px 0 0 var(--accent);
+}
+
+.layer-item.drop-after {
+  box-shadow: inset 0 -2px 0 0 var(--accent);
+}
+
 .scene-object[data-selected="true"] {
   filter: drop-shadow(0 0 0.75px #4498f8) drop-shadow(0 0 2px #4498f8);
 }
@@ -261,6 +273,14 @@ input {
   stroke: #1471cc;
   stroke-width: 1.1;
   cursor: crosshair;
+}
+
+.marquee-rect {
+  fill: rgba(60, 145, 255, 0.14);
+  stroke: #3b90f2;
+  stroke-width: 1;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
 }
 
 .statusbar {
