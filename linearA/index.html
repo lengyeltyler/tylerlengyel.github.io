@@ -3,39 +3,67 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Linear A — Proto-decipherment</title>
-<meta name="description" content="Per-tablet proto-translations, notes, and dictionaries." />
-<style>
-  :root { --fg:#00ff00; --bg:#000; --muted:#9b9b9b; }
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:monospace;line-height:1.5;padding:32px}
-  a{color:#fff;text-decoration:none;border-bottom:1px solid var(--fg)}
-  a:hover{background:var(--fg);color:#000}
-  h1,h2{color:#fff;margin:0 0 12px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:20px}
-  .card{border-left:4px solid var(--fg);padding:16px;background:rgba(0,255,0,0.06)}
-  .card h3{margin:0 0 8px;color:#fff}
-  nav{margin-bottom:24px}
-</style>
+<title>Linear A — Overview</title>
+<meta name="description" content="Linear A structural analysis overview, confidence status, and tablet corpus navigation." />
+<link rel="stylesheet" href="/linearA/assets/linearA.css" />
+<script defer src="/linearA/assets/linearA.js"></script>
 </head>
 <body>
-  <nav><a href="/">← Back to homepage</a></nav>
-  <h1>Linear A — Proto-decipherment</h1>
-  <p class="muted" style="color:#9b9b9b;max-width:70ch">
-    Working, tablet-by-tablet notes: proto-translations side-by-side with the original lines,
-    confidence estimates, and a local dictionary per tablet.
-  </p>
+  <div class="site-shell">
+    <div class="la-top">
+      <div class="la-breadcrumb"><a href="/">Home</a> / <strong>Linear A</strong></div>
+      <div class="latest-badge">Latest run: <span data-latest-run>loading…</span></div>
+    </div>
 
-  <h2>Tablets</h2>
-  <div class="grid">
-    <a class="card" href="/linearA/HT10.html"><h3>HT10</h3><div>Syllabic tallies; large measure counts.</div></a>
-    <a class="card" href="/linearA/HT12.html"><h3>HT12</h3><div>Oil + undetermined commodities.</div></a>
-    <a class="card" href="/linearA/HT13.html"><h3>HT13</h3><div>Wine, grain, oil ledger (anchors).</div></a>
-    <a class="card" href="/linearA/HT31.html"><h3>HT31</h3><div>Mixed commodities; amphora A/B.</div></a>
-    <a class="card" href="/linearA/HT7.html"><h3>HT7</h3><div>Short syllabic entries (unit?).</div></a>
-    <a class="card" href="/linearA/HT8.html"><h3>HT8</h3><div>Oil + amphora A mention.</div></a>
-    <a class="card" href="/linearA/HT9.html"><h3>HT9</h3><div>High-volume wine list (VIN+TE).</div></a>
-    <a class="card" href="/linearA/HT95.html"><h3>HT95</h3><div>Grain–oil ledger.</div></a>
-    <a class="card" href="/linearA/ZA10.html"><h3>ZA10</h3><div>Grain totals with “prestige?”.</div></a>
+    <nav class="la-tabs" aria-label="Linear A navigation">
+      <a class="is-active" href="/linearA/index.html">Overview</a>
+      <a href="/linearA/analysis.html">Analysis (Technical)</a>
+      <a href="/linearA/findings.html">Findings (Plain English)</a>
+      <a href="/linearA/downloads.html">Data Downloads</a>
+    </nav>
+
+    <h1>Linear A — Structural Research Overview</h1>
+    <p class="muted">
+      This section tracks structural analysis of the repository’s Linear A transcriptions.
+      It is not a decipherment claim. Semantic mappings remain tentative unless independently supported.
+    </p>
+
+    <div class="key-takeaway">
+      <strong>Key takeaway</strong>
+      Current evidence supports recurring structural templates and accounting-like formatting,
+      but not confirmed lexical translation.
+    </div>
+
+    <h2>Current Corpus</h2>
+    <p>
+      Tablet transcriptions are organized per artifact below. The technical pipeline merges internal sources,
+      records provenance for each canonical line, and writes reproducible outputs under
+      <code>/linearA/research/output/latest/</code>.
+    </p>
+
+    <div class="grid">
+      <a class="card" href="/linearA/HT10.html"><h3>HT10</h3><div>Variants around <code>KU-RA2</code> with numeric tallies.</div></a>
+      <a class="card" href="/linearA/HT12.html"><h3>HT12</h3><div>Mixed commodity-like entries with short forms.</div></a>
+      <a class="card" href="/linearA/HT13.html"><h3>HT13</h3><div>Dense AB-series accounting-style lines.</div></a>
+      <a class="card" href="/linearA/HT31.html"><h3>HT31</h3><div>Multi-line structured ledger patterns.</div></a>
+      <a class="card" href="/linearA/HT7.html"><h3>HT7</h3><div>Short entries with limited cross-tablet anchors.</div></a>
+      <a class="card" href="/linearA/HT8.html"><h3>HT8</h3><div>Mixed forms including uncertain sign markers.</div></a>
+      <a class="card" href="/linearA/HT9.html"><h3>HT9</h3><div>Repeated <code>VIN+TE</code> formula with varied counts.</div></a>
+      <a class="card" href="/linearA/HT95.html"><h3>HT95</h3><div>Compact 2-line high-regularity example.</div></a>
+      <a class="card" href="/linearA/ZA10.html"><h3>ZA10</h3><div>AB-series patterns with positional consistency.</div></a>
+    </div>
+
+    <h2>Read Paths</h2>
+    <div class="cols">
+      <div class="block">
+        <h3>If You Want the Technical Detail</h3>
+        <p>Use <a href="/linearA/analysis.html">Analysis (Technical)</a> for model bakeoff scores, adversarial tests, and confidence decomposition.</p>
+      </div>
+      <div class="block">
+        <h3>If You Want Plain Language</h3>
+        <p>Use <a href="/linearA/findings.html">Findings (Plain English)</a> for an explanation aimed at first-time readers.</p>
+      </div>
+    </div>
   </div>
 </body>
 </html>

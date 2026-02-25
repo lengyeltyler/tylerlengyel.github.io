@@ -1,0 +1,19 @@
+{
+  "run_utc": "2026-02-24T03:31:35Z",
+  "random_seed": 20260224,
+  "normalization_mode": "strict",
+  "observations_all_sources": 2901,
+  "external_rows_loaded": 2698,
+  "canonical_entries": 2593,
+  "artifact_count": 619,
+  "winner_model_id": "model_1_syllabary_like",
+  "final_confidence": 71.36,
+  "raw_confidence": 71.36,
+  "threshold_85_reached": false,
+  "semantic_stronger_than_structural": false,
+  "stress_guard_triggered": false,
+  "stress_guard_collapse": false,
+  "limiting_factors": [
+    "component_convergence"
+  ]
+}

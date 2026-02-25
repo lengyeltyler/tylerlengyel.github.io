@@ -1,0 +1,8 @@
+component,signal_value,weight,weighted_contribution
+corpus_adequacy_score,1.000000,0.250000,25.000000
+normalization_stability_score,0.977971,0.200000,19.559429
+template_predictability_score,0.226389,0.200000,4.527772
+out_of_sample_performance_score,0.500000,0.200000,10.000000
+adversarial_robustness_score,0.818014,0.150000,12.270207
+RAW_CONFIDENCE_SCORE,71.357408,n/a,n/a
+FINAL_CONFIDENCE_SCORE,71.357408,n/a,n/a

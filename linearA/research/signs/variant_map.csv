@@ -1,0 +1,8 @@
+variant,canonical,status,confidence,notes
+RA2,RA2,exact,1.00,Canonical sign form
+AB22,AB22,exact,1.00,Canonical sign form
+AB67,AB67,exact,1.00,Canonical sign form
+OLIV,OLIV,exact,1.00,Canonical sign form
+VIN,VIN,exact,1.00,Canonical sign form
+?,UNKNOWN_SIGN,uncertain,0.20,Unknown damaged sign marker
+RA,RA2,uncertain,0.35,Possible but unverified graphical/orthographic relation

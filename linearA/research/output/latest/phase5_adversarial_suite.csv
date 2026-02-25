@@ -1,0 +1,9 @@
+test_name,test_type,model_id,baseline_log_likelihood,perturbed_log_likelihood,delta_log_likelihood,baseline_perplexity,perturbed_perplexity,delta_perplexity,expected_behavior,notes
+randomized_sign_relabel_global,adversarial_control,model_1_syllabary_like,-5.685992,-5.685992,0.000000,294.709969,294.709969,0.000000,small_change_allowed,Global relabel preserves structural shape but destroys sign identity semantics.
+shuffled_sequence_control,falsification,model_1_syllabary_like,-5.685992,-5.685992,0.000000,294.709969,294.709969,0.000000,substantial_degradation,Intra-line shuffling should break positional templates.
+randomized_sign_relabel_per_line,falsification,model_1_syllabary_like,-5.685992,-6.709515,-1.023523,294.709969,820.172471,525.462502,substantial_degradation,Destroys cross-line recurrence patterns.
+genre_split_cross_prediction,generalization,model_1_syllabary_like,-5.685992,-4.679475,1.006517,294.709969,107.713484,-186.996485,moderate_degradation,"Train on one artifact-prefix genre, test on others."
+cross_corpus_segmentation,generalization,model_1_syllabary_like,-5.685992,-5.991468,-0.305476,294.709969,400.001235,105.291267,moderate_degradation,"Cross-corpus prediction: internal_to_external,external_to_internal"
+remove_20pct_external_random,stability,model_1_syllabary_like,-5.685992,-5.701338,-0.015347,294.709969,299.267632,4.557663,small_to_moderate_change,Removed 510/2550 external-derived canonical lines.
+normalization_mode_identity,stability,model_1_syllabary_like,-5.685992,-5.685992,0.000000,294.709969,294.709969,0.000000,small_to_moderate_change,Compare strict baseline to identity normalization.
+normalization_mode_permissive,stability,model_1_syllabary_like,-5.685992,-5.674949,0.011043,294.709969,291.473405,-3.236564,small_to_moderate_change,Compare strict baseline to permissive normalization.

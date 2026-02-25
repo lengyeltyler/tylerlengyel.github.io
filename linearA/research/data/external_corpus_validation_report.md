@@ -1,0 +1,146 @@
+# External Corpus Validation Report
+
+## Summary
+- Total imported rows (raw): **2908**
+- Valid rows after validation: **2833**
+- Hard validation issues: **0**
+- Warning issues: **331**
+- Hard issue rate: **0.00%**
+
+## Source Stats
+- sigla_document_count: 772
+- sigla_rows: 1233
+- younger_page_count: 2
+- younger_artifact_sections: 1053
+- younger_rows: 1675
+
+## Source Access Errors
+- none
+
+## Hard Validation Issues (sample)
+- none
+
+## Warning Issues (sample)
+- row 754 | duplicate_line | artifact=HT WA 1029 | line=word_1 | details=exact_duplicate_key
+- row 1246 | inconsistent_sign_ids | artifact=HT 3 | line=.1_stmt | details=]
+- row 1252 | inconsistent_sign_ids | artifact=HT 4 | line=.2_stmt | details=]
+- row 1255 | inconsistent_sign_ids | artifact=HT 5 | line=.2_stmt | details=]
+- row 1256 | inconsistent_sign_ids | artifact=HT 5 | line=.3_stmt | details=]
+- row 1269 | inconsistent_sign_ids | artifact=HT 6 | line=b.2-3_stmt | details=[,]
+- row 1282 | inconsistent_sign_ids | artifact=HT 7 | line=b.2_stmt | details=*
+- row 1286 | inconsistent_sign_ids | artifact=HT 8 | line=a.3-4_stmt | details=*
+- row 1289 | inconsistent_sign_ids | artifact=HT 8 | line=b.1_stmt | details=*
+- row 1290 | inconsistent_sign_ids | artifact=HT 8 | line=b.3-4_stmt | details=*
+- row 1294 | duplicate_line | artifact=HT 8 | line=a.1-2_stmt | details=exact_duplicate_key
+- row 1295 | inconsistent_sign_ids | artifact=HT 8 | line=a.3-4_stmt | details=*
+- row 1295 | duplicate_line | artifact=HT 8 | line=a.3-4_stmt | details=exact_duplicate_key
+- row 1296 | duplicate_line | artifact=HT 8 | line=a.4_stmt | details=exact_duplicate_key
+- row 1297 | duplicate_line | artifact=HT 8 | line=a.5_stmt | details=exact_duplicate_key
+- row 1298 | inconsistent_sign_ids | artifact=HT 8 | line=table2_row10_log | details=*
+- row 1299 | inconsistent_sign_ids | artifact=HT 8 | line=b.3-4_stmt | details=*
+- row 1299 | duplicate_line | artifact=HT 8 | line=b.3-4_stmt | details=exact_duplicate_key
+- row 1300 | duplicate_line | artifact=HT 8 | line=b.4_stmt | details=exact_duplicate_key
+- row 1301 | duplicate_line | artifact=HT 8 | line=b.4_stmt | details=exact_duplicate_key
+- row 1307 | inconsistent_sign_ids | artifact=HT 9 | line=a.4_stmt | details=*
+- row 1308 | inconsistent_sign_ids | artifact=HT 9 | line=a.4-5_stmt | details=*
+- row 1312 | inconsistent_sign_ids | artifact=HT 9 | line=b.1_stmt | details=[,]
+- row 1315 | inconsistent_sign_ids | artifact=HT 9 | line=b.3_stmt | details=*
+- row 1317 | inconsistent_sign_ids | artifact=HT 9 | line=b.4_stmt | details=*
+- row 1323 | inconsistent_sign_ids | artifact=HT 10 | line=a.2a_stmt | details=*
+- row 1324 | inconsistent_sign_ids | artifact=HT 10 | line=a.3_stmt | details=*
+- row 1332 | inconsistent_sign_ids | artifact=HT 11 | line=a.1-2_stmt | details=[,]
+- row 1338 | inconsistent_sign_ids | artifact=HT 11 | line=b.1_stmt | details=]
+- row 1347 | inconsistent_sign_ids | artifact=HT 12 | line=.4-5_log | details=*
+- row 1357 | inconsistent_sign_ids | artifact=HT 13 | line=.5_stmt | details=*
+- row 1364 | inconsistent_sign_ids | artifact=HT 15 | line=.1_stmt | details=*
+- row 1366 | inconsistent_sign_ids | artifact=HT 15 | line=.1-2_stmt | details=*
+- row 1368 | inconsistent_sign_ids | artifact=HT 15 | line=.4_stmt | details=*
+- row 1410 | inconsistent_sign_ids | artifact=HT 23 | line=b.2_log | details=[
+- row 1411 | inconsistent_sign_ids | artifact=HT 23 | line=b.2_log | details=[
+- row 1419 | inconsistent_sign_ids | artifact=HT 24 | line=a.4_log | details=[
+- row 1421 | inconsistent_sign_ids | artifact=HT 24 | line=a.5_log | details=[
+- row 1422 | inconsistent_sign_ids | artifact=HT 24 | line=b.1-2_log | details=*
+- row 1423 | inconsistent_sign_ids | artifact=HT 24 | line=b.2_log | details=*
+- row 1424 | inconsistent_sign_ids | artifact=HT 25 | line=a.1_stmt | details=[
+- row 1430 | inconsistent_sign_ids | artifact=HT 25 | line=a.4_stmt | details=]
+- row 1432 | inconsistent_sign_ids | artifact=HT 25 | line=a.5_stmt | details=]
+- row 1439 | inconsistent_sign_ids | artifact=HT 26 | line=a.1_stmt | details=*
+- row 1444 | inconsistent_sign_ids | artifact=HT 26 | line=b.2_stmt | details=]
+- row 1450 | inconsistent_sign_ids | artifact=HT 27 | line=a.4_stmt | details=[
+- row 1458 | inconsistent_sign_ids | artifact=HT 27 | line=b.6_log | details=[,]
+- row 1461 | inconsistent_sign_ids | artifact=HT 28 | line=a.1-2_log | details=*
+- row 1475 | duplicate_line | artifact=HT 28 | line=a.6_log | details=exact_duplicate_key
+- row 1492 | inconsistent_sign_ids | artifact=HT 29 | line=.4_stmt | details=*
+- row 1507 | inconsistent_sign_ids | artifact=HT 31 | line=.1_stmt | details=[,]
+- row 1511 | inconsistent_sign_ids | artifact=HT 31 | line=.3_log | details=]
+- row 1513 | inconsistent_sign_ids | artifact=HT 31 | line=.4-5_stmt | details=*
+- row 1525 | inconsistent_sign_ids | artifact=HT 33 | line=.2_log | details=]
+- row 1533 | inconsistent_sign_ids | artifact=HT 34 | line=.1-2_log | details=[
+- row 1546 | inconsistent_sign_ids | artifact=HT 35 | line=.3_log | details=[
+- row 1554 | inconsistent_sign_ids | artifact=HT 37 | line=.4_stmt | details=*
+- row 1561 | inconsistent_sign_ids | artifact=HT 38 | line=.2-3_log | details=*
+- row 1563 | inconsistent_sign_ids | artifact=HT 39 | line=.1_stmt | details=*
+- row 1566 | inconsistent_sign_ids | artifact=HT 39 | line=.3_stmt | details=[
+- row 1569 | inconsistent_sign_ids | artifact=HT 40 | line=.1_stmt | details=*
+- row 1573 | inconsistent_sign_ids | artifact=HT 40 | line=.3_stmt | details=[
+- row 1579 | inconsistent_sign_ids | artifact=HT 42 59 | line=.6-7_stmt | details=]
+- row 1580 | inconsistent_sign_ids | artifact=HT 43 | line=.1-2_stmt | details=*
+- row 1582 | inconsistent_sign_ids | artifact=HT 44 | line=a.1_stmt | details=*
+- row 1589 | inconsistent_sign_ids | artifact=HT 44 | line=b.1_log | details=[
+- row 1597 | inconsistent_sign_ids | artifact=HT 47 | line=a.4_stmt | details=[
+- row 1598 | inconsistent_sign_ids | artifact=HT 47 | line=a.6_stmt | details=]
+- row 1601 | inconsistent_sign_ids | artifact=HT 49 | line=a.2_stmt | details=]
+- row 1603 | inconsistent_sign_ids | artifact=HT 49 | line=a.5_stmt | details=]
+- row 1618 | inconsistent_sign_ids | artifact=HT 51 | line=b.2_stmt | details=]
+- row 1620 | inconsistent_sign_ids | artifact=HT 52 | line=a.2_stmt | details=[
+- row 1624 | inconsistent_sign_ids | artifact=HT 54 | line=a.3_stmt | details=[,]
+- row 1625 | inconsistent_sign_ids | artifact=HT 55 | line=a.1_stmt | details=]
+- row 1636 | inconsistent_sign_ids | artifact=HT 58 | line=.4_stmt | details=[
+- row 1640 | inconsistent_sign_ids | artifact=HT 60 | line=.2_log | details=[
+- row 1641 | inconsistent_sign_ids | artifact=HT 60 | line=.3_log | details=]
+- row 1642 | inconsistent_sign_ids | artifact=HT 61 | line=.1_stmt | details=]
+- row 1644 | inconsistent_sign_ids | artifact=HT 62 73 | line=.1_stmt | details=[
+- row 1645 | inconsistent_sign_ids | artifact=HT 62 73 | line=.1_log | details=[
+- row 1656 | inconsistent_sign_ids | artifact=HT 66 | line=.1_log | details=[
+- row 1659 | inconsistent_sign_ids | artifact=HT 67 | line=.3_log | details=]
+- row 1662 | inconsistent_sign_ids | artifact=HT 70 | line=.1_log | details=]
+- row 1663 | inconsistent_sign_ids | artifact=HT 70 | line=.2_stmt | details=*
+- row 1673 | inconsistent_sign_ids | artifact=HT 82 | line=a._log | details=]
+- row 1674 | inconsistent_sign_ids | artifact=HT 84 | line=.1_stmt | details=[
+- row 1680 | inconsistent_sign_ids | artifact=HT 85 | line=a.3_stmt | details=*
+- row 1681 | inconsistent_sign_ids | artifact=HT 85 | line=a.3-4_stmt | details=*
+- row 1689 | inconsistent_sign_ids | artifact=HT 85 | line=b.2-3_stmt | details=]
+- row 1694 | inconsistent_sign_ids | artifact=HT 85 | line=b.5-6_stmt | details=*
+- row 1705 | inconsistent_sign_ids | artifact=HT 86 | line=b.1_stmt | details=]]
+- row 1716 | inconsistent_sign_ids | artifact=HT 87 | line=.5_stmt | details=[,]
+- row 1730 | inconsistent_sign_ids | artifact=HT 89 | line=.2_log | details=*
+- row 1737 | inconsistent_sign_ids | artifact=HT 89 | line=*307 *305_stmt | details=*
+- row 1742 | inconsistent_sign_ids | artifact=HT 89 | line=*307 *305 23_log | details=*
+- row 1744 | inconsistent_sign_ids | artifact=HT 89 | line=JU+*317-QE 46_log | details=*
+- row 1781 | inconsistent_sign_ids | artifact=HT 93 | line=a.8_stmt | details=]
+- row 1800 | inconsistent_sign_ids | artifact=HT 94 | line=b.4_stmt | details=[,]
+- row 1801 | duplicate_line | artifact=HT 94 | line=a.3_stmt | details=exact_duplicate_key
+- row 1802 | duplicate_line | artifact=HT 94 | line=a.3_log | details=exact_duplicate_key
+- row 1804 | duplicate_line | artifact=HT 94 | line=a.4_log | details=exact_duplicate_key
+- row 1806 | duplicate_line | artifact=HT 94 | line=a.5_log | details=exact_duplicate_key
+- row 1807 | duplicate_line | artifact=HT 94 | line=a.1_stmt | details=exact_duplicate_key
+- row 1808 | duplicate_line | artifact=HT 94 | line=a.1_log | details=exact_duplicate_key
+- row 1810 | duplicate_line | artifact=HT 94 | line=b.1_stmt | details=exact_duplicate_key
+- row 1811 | duplicate_line | artifact=HT 94 | line=b.2_stmt | details=exact_duplicate_key
+- row 1812 | duplicate_line | artifact=HT 94 | line=b.3_stmt | details=exact_duplicate_key
+- row 1828 | inconsistent_sign_ids | artifact=HT 96 | line=a.1-2_stmt | details=*
+- row 1837 | inconsistent_sign_ids | artifact=HT 96 | line=b.1-2_stmt | details=*
+- row 1851 | inconsistent_sign_ids | artifact=HT 98 | line=a.4-5_stmt | details=*
+- row 1860 | inconsistent_sign_ids | artifact=HT 99 | line=b.1_stmt | details=*
+- row 1873 | inconsistent_sign_ids | artifact=HT 101 | line=.1_stmt | details=*
+- row 1882 | inconsistent_sign_ids | artifact=HT 101 | line=.4_stmt | details=[
+- row 1883 | inconsistent_sign_ids | artifact=HT 101 | line=.4_log | details=]
+- row 1922 | inconsistent_sign_ids | artifact=HT 110 | line=a.1_stmt | details=*
+- row 1929 | inconsistent_sign_ids | artifact=HT 111 | line=a.2_stmt | details=[
+- row 1930 | inconsistent_sign_ids | artifact=HT 111 | line=a.3_stmt | details=]
+- row 1934 | inconsistent_sign_ids | artifact=HT 112 | line=a.2_stmt | details=[
+- row 1936 | inconsistent_sign_ids | artifact=HT 113 | line=.2-3_stmt | details=[
+- row 1945 | inconsistent_sign_ids | artifact=HT 115 | line=a.1_stmt | details=*
+
+## Merge Gate
+- Passed: hard validation error rate <= 5%.

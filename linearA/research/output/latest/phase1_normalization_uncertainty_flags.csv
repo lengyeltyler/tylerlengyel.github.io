@@ -1,0 +1,93 @@
+observation_id,artifact_id,line_id,token_index,original_sign,reason,details
+OBS_000045,HT7,1,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000046,HT7,2,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000050,HT7,28,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000051,HT7,29,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000057,HT8,3,1,?,suppressed_uncertain_mapping,strict_mode
+OBS_000059,HT8,5,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000062,HT8,30,1,?,suppressed_uncertain_mapping,strict_mode
+OBS_000064,HT8,32,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000119,HT7,1,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000120,HT7,2,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000124,HT7,10,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000125,HT7,11,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000131,HT8,3,1,?,suppressed_uncertain_mapping,strict_mode
+OBS_000133,HT8,5,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000136,HT8,12,1,?,suppressed_uncertain_mapping,strict_mode
+OBS_000138,HT8,14,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000177,HT7,70,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000178,HT7,71,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000184,HT8,79,1,?,suppressed_uncertain_mapping,strict_mode
+OBS_000186,HT8,81,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000222,ARKH 2,.1-2_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000287,HT 1,.4_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000359,HT 103,.5_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000391,HT 109,.4_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000410,HT 11,a.1-2_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000439,HT 113,.1_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000456,HT 115,a.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000460,HT 115,a.4_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000462,HT 115,b.1_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000501,HT 117,a.2-3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000507,HT 117,a.4-5_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000513,HT 117,a.7_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000592,HT 120,.1_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000620,HT 122,a.5_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000632,HT 122,b.3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000735,HT 128,a.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000882,HT 17,.1_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000897,HT 19,.1-2_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000941,HT 23,b.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_000974,HT 25,a.5_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001012,HT 27,a.3_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001014,HT 27,a.5_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001046,HT 28,a.5_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001107,HT 30,.3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001107,HT 30,.3_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001123,HT 31,.5_log,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001249,HT 44,a.3_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001282,HT 49,a.5_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001358,HT 58,.1_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001367,HT 6,a.1-2_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001374,HT 6,a.6_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001378,HT 6,b.2_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001392,HT 62 73,.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001482,HT 8,a.1-2_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001486,HT 8,a.4_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001517,HT 85,b.1_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001576,HT 87,.5_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001614,HT 89,.3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001647,HT 9,a.4_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001654,HT 9,b.3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001736,HT 94,b.4_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001778,HT 96,a.1-2_stmt,7,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001782,HT 96,a.4_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001787,HT 96,b.1-2_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001788,HT 96,b.1_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001897,HT WC 3006,a: WA-O-MI_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001897,HT WC 3006,a: WA-O-MI_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_001987,KH 20,.2_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002005,KH 29,.1_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002012,KH 31,.3_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002036,KH 5,.1-2_stmt,6,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002115,KH 79 89,.2_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002166,KH 91,.4_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002250,KN 1,b.1-3_stmt,2,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002329,MA 2,a.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002348,MI 2,.3_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002369,PH 1,a.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002396,PH 2,.1-2_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002419,PH 3,a.3_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002503,PH 7,a.4_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002504,PH 7,b.2_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002531,PK 1,.6_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002537,PS ZA 2,.2 (beginning on the bottom of fragment a and continuing onto b+c):_stmt,4,?,suppressed_uncertain_mapping,strict_mode
+OBS_002537,PS ZA 2,.2 (beginning on the bottom of fragment a and continuing onto b+c):_stmt,10,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002651,ZA 11,a.1_stmt,3,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002653,ZA 11,a.2-3_stmt,0,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002711,ZA 15,b.3_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002740,ZA 20,.4_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002843,ZA 6,b.2_log,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002856,ZA 7,a.1-2_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002868,ZA 8,.1_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
+OBS_002891,ZA 9,.6_stmt,1,RA,suppressed_uncertain_mapping,strict_mode
