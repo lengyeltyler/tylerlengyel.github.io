@@ -23,6 +23,9 @@ const DEFAULT_TRANSFORM = {
   rotation: 0
 };
 
+const STORAGE_LEGACY_KEY = "svg-editor:legacy-shapes:v2";
+const STORAGE_CANONICAL_KEY = "svg-editor:canonical-shapes:v2";
+
 const dom = {
   toolGroup: document.getElementById("tool-group"),
   canvas: document.getElementById("editor-canvas"),
@@ -1808,8 +1811,8 @@ function render() {
   dom.docHeight.value = String(state.doc.height);
 
   const legacySnapshot = state.objects.map(toLegacyShape);
-  window.localStorage.setItem("svg-editor:legacy-shapes", JSON.stringify(legacySnapshot));
-  window.localStorage.setItem("svg-editor:canonical-shapes", JSON.stringify(state.objects));
+  window.localStorage.setItem(STORAGE_LEGACY_KEY, JSON.stringify(legacySnapshot));
+  window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify(state.objects));
 }
 
 function deselectAll() {
@@ -3098,7 +3101,11 @@ async function copySvg() {
 }
 
 function loadInitialDocument() {
-  const canonicalRaw = window.localStorage.getItem("svg-editor:canonical-shapes");
+  // Reset persisted snapshots from earlier runtime versions.
+  window.localStorage.removeItem("svg-editor:canonical-shapes");
+  window.localStorage.removeItem("svg-editor:legacy-shapes");
+
+  const canonicalRaw = window.localStorage.getItem(STORAGE_CANONICAL_KEY);
   if (canonicalRaw) {
     try {
       const parsed = JSON.parse(canonicalRaw);
@@ -3109,7 +3116,7 @@ function loadInitialDocument() {
     }
   }
 
-  const legacyRaw = window.localStorage.getItem("svg-editor:legacy-shapes");
+  const legacyRaw = window.localStorage.getItem(STORAGE_LEGACY_KEY);
   if (legacyRaw) {
     try {
       const parsed = JSON.parse(legacyRaw);

@@ -466,6 +466,7 @@
         <a href="/" aria-current="page">Home</a>
         <a href="/linear-a">Linear A</a>
         <a href="/createphil">createPhil</a>
+        <a href="/nakes/">nakes</a>
         <a href="/svg-editor/">SVG Editor</a>
       </nav>
     </div>
@@ -506,16 +507,16 @@
             <form id="project-prompt" class="prompt-form" novalidate>
               <div class="prompt-line">
                 <span class="prompt-prefix">tyler@homebase:$</span>
-                <label class="visually-hidden" for="project-number">Type 1, 2, or 3</label>
+                <label class="visually-hidden" for="project-number">Type 1, 2, 3, or 4</label>
                 <input
                   id="project-number"
                   class="prompt-input"
                   inputmode="numeric"
                   autocomplete="off"
                   spellcheck="false"
-                  pattern="[1-3]"
+                  pattern="[1-4]"
                   maxlength="1"
-                  placeholder="1|2|3"
+                  placeholder="1|2|3|4"
                 />
                 <span class="cursor" aria-hidden="true"></span>
                 <button class="prompt-button" type="submit">Open</button>
@@ -574,6 +575,13 @@
           terminalLine: "[3] SVG Systems Lab     → /svg-editor",
           href: "/svg-editor",
           description: "Vector editing workflows and constraint-focused SVG experimentation."
+        },
+        {
+          id: "4",
+          name: "nakes Arcade",
+          terminalLine: "[4] nakes Arcade       → /nakes/",
+          href: "/nakes/",
+          description: "Retro snake game with levels, leaderboard, and prize mode."
         }
       ];
 
@@ -631,7 +639,7 @@
         const value = projectNumber.value.trim();
         if (openProject(value)) return;
 
-        promptStatus.textContent = "Unknown project. Type 1, 2, or 3.";
+        promptStatus.textContent = "Unknown project. Type 1, 2, 3, or 4.";
       });
 
       projectNumber.addEventListener("input", () => {
