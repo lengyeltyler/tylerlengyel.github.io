@@ -20,12 +20,11 @@
   <meta name="theme-color" content="#faf7f0" />
   <link rel="stylesheet" href="/assets/site-theme.css" />
 </head>
-<body>
+<body class="home-page">
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
-    <div class="site-frame">
-      <a class="site-brand" href="/">Tyler Lengyel</a>
+    <div class="site-frame home-nav-frame">
       <nav class="site-tabs" aria-label="Primary">
         <a href="/" aria-current="page">Home</a>
         <a href="/writing.html">Writing</a>
@@ -39,11 +38,15 @@
 
   <main id="main-content" class="page-shell page-stack" data-writing-root>
     <section class="paper-panel">
-      <p class="eyebrow">Independent Builder</p>
-      <h1>Tyler Lengyel explores cryptography, generative systems, and ancient puzzles.</h1>
+      <p class="eyebrow">just a guy</p>
+      <h1>Tyler Lengyel's home base.</h1>
       <p class="lede">
-        This site is a living archive of ongoing experiments, long-horizon research, and tools built
-        in the open.
+        This site is a living archive of ongoing experiments and things that I find interesting. In
+        January of 2022 I left my career in Sales and decided to start learning about Blockchain
+        Technology, Crypto, and eventually Artificial Intelligence. Since then it's been a long
+        journey of learning and growing as a person trying to find what truly makes me happy. What
+        I've learned is I know very little about the world around me, giving me a lot of room to
+        grow, and a lifelong challenge of becoming the best version of myself.
       </p>
 
       <div class="split-grid" style="margin-top: 24px;">
@@ -57,12 +60,67 @@
         </section>
 
         <section class="surface-card">
-          <h2>Infrastructure</h2>
-          <ul class="list-block compact">
-            <li>Self-hosted Ethereum full node (Geth + Lighthouse)</li>
-            <li>Local-first development workflow</li>
-            <li>Verify before trust</li>
-          </ul>
+          <div class="home-copy">
+            <p class="home-copy-heading">Current Focus</p>
+            <p>
+              For the past two years I've been working on a project I call 'Phil' which ultimately
+              is an Art project that will live on Ethereum forever. The more technical side, Phil is
+              a Generative Art project where the data lives 100% on-chain, meaning that as long as
+              Ethereum is alive, Phil will be as well. The even more technical side is Phil uses
+              Zero Knowledge Technology to allow the user minting to remain completely anonymous if
+              they so choose. The user will go to the mint site for Phil which represents something
+              very similar to that of the Avastars NFT project, allowing you to scroll through
+              countless combinations of Layers that I created which when combined together, form a
+              complete and final image of Phil. When you land on a generation you connect with,
+              you'll be able to mint, which is when the frontend triggers the backend to create a
+              Smart Account, sending the NFT to the newly created Smart Account with your initial
+              wallet being one of the signers, and the STARK proof becoming a form of Two-Factor
+              authentication. This STARK Proof will allow you to be the gatekeeper of your assets,
+              using the STARK proof as a final signer or nothing at all. The decision will be yours.
+            </p>
+            <p>
+              The project itself started as a meme token that I was going to have be used to
+              mint/claim Phils, but like everything else in life, it grew legs and became something
+              bigger and better than originally thought. The time is coming where I will finally
+              release the project consisting of 369 total Phils, allowing for 1 Phil to be minted
+              every 36 hours by a wallet that will be added to my backend private allowlist. The
+              reason I've decided to do it this way is for a few reasons.
+            </p>
+            <ol>
+              <li>
+                This allows me to choose who gets to mint. While some people in this space will be
+                up in arms about it, saying it's not fair, it's not decentralized, or that I'm a
+                scammer. Alls I have to say is, go fuck yourself. I don't need your approval to do
+                it this way and I could give two fucks about how you feel.
+              </li>
+              <li>
+                This will prevent the project from being bot-ed. One of my biggest concerns when I
+                started building Phil was the thought of having a couple people being able to bot
+                the project, making it a dumpster fire from the start, taking away from the purpose
+                and intent of Phil.
+              </li>
+              <li>
+                This is a free mint, and is something that I've put countless hours into building,
+                refining, and making sure that I'm proud of. So I'm sorry that I'm not sorry if
+                your feelings get hurt because you didn't get a chance to mint one, or weren't
+                "chosen". As a good friend in the space has stated "It's not my help that you
+                need".
+              </li>
+            </ol>
+            <p class="home-copy-subpoint">
+              <strong>3(a).</strong> Every 36th Phil will be auctioned, so this will allow for
+              absolutely anyone to potentially win a chance to mint a Phil. The auction will end at
+              the 36 hour 9 minute mark to the highest bidder. The bidder will then be able to mint
+              a Phil at any point during the project's duration. The benefit of this compared to the
+              other mints will be the ability to mint anytime during the duration of the project,
+              where the chosen minters will only be able to mint during that 36 hour window they
+              were chosen for.
+            </p>
+            <p>
+              There's more to be said, and in due time it all will be, but for right now this is a
+              good place to start. More details soon.
+            </p>
+          </div>
         </section>
       </div>
 
@@ -90,16 +148,6 @@
           </form>
         </section>
 
-        <section class="surface-card">
-          <h2>What This Archive Tracks</h2>
-          <p class="section-note">
-            Active projects, durable notes, and the systems work that supports them.
-          </p>
-          <p>
-            The goal is straightforward: keep experiments useful, legible, and easy to revisit over
-            time.
-          </p>
-        </section>
       </div>
     </section>
 
@@ -146,7 +194,7 @@
         },
         {
           id: "3",
-          name: "SVG Systems Lab",
+          name: "illustrator",
           href: "/svg-editor/",
           path: "/svg-editor/",
           description: "Vector editing workflows and constraint-focused SVG experimentation."
