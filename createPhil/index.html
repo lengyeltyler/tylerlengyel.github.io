@@ -3,89 +3,80 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>createPhil — Tyler Lengyel</title>
-  <meta name="theme-color" content="#000000">
-  <style>
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      background: #000;
-      color: #fff;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden;
-    }
-    nav {
-      position: relative;
-      z-index: 1;
-      background: rgba(0,0,0,0.8);
-      padding: 10px 0;
-      text-align: center;
-      border-bottom: 1px solid rgba(155,255,176,0.2);
-    }
-    nav a {
-      margin: 0 20px;
-      font-size: 20px;
-      color: #9bffb0;
-      text-decoration: none;
-    }
-    nav a:hover, nav a:focus { text-decoration: underline; }
-    .content {
-      position: relative;
-      z-index: 1;
-      height: calc(100% - 56px);
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
-      background: #000;
-    }
-  </style>
+  <title>createPhil - Tyler Lengyel</title>
+  <meta name="theme-color" content="#faf7f0" />
+  <link rel="stylesheet" href="/assets/site-theme.css" />
 </head>
 <body>
-  <nav>
-    <a href="/" style="font-size:20px;">Home</a>
-    <a href="/writing.html" style="font-size:20px;">Hypotheses Page</a>
-    <a href="/linearA/index.html" style="font-size:20px;">Linear A</a>
-    <a href="/createPhil/" style="font-size:20px;">createPhil</a>
-    <a href="/svg-editor/" style="font-size:20px;">svg-editor</a>
-  </nav>
-  <div class="content">
-    <!-- Embed the working project site -->
-    <iframe
-      id="createPhilFrame"
-      src="https://lengyeltyler.github.io/createPhil/"
-      title="createPhil"
-      loading="eager"
-      referrerpolicy="no-referrer">
-    </iframe>
-  </div>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <!-- Listener to download files at the top-level (fixes cross-origin iframe download blocking) -->
+  <header class="site-header">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/writing.html">Writing</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/" aria-current="page">createPhil</a>
+        <a href="/nakes/">nakes</a>
+        <a href="/svg-editor/">SVG Editor</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell is-wide frame-shell">
+    <section class="paper-panel" data-writing-root>
+      <p class="eyebrow">Legacy Tool</p>
+      <h1>createPhil</h1>
+      <p class="lede">
+        The original createPhil environment is preserved below in an embedded frame so the legacy
+        workflow stays available without changing the underlying tool.
+      </p>
+      <p style="margin: 18px 0 0;">
+        <button class="link-button" data-motion-toggle type="button">Writing motion: on</button>
+      </p>
+    </section>
+
+    <section class="frame-panel" data-no-reveal>
+      <iframe
+        id="createPhilFrame"
+        class="embedded-frame"
+        src="https://lengyeltyler.github.io/createPhil/"
+        title="createPhil"
+        loading="eager"
+        referrerpolicy="no-referrer">
+      </iframe>
+    </section>
+  </main>
+
+  <script defer src="/assets/site-theme.js"></script>
   <script>
-    const createPhilFrame = document.getElementById('createPhilFrame');
-    const TRUSTED_CREATEPHIL_ORIGIN = 'https://lengyeltyler.github.io';
+    const createPhilFrame = document.getElementById("createPhilFrame");
+    const TRUSTED_CREATEPHIL_ORIGIN = "https://lengyeltyler.github.io";
 
-    window.addEventListener('message', (e) => {
-      if (e.origin !== TRUSTED_CREATEPHIL_ORIGIN) return;
-      if (createPhilFrame?.contentWindow && e.source !== createPhilFrame.contentWindow) return;
+    window.addEventListener("message", (event) => {
+      if (event.origin !== TRUSTED_CREATEPHIL_ORIGIN) return;
+      if (createPhilFrame && createPhilFrame.contentWindow && event.source !== createPhilFrame.contentWindow) return;
 
-      const msg = e.data || {};
-      if (msg && msg.source === 'createPhil' && msg.kind === 'download-svg') {
+      const message = event.data || {};
+      if (message.source === "createPhil" && message.kind === "download-svg") {
         try {
-          const blob = new Blob([msg.data], { type: msg.mime || 'image/svg+xml;charset=utf-8' });
+          const blob = new Blob([message.data], {
+            type: message.mime || "image/svg+xml;charset=utf-8"
+          });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = msg.filename || 'download.svg';
-          a.rel = 'noopener';
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
-        } catch (err) {
-          console.warn('Top-level SVG download failed:', err);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = message.filename || "download.svg";
+          link.rel = "noopener";
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            URL.revokeObjectURL(url);
+            link.remove();
+          }, 0);
+        } catch (error) {
+          console.warn("Top-level SVG download failed:", error);
         }
       }
     });

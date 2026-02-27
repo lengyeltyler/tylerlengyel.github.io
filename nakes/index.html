@@ -3,7 +3,7 @@
 <head>
   <!-- PWA -->
   <link rel="manifest" href="/nakes/manifest.json">
-  <meta name="theme-color" content="#0a0f0a">
+  <meta name="theme-color" content="#faf7f0">
   <!-- iOS standalone feel when added to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,17 +11,17 @@
 
   <meta charset="utf-8" />
   <title>nakes</title>
-  <meta name="description" content="Retro nakes — keyboard, swipe, and D-pad." />
+  <meta name="description" content="Retro nakes - keyboard, swipe, and D-pad." />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
     :root{
-      --bg:#0a0f0a; --grid:#123312; --nakes:#6cff6c; --nakesHead:#b3ffb3; --food:#a9ff3f;
-      --ui:#d2ffd2; --accent:#4dff4d;
-      --size:20;                   /* logical grid size (changes with level) */
-      --desktop-max:560px;         /* desktop max visual width */
-      --gap:12px;
+      --bg:#faf7f0; --grid:#d6e0ee; --nakes:#2e4e75; --nakesHead:#111111; --food:#9ec9ff;
+      --ui:#111111; --accent:#9ec9ff;
+      --size:20;
+      --desktop-max:560px;
+      --gap:14px;
       --safe-top: env(safe-area-inset-top);
       --safe-right: env(safe-area-inset-right);
       --safe-bottom: env(safe-area-inset-bottom);
@@ -30,82 +30,112 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{
-      background:radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
+      background:
+        radial-gradient(circle at 12% -8%, rgba(158,201,255,.18), transparent 36%),
+        radial-gradient(circle at 88% 0%, rgba(255,242,214,.24), transparent 36%),
+        var(--bg);
       color:var(--ui);
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      font-family:"SF Pro Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
       touch-action:none;
       -webkit-user-select:none; user-select:none;
-      overflow:hidden;                /* no page scroll; app fills viewport */
+      overflow:hidden;
     }
 
-    /* ===== App-like layout (fills the screen) ===== */
     .app{
       position:fixed; inset:0;
-      padding:calc(var(--safe-top) + 8px) calc(var(--safe-right) + 8px)
-              calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 8px);
-      display:grid; grid-template-rows: 1fr auto; gap: var(--gap);
+      padding:calc(var(--safe-top) + 10px) calc(var(--safe-right) + 10px)
+              calc(var(--safe-bottom) + 10px) calc(var(--safe-left) + 10px);
+      display:grid; grid-template-rows:1fr auto; gap:var(--gap);
       max-width:min(100vw,100svw); max-height:min(100vh,100svh);
     }
 
-    /* HUD overlays canvas by default (desktop) so it doesn't consume vertical space */
     .hud{
-      position:absolute; left:0; right:0; top:8px;
-      padding:0 8px;
+      position:absolute; left:0; right:0; top:10px;
+      padding:0 10px;
       display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
-      pointer-events:none; /* don't block canvas touches */
+      pointer-events:none;
     }
-    .title{font-weight:700; letter-spacing:.5px; text-shadow:0 2px 8px rgba(76,255,76,.15)}
+    .route-tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      pointer-events:auto;
+    }
+    .route-tabs a{
+      display:inline-flex; align-items:center; justify-content:center;
+      min-height:36px; padding:7px 11px; border-radius:999px;
+      border:1px solid rgba(121,179,251,.18);
+      background:rgba(237,245,255,.92);
+      color:#16324f; text-decoration:none; font-size:13px; font-weight:700;
+      box-shadow:0 10px 20px rgba(40,32,18,.05);
+    }
+    .route-tabs a:hover{background:#d9ecff}
+    .title{
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#28466e;
+    }
     .stats{display:flex; gap:8px; flex-wrap:wrap}
     .pill{
       pointer-events:auto;
-      border:1px solid #1e371e; border-radius:999px; padding:4px 8px; font-size:13px;
-      color:var(--accent); background:rgba(76,255,76,.06)
+      border:1px solid rgba(121,179,251,.18);
+      border-radius:999px;
+      padding:5px 9px;
+      font-size:13px;
+      color:var(--ui);
+      background:rgba(255,255,255,.9);
+      box-shadow:0 10px 20px rgba(40,32,18,.06);
     }
 
     .stage{ position:relative; display:grid; place-items:center; min-height:0; }
 
-    /* Canvas auto-sizes to space above controls; crisp via DPR scaling in JS */
     canvas{
       display:block; width:100%; height:auto; max-width:var(--desktop-max);
       aspect-ratio:1/1;
-      border:1px solid #1c2a1c; border-radius:12px;
-      background:linear-gradient(#0b140b,#081008);
-      image-rendering: pixelated;
+      border:1px solid #d8d0c3; border-radius:20px;
+      background:linear-gradient(#ffffff,#f7f9fc);
+      box-shadow:0 22px 42px rgba(40,32,18,.09);
+      image-rendering:pixelated;
       touch-action:none;
     }
 
-    /* D-pad: always visible bottom row */
     .controls{
       display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
       max-width:var(--desktop-max); margin:0 auto;
       padding-bottom:2px;
     }
     .btn{
-      border:1px solid #1e371e; border-radius:12px; padding:14px 12px; text-align:center;
-      background:rgba(76,255,76,.06); color:var(--ui); font-weight:700; cursor:pointer;
-      transition:transform .04s ease, background .1s ease; touch-action:manipulation; font-size:18px;
+      border:1px solid rgba(121,179,251,.18);
+      border-radius:16px;
+      padding:14px 12px;
+      text-align:center;
+      background:rgba(237,245,255,.92);
+      color:#16324f;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .04s ease, background .1s ease, box-shadow .1s ease;
+      touch-action:manipulation;
+      font-size:17px;
+      box-shadow:0 10px 22px rgba(40,32,18,.05);
     }
-    .btn:active{transform:translateY(1px) scale(.99); background:rgba(76,255,76,.12)}
+    .btn:active{transform:translateY(1px) scale(.99); background:#d9ecff}
     .grid-spacer{visibility:hidden}
-    .controls .full { grid-column: 1 / -1; } /* Speed button spans all columns */
+    .controls .full { grid-column: 1 / -1; }
 
-    /* Small desktop-only extras under the D-pad */
-    .extras{max-width:var(--desktop-max); margin:8px auto 0}
-    .help{font-size:13px; opacity:.8; margin-bottom:6px}
-    .linkbar a{color:var(--accent); text-decoration:none}
-    .linkbar a:hover{text-decoration:underline}
-
-    /* ===== Mobile tweaks ===== */
+    .extras{max-width:var(--desktop-max); margin:10px auto 0}
+    .help{font-size:13px; color:#595550; margin-bottom:8px}
     @media (max-width: 640px){
       .hud{
-        position: static; inset: auto; padding: 0 2px 4px 2px; display: block; pointer-events: auto;
+        position: static; inset: auto; padding: 0 2px 6px 2px; display: block; pointer-events: auto;
       }
-      .title{ font-size: 14px; margin-bottom: 2px; }
+      .route-tabs{ margin-bottom: 6px; }
+      .title{ font-size: 13px; margin-bottom: 4px; }
       .stats{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 6px; }
-      .pill{ font-size: 11px; padding: 2px 6px; border-radius: 8px; background: transparent; border-color: #184e18; color: #86ff86; }
-      .btn{ padding: 12px; font-size: 16px; border-radius: 10px; }
+      .pill{ font-size: 11px; padding: 3px 7px; border-radius: 10px; }
+      .btn{ padding: 12px; font-size: 15px; border-radius: 12px; }
       .controls{ gap: 6px; }
-      .extras{ display: none; }   /* no scrolling on phones */
+      .extras{ display: none; }
     }
   </style>
 </head>
@@ -113,6 +143,10 @@
   <div class="app">
     <div class="stage">
       <div class="hud">
+        <nav class="route-tabs" aria-label="Game links">
+          <a href="/" rel="home">Home</a>
+          <a href="/nakes/leaderboard.html">Leaderboard</a>
+        </nav>
         <div class="title">S N A K E</div>
         <div class="stats">
           <div class="pill">Score: <span id="score">0</span></div>
@@ -158,11 +192,6 @@
 
         <!-- ✅ Prize widget container -->
         <div id="prize-root" style="margin:8px 0"></div>
-
-        <div class="linkbar">
-          <a href="/" rel="home">← Back to Home</a> ·
-          <a href="/nakes/leaderboard.html">Leaderboard</a>
-        </div>
       </div>
     </div>
   </div>

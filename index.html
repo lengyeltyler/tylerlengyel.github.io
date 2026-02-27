@@ -4,618 +4,208 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tyler Lengyel | Homebase Lab</title>
-  <meta name="description" content="Tyler Lengyel homebase: a live archive of cryptography, generative systems, and long-term research experiments." />
-
+  <meta
+    name="description"
+    content="Tyler Lengyel homebase: a living archive of cryptography, generative systems, and long-term research experiments."
+  />
   <link rel="canonical" href="https://tylerlengyel.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Tyler Lengyel | Homebase Lab" />
-  <meta property="og:description" content="A living research lab and system console for ongoing experiments." />
+  <meta
+    property="og:description"
+    content="A living archive of long-term research, tools, and notes."
+  />
   <meta property="og:url" content="https://tylerlengyel.com/" />
   <meta name="twitter:card" content="summary" />
-  <meta name="theme-color" content="#050807" />
-
-  <style>
-    :root {
-      --bg: #050807;
-      --surface: #0c1210;
-      --surface-2: #121a17;
-      --ink: #dffde8;
-      --muted: #9dbaab;
-      --accent: #69ffad;
-      --accent-strong: #3eff96;
-      --border: rgba(105, 255, 173, 0.26);
-      --shadow: rgba(0, 0, 0, 0.45);
-      --ring: rgba(105, 255, 173, 0.65);
-      --max: 1120px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-    }
-
-    body {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 12% -10%, rgba(52, 116, 89, 0.28), transparent 34%),
-        radial-gradient(circle at 82% 120%, rgba(40, 90, 72, 0.18), transparent 40%),
-        var(--bg);
-      line-height: 1.5;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-    }
-
-    body::before {
-      opacity: 0.28;
-      background:
-        repeating-linear-gradient(0deg, rgba(105, 255, 173, 0.045) 0 1px, transparent 1px 34px),
-        repeating-linear-gradient(90deg, rgba(105, 255, 173, 0.03) 0 1px, transparent 1px 34px);
-    }
-
-    body::after {
-      background:
-        radial-gradient(circle at 50% 0%, rgba(105, 255, 173, 0.07), transparent 42%),
-        radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.95) 60%);
-    }
-
-    a {
-      color: var(--accent);
-    }
-
-    a:hover {
-      color: var(--accent-strong);
-    }
-
-    a:focus-visible,
-    button:focus-visible,
-    input:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
-
-    .skip-link {
-      position: absolute;
-      left: 12px;
-      top: -48px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: #111a16;
-      color: var(--ink);
-      z-index: 30;
-      text-decoration: none;
-    }
-
-    .skip-link:focus {
-      top: 12px;
-    }
-
-    .container {
-      width: min(var(--max), calc(100% - 32px));
-      margin: 0 auto;
-    }
-
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(5, 8, 7, 0.8);
-      border-bottom: 1px solid rgba(105, 255, 173, 0.16);
-    }
-
-    .nav-shell {
-      min-height: 62px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-      padding: 10px 0;
-    }
-
-    .brand {
-      font-size: 0.95rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--ink);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      padding-bottom: 2px;
-    }
-
-    .nav-links a[aria-current="page"] {
-      color: var(--ink);
-      border-bottom-color: var(--accent);
-    }
-
-    .hero {
-      padding: 48px 0 28px;
-    }
-
-    .terminal-window {
-      width: min(1100px, 100%);
-      margin: 0 auto;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(14, 21, 18, 0.95), rgba(9, 14, 12, 0.95));
-      box-shadow:
-        0 20px 50px var(--shadow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02),
-        inset 0 -24px 80px rgba(0, 0, 0, 0.42);
-      overflow: hidden;
-    }
-
-    .terminal-top {
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 0 14px;
-      border-bottom: 1px solid rgba(105, 255, 173, 0.2);
-      background: rgba(7, 11, 9, 0.92);
-    }
-
-    .window-dots {
-      display: inline-flex;
-      gap: 8px;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      opacity: 0.88;
-    }
-
-    .dot:nth-child(1) {
-      background: #ff625c;
-    }
-
-    .dot:nth-child(2) {
-      background: #ffbe2e;
-    }
-
-    .dot:nth-child(3) {
-      background: #2adb71;
-    }
-
-    .terminal-title {
-      font-size: 0.76rem;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-
-    .terminal-body {
-      padding: 22px;
-      font-size: clamp(0.9rem, 1.55vw, 1.06rem);
-    }
-
-    .term-row {
-      margin: 0 0 10px;
-    }
-
-    .term-command {
-      color: var(--accent);
-      margin: 0 0 4px;
-    }
-
-    .term-output {
-      color: var(--ink);
-      margin: 0 0 18px;
-    }
-
-    .term-list {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 18px;
-      display: grid;
-      gap: 7px;
-    }
-
-    .terminal-project-link {
-      display: inline-block;
-      color: var(--ink);
-      text-decoration: none;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      padding: 2px 7px;
-      margin: 0 -7px;
-      max-width: 100%;
-      overflow-wrap: anywhere;
-    }
-
-    .terminal-project-link:hover {
-      border-color: rgba(105, 255, 173, 0.3);
-      background: rgba(105, 255, 173, 0.08);
-      color: var(--accent);
-    }
-
-    .prompt-form {
-      margin-top: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .prompt-line {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(7, 12, 10, 0.9);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 8px 10px;
-    }
-
-    .prompt-prefix {
-      color: var(--accent);
-      flex: 0 0 auto;
-    }
-
-    .prompt-input {
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: var(--ink);
-      min-width: 80px;
-      width: 90px;
-      font: inherit;
-      padding: 0;
-    }
-
-    .prompt-input::placeholder {
-      color: #7b9285;
-    }
-
-    .cursor {
-      width: 0.62ch;
-      height: 1.1em;
-      background: var(--ink);
-      display: inline-block;
-      animation: blink 1s step-end infinite;
-    }
-
-    .prompt-button {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(105, 255, 173, 0.1);
-      color: var(--ink);
-      font: inherit;
-      padding: 5px 11px;
-      cursor: pointer;
-    }
-
-    .prompt-button:hover {
-      background: rgba(105, 255, 173, 0.18);
-    }
-
-    .prompt-status {
-      margin: 0;
-      color: var(--muted);
-      min-height: 1.4em;
-    }
-
-    .content-section {
-      padding: 26px 0 8px;
-    }
-
-    .section-title {
-      margin: 0 0 8px;
-      font-size: 1.08rem;
-      color: var(--ink);
-    }
-
-    .section-subtitle {
-      margin: 0 0 16px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .project-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      background: rgba(8, 14, 11, 0.84);
-      text-decoration: none;
-      color: var(--ink);
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .project-card:hover {
-      border-color: rgba(105, 255, 173, 0.48);
-      background: rgba(10, 17, 14, 0.92);
-    }
-
-    .project-card h3 {
-      margin: 0;
-      font-size: 0.99rem;
-      color: var(--ink);
-    }
-
-    .project-path {
-      color: var(--accent);
-      font-size: 0.89rem;
-      margin: 0;
-    }
-
-    .project-description {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .notes-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 9px;
-    }
-
-    .notes-list li {
-      border: 1px solid rgba(105, 255, 173, 0.18);
-      border-radius: 10px;
-      padding: 12px 13px;
-      background: rgba(8, 12, 10, 0.75);
-      color: var(--ink);
-    }
-
-    .notes-list time {
-      color: var(--accent);
-    }
-
-    .footer-space {
-      height: 36px;
-    }
-
-    .visually-hidden {
-      position: absolute !important;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    @keyframes blink {
-      0%, 49% {
-        opacity: 1;
-      }
-      50%, 100% {
-        opacity: 0;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .projects-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 760px) {
-      .hero {
-        padding-top: 34px;
-      }
-
-      .terminal-body {
-        padding: 16px;
-      }
-
-      .prompt-line {
-        gap: 6px;
-      }
-
-      .prompt-button {
-        width: 100%;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .cursor {
-        animation: none;
-      }
-    }
-  </style>
+  <meta name="theme-color" content="#faf7f0" />
+  <link rel="stylesheet" href="/assets/site-theme.css" />
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
-    <div class="container nav-shell">
-      <a class="brand" href="/">Tyler Lengyel</a>
-      <nav class="nav-links" aria-label="Primary">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+      <nav class="site-tabs" aria-label="Primary">
         <a href="/" aria-current="page">Home</a>
-        <a href="/linear-a">Linear A</a>
-        <a href="/createphil">createPhil</a>
+        <a href="/writing.html">Writing</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
         <a href="/nakes/">nakes</a>
         <a href="/svg-editor/">SVG Editor</a>
       </nav>
     </div>
   </header>
 
-  <main id="main-content">
-    <section class="hero">
-      <div class="container">
-        <article class="terminal-window" aria-label="Homebase system console">
-          <div class="terminal-top">
-            <div class="window-dots" aria-hidden="true">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
+  <main id="main-content" class="page-shell page-stack" data-writing-root>
+    <section class="paper-panel">
+      <p class="eyebrow">Independent Builder</p>
+      <h1>Tyler Lengyel explores cryptography, generative systems, and ancient puzzles.</h1>
+      <p class="lede">
+        This site is a living archive of ongoing experiments, long-horizon research, and tools built
+        in the open.
+      </p>
+
+      <div class="split-grid" style="margin-top: 24px;">
+        <section class="surface-card">
+          <h2>Current Focus</h2>
+          <p class="section-note">
+            Research notes, practical tooling, and experiments that stay readable without the terminal
+            shell around them.
+          </p>
+          <ol class="numbered-links" id="project-index"></ol>
+        </section>
+
+        <section class="surface-card">
+          <h2>Infrastructure</h2>
+          <ul class="list-block compact">
+            <li>Self-hosted Ethereum full node (Geth + Lighthouse)</li>
+            <li>Local-first development workflow</li>
+            <li>Verify before trust</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="split-grid" style="margin-top: 16px;">
+        <section class="surface-card">
+          <h2>Quick Open</h2>
+          <form id="project-prompt" class="inline-form" novalidate>
+            <label for="project-number">Open a project by number</label>
+            <div class="inline-form-row">
+              <input
+                id="project-number"
+                class="text-input"
+                inputmode="numeric"
+                autocomplete="off"
+                spellcheck="false"
+                pattern="[1-4]"
+                maxlength="1"
+                placeholder="1-4"
+                aria-describedby="prompt-help prompt-status"
+              />
+              <button class="button" type="submit">Open</button>
             </div>
-            <div class="terminal-title">homebase://research-console</div>
-          </div>
-          <div class="terminal-body">
-            <p class="term-command">tyler@homebase:$ whoami</p>
-            <p class="term-output">Tyler Lengyel — independent builder exploring cryptography, generative systems, and ancient puzzles.</p>
+            <p id="prompt-help" class="helper-text">Use 1, 2, 3, or 4.</p>
+            <p id="prompt-status" class="helper-text status-line" aria-live="polite"></p>
+          </form>
+        </section>
 
-            <p class="term-command">tyler@homebase:$ status</p>
-            <p class="term-output">This site is a live archive of ongoing experiments.</p>
-
-            <p class="term-command">tyler@homebase:$ active_projects</p>
-            <div id="terminal-projects" class="term-list" role="list"></div>
-
-            <p class="term-command">tyler@homebase:$ infra</p>
-            <ul class="term-list">
-              <li>- Self-hosted Ethereum full node (Geth + Lighthouse)</li>
-              <li>- Local-first dev workflow</li>
-              <li>- Verify &gt; trust</li>
-            </ul>
-
-            <p class="term-command">tyler@homebase:$ next</p>
-            <p class="term-output">Type a number to open a project.</p>
-
-            <form id="project-prompt" class="prompt-form" novalidate>
-              <div class="prompt-line">
-                <span class="prompt-prefix">tyler@homebase:$</span>
-                <label class="visually-hidden" for="project-number">Type 1, 2, 3, or 4</label>
-                <input
-                  id="project-number"
-                  class="prompt-input"
-                  inputmode="numeric"
-                  autocomplete="off"
-                  spellcheck="false"
-                  pattern="[1-4]"
-                  maxlength="1"
-                  placeholder="1|2|3|4"
-                />
-                <span class="cursor" aria-hidden="true"></span>
-                <button class="prompt-button" type="submit">Open</button>
-              </div>
-              <p id="prompt-status" class="prompt-status" aria-live="polite"></p>
-            </form>
-          </div>
-        </article>
+        <section class="surface-card">
+          <h2>What This Archive Tracks</h2>
+          <p class="section-note">
+            Active projects, durable notes, and the systems work that supports them.
+          </p>
+          <p>
+            The goal is straightforward: keep experiments useful, legible, and easy to revisit over
+            time.
+          </p>
+        </section>
       </div>
     </section>
 
-    <section class="content-section">
-      <div class="container">
-        <h2 class="section-title">Projects</h2>
-        <p class="section-subtitle">Current labs and long-horizon systems work.</p>
-        <div class="projects-grid" id="project-cards"></div>
+    <section class="section-stack">
+      <div class="section-heading">
+        <h2>Projects</h2>
+        <p class="section-note">Current labs and long-horizon systems work.</p>
       </div>
+      <div class="card-grid" id="project-cards"></div>
     </section>
 
-    <section class="content-section">
-      <div class="container">
-        <h2 class="section-title">Notes / Updates</h2>
-        <ul class="notes-list">
-          <li><time datetime="2026-02">Feb 2026</time> — Node stack stabilized on dedicated hardware.</li>
-          <li><time datetime="2026-02">Feb 2026</time> — Proof-gated mint flows being hardened in Phil13 testbed.</li>
-          <li><time datetime="2026-02">Feb 2026</time> — SVG toolchain refactors for on-chain constraints.</li>
-          <li><time datetime="2026-01">Jan 2026</time> — Local RPC + tunnel workflow finalized.</li>
-          <li><time datetime="2026-01">Jan 2026</time> — Linear A notes reorganized.</li>
-        </ul>
+    <section class="section-stack">
+      <div class="section-heading">
+        <h2>Notes / Updates</h2>
+        <p class="section-note">Recent operational notes across the lab.</p>
       </div>
+      <ul class="list-block">
+        <li><time class="meta-line" datetime="2026-02">Feb 2026</time> Node stack stabilized on dedicated hardware.</li>
+        <li><time class="meta-line" datetime="2026-02">Feb 2026</time> Proof-gated mint flows are being hardened in the Phil13 testbed.</li>
+        <li><time class="meta-line" datetime="2026-02">Feb 2026</time> SVG toolchain refactors continue around on-chain constraints.</li>
+        <li><time class="meta-line" datetime="2026-01">Jan 2026</time> Local RPC and tunnel workflow finalized.</li>
+        <li><time class="meta-line" datetime="2026-01">Jan 2026</time> Linear A notes reorganized.</li>
+      </ul>
     </section>
   </main>
 
-  <div class="footer-space" aria-hidden="true"></div>
-
+  <script defer src="/assets/site-theme.js"></script>
   <script>
     (() => {
       const projects = [
         {
           id: "1",
           name: "Linear A Research",
-          terminalLine: "[1] Linear A Research  → /linear-a",
-          href: "/linear-a",
+          href: "/linearA/",
+          path: "/linearA/",
           description: "Tablet-by-tablet proto-decipherment notes and hypothesis tracking."
         },
         {
           id: "2",
           name: "createPhil (Legacy)",
-          terminalLine: "[2] createPhil (Legacy) → /createphil",
-          href: "/createphil",
+          href: "/createPhil/",
+          path: "/createPhil/",
           description: "Legacy Phil build environment and historical generation tooling."
         },
         {
           id: "3",
           name: "SVG Systems Lab",
-          terminalLine: "[3] SVG Systems Lab     → /svg-editor",
-          href: "/svg-editor",
+          href: "/svg-editor/",
+          path: "/svg-editor/",
           description: "Vector editing workflows and constraint-focused SVG experimentation."
         },
         {
           id: "4",
           name: "nakes Arcade",
-          terminalLine: "[4] nakes Arcade       → /nakes/",
           href: "/nakes/",
+          path: "/nakes/",
           description: "Retro snake game with levels, leaderboard, and prize mode."
         }
       ];
 
-      const terminalProjects = document.getElementById("terminal-projects");
+      const projectIndex = document.getElementById("project-index");
       const projectCards = document.getElementById("project-cards");
       const projectPrompt = document.getElementById("project-prompt");
       const projectNumber = document.getElementById("project-number");
       const promptStatus = document.getElementById("prompt-status");
       const projectMap = Object.fromEntries(projects.map((project) => [project.id, project]));
 
-      function createTerminalProjectLink(project) {
+      function createProjectIndexItem(project) {
+        const item = document.createElement("li");
         const link = document.createElement("a");
-        link.className = "terminal-project-link";
+        link.className = "project-line";
         link.href = project.href;
-        link.dataset.projectId = project.id;
-        link.textContent = project.terminalLine;
-        return link;
+
+        const number = document.createElement("span");
+        number.className = "project-number";
+        number.textContent = project.id;
+
+        const copy = document.createElement("span");
+        copy.className = "project-copy";
+
+        const label = document.createElement("strong");
+        label.textContent = project.name;
+
+        const detail = document.createElement("span");
+        detail.textContent = project.path;
+
+        copy.append(label, detail);
+        link.append(number, copy);
+        item.appendChild(link);
+        return item;
       }
 
       function createProjectCard(project) {
         const card = document.createElement("a");
-        card.className = "project-card";
+        card.className = "card-link";
         card.href = project.href;
-        card.dataset.projectId = project.id;
 
         const title = document.createElement("h3");
         title.textContent = project.name;
 
         const path = document.createElement("p");
-        path.className = "project-path";
-        path.textContent = project.terminalLine.split("→")[1].trim();
+        path.className = "card-path";
+        path.textContent = project.path;
 
         const description = document.createElement("p");
-        description.className = "project-description";
+        description.className = "card-description";
         description.textContent = project.description;
 
         card.append(title, path, description);
@@ -630,7 +220,7 @@
       }
 
       projects.forEach((project) => {
-        terminalProjects.appendChild(createTerminalProjectLink(project));
+        projectIndex.appendChild(createProjectIndexItem(project));
         projectCards.appendChild(createProjectCard(project));
       });
 
@@ -638,8 +228,7 @@
         event.preventDefault();
         const value = projectNumber.value.trim();
         if (openProject(value)) return;
-
-        promptStatus.textContent = "Unknown project. Type 1, 2, 3, or 4.";
+        promptStatus.textContent = "Unknown project. Use 1, 2, 3, or 4.";
       });
 
       projectNumber.addEventListener("input", () => {

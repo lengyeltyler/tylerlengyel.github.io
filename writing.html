@@ -4,104 +4,74 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hypotheses Page</title>
-  <meta name="description" content="Unique hypotheses entries in a terminal-inspired interface." />
-
-  <!-- Canonical + Social -->
-  <link rel="canonical" href="https://tylerlengyel.com/writing.html">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Hypotheses Page — Tyler Lengyel">
-  <meta property="og:description" content="Unique hypotheses entries in a terminal-inspired interface.">
-  <meta property="og:url" content="https://tylerlengyel.com/writing.html">
-  <!-- If you later add /og.png, you can also add: <meta property="og:image" content="https://tylerlengyel.com/og.png"> -->
-  <meta name="twitter:card" content="summary">
-  <meta name="theme-color" content="#000000">
-
-  <style>
-    /* Core styles for crisp, unique look */
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body {
-      background: #000; /* Black background */
-      color: #00ff00; /* Green text */
-      font-family: monospace; /* Terminal font */
-      line-height: 1.5;
-      padding: 40px;
-      overflow-y: auto; /* Allow scrolling if content grows */
-    }
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    h1 {
-      color: #fff; /* White header */
-      font-size: 48px;
-      letter-spacing: 2px;
-      animation: typing 2s steps(20) forwards; /* Unique typing animation */
-      white-space: nowrap;
-      overflow: hidden;
-      border-right: 2px solid #00ff00; /* Cursor effect */
-    }
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 100%; }
-    }
-    nav {
-      margin-top: 20px;
-      text-align: center;
-    }
-    nav a {
-      color: #fff; /* White links */
-      text-decoration: none;
-      font-size: 18px;
-      padding: 10px 20px;
-      border: 1px solid #00ff00; /* Green border */
-      transition: background 0.3s;
-    }
-    nav a:hover {
-      background: #00ff00;
-      color: #000;
-    }
-    section.entry {
-      background: rgba(0, 255, 0, 0.05); /* Subtle green overlay */
-      border-left: 4px solid #00ff00;
-      padding: 20px;
-      max-width: 800px;
-      margin: 0 auto 30px; /* keep bottom spacing */
-    }
-    .entry h2 {
-      color: #fff; /* White subheaders */
-      font-size: 24px;
-      margin: 0 0 10px;
-    }
-    .entry .timestamp {
-      color: #808080; /* Gray for timestamps */
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-    .entry p { margin: 0; }
-  </style>
+  <meta
+    name="description"
+    content="Unique hypotheses entries collected in a clean, document-like archive."
+  />
+  <link rel="canonical" href="https://tylerlengyel.com/writing.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Hypotheses Page - Tyler Lengyel" />
+  <meta
+    property="og:description"
+    content="Working hypotheses and notes collected in a calm writing layout."
+  />
+  <meta property="og:url" content="https://tylerlengyel.com/writing.html" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#faf7f0" />
+  <link rel="stylesheet" href="/assets/site-theme.css" />
 </head>
 <body>
-  <header>
-    <h1>Hypotheses Log</h1>
-    <nav>
-      <a href="/">Back to Homepage</a>
-    </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/writing.html" aria-current="page">Writing</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
+        <a href="/nakes/">nakes</a>
+        <a href="/svg-editor/">SVG Editor</a>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <!-- Your entries (unchanged, just formatted correctly) -->
-    <section class="entry">
-      <h2>Hypothesis 1: Eye Diversity Throughout The World</h2>
-      <div class="timestamp">Logged: 2025-09-21</div>
-      <p>It's fun to think about where the first humans originated from, on the surface level at least. The deeper you get, the more confusing things can be, and the more thoughts that pop into your head. Now, I'm no scientist, nor do I have a college degree, but the history of the world, and the people especially, really does fascinate me. So last night while looking into the DAI people, along with Taoism and Daoism, I started to think about why Asian people would have different eye formations than that of the majority of the rest of the world. My hypothesis: the environment played a big role in shaping people's features, and that the Epicanthic eye fold is an evolutionary change that helped early humans protect their eyes from specific things in their surroundings, like bright sunlight reflecting off of snow or sand.</p>
-    </section>
+  <main id="main-content" class="page-shell page-stack">
+    <article class="paper-panel" data-writing-root>
+      <p class="eyebrow">Writing</p>
+      <h1>Hypotheses Log</h1>
+      <p class="lede">
+        A running page for open questions, rough models, and ideas worth revisiting.
+      </p>
+    </article>
 
-    <section class="entry">
-      <h2>Hypothesis 2: Allianz Are Real</h2>
-      <div class="timestamp">Logged: 2025-09-21</div>
-      <p></p>
+    <section class="section-stack" data-writing-root>
+      <article class="entry-card">
+        <h2>Hypothesis 1: Eye Diversity Throughout The World</h2>
+        <p class="entry-meta">Logged: 2025-09-21</p>
+        <p>
+          It's fun to think about where the first humans originated from, on the surface level at
+          least. The deeper you get, the more confusing things can be, and the more thoughts that
+          pop into your head. Now, I'm no scientist, nor do I have a college degree, but the
+          history of the world, and the people especially, really does fascinate me. So last night
+          while looking into the DAI people, along with Taoism and Daoism, I started to think about
+          why Asian people would have different eye formations than that of the majority of the rest
+          of the world. My hypothesis: the environment played a big role in shaping people's
+          features, and that the Epicanthic eye fold is an evolutionary change that helped early
+          humans protect their eyes from specific things in their surroundings, like bright sunlight
+          reflecting off of snow or sand.
+        </p>
+      </article>
+
+      <article class="entry-card">
+        <h2>Hypothesis 2: Allianz Are Real</h2>
+        <p class="entry-meta">Logged: 2025-09-21</p>
+        <p></p>
+      </article>
     </section>
   </main>
+
+  <script defer src="/assets/site-theme.js"></script>
 </body>
 </html>

@@ -2,87 +2,161 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>nakes — Leaderboard</title>
-  <meta name="theme-color" content="#0a0f0a">
-  <link rel="manifest" href="/nakes/manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>nakes - Leaderboard</title>
+  <meta name="theme-color" content="#faf7f0" />
+  <link rel="manifest" href="/nakes/manifest.json" />
+  <link rel="stylesheet" href="/assets/site-theme.css" />
   <style>
-    :root{ --bg:#0a0f0a; --panel:#0c150c; --border:#1c2a1c; --ui:#d2ffd2; --accent:#4dff4d; }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{ margin:0; background:radial-gradient(80vw 80vh at 50% 40%, #0c150c 0%, var(--bg) 60%);
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ui); }
-    .wrap{min-height:100%; display:grid; place-items:center; padding:16px}
-    .card{ width:min(96vw,800px); background:rgba(5,10,5,.7); border:1px solid var(--border);
-      border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.4), inset 0 0 40px rgba(76,255,76,.06);
-      padding:16px; backdrop-filter:blur(4px); }
-    h1{margin:0 0 6px 0; letter-spacing:.5px}
-    .linkbar{margin:8px 0 14px 0}
-    a{color:var(--accent); text-decoration:none} a:hover{text-decoration:underline}
-    .scores{display:grid; grid-template-columns:1.5fr .8fr .8fr .9fr; gap:6px 10px; font-size:14px}
-    .scores div{padding:8px; background:rgba(76,255,76,.04); border:1px solid var(--border); border-radius:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .hdr{font-weight:700; background:rgba(76,255,76,.08)}
-    .row:nth-child(odd) div{background:rgba(76,255,76,.03)}
-    .actions{display:flex; gap:10px; align-items:center; margin:8px 0 12px}
-    button{border:1px solid var(--border); background:rgba(76,255,76,.08); color:var(--ui);
-      border-radius:10px; padding:8px 12px; font-weight:700; cursor:pointer}
-    .hint{opacity:.8; font-size:12px}
+    .scores-shell {
+      display: grid;
+      gap: 12px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 0.8fr 0.8fr 0.9fr;
+      gap: 8px 10px;
+      font-size: 14px;
+    }
+
+    .score-grid div {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.76);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .score-grid .hdr {
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+      font: 700 0.84rem/1.3 var(--font-ui);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 720px) {
+      .score-grid {
+        font-size: 13px;
+        gap: 8px;
+      }
+
+      .score-grid div {
+        padding: 9px 10px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Top Scores</h1>
-      <div class="linkbar">
-        <a href="/nakes/">← Back to Game</a> · <a href="/">Home</a>
-      </div>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-      <div class="actions">
-        <button id="refreshBtn">Refresh</button>
-        <span class="hint">Shows the global Top-10 when online; falls back to your device’s local scores when offline.</span>
-      </div>
-
-      <div class="scores" id="scoresGrid">
-        <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
-        <!-- rows injected -->
-      </div>
+  <header class="site-header">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/writing.html">Writing</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
+        <a href="/nakes/" aria-current="page">nakes</a>
+        <a href="/svg-editor/">SVG Editor</a>
+      </nav>
     </div>
-  </div>
+  </header>
 
+  <main id="main-content" class="page-shell page-stack">
+    <section class="paper-panel" data-writing-root>
+      <p class="eyebrow">Arcade</p>
+      <h1>Top Scores</h1>
+      <p class="lede">
+        The leaderboard prefers the global top ten when the network is available and falls back to
+        local scores when it is not.
+      </p>
+      <p style="margin: 18px 0 0; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a class="link-button" href="/nakes/">Back to Game</a>
+        <button class="link-button" data-motion-toggle type="button">Writing motion: on</button>
+      </p>
+    </section>
+
+    <section class="paper-panel scores-shell">
+      <div class="actions">
+        <button id="refreshBtn" class="button" type="button">Refresh</button>
+        <span class="hint">
+          Shows the global Top-10 when online; falls back to your device's local scores when
+          offline.
+        </span>
+      </div>
+
+      <div class="score-grid" id="scoresGrid">
+        <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
+      </div>
+    </section>
+  </main>
+
+  <script defer src="/assets/site-theme.js"></script>
   <script>
-    // Updated to point at your custom Worker domain
     const GLOBAL_API = "https://snake-scoreboard.snake-scoreboard.workers.dev/api";
     const STORAGE_BOARD = "nakes_scoreboard_v1";
 
-    const scoresGrid = document.getElementById('scoresGrid');
-    const btn = document.getElementById('refreshBtn');
+    const scoresGrid = document.getElementById("scoresGrid");
+    const button = document.getElementById("refreshBtn");
 
-    function renderBoard(list){
+    function renderBoard(list) {
       while (scoresGrid.children.length > 4) scoresGrid.removeChild(scoresGrid.lastChild);
-      for(const r of list){
-        const d = new Date(r.ts), date = d.toLocaleDateString(undefined,{month:'short',day:'2-digit'});
-        for(const c of [r.name, String(r.score), String(r.level), date]){
-          const div = document.createElement('div'); div.textContent = c; scoresGrid.appendChild(div);
+
+      for (const row of list) {
+        const date = new Date(row.ts).toLocaleDateString(undefined, {
+          month: "short",
+          day: "2-digit"
+        });
+
+        for (const cell of [row.name, String(row.score), String(row.level), date]) {
+          const div = document.createElement("div");
+          div.textContent = cell;
+          scoresGrid.appendChild(div);
         }
       }
     }
 
-    function readLocal(){ try{ const raw = localStorage.getItem(STORAGE_BOARD); return raw?JSON.parse(raw):[] } catch { return [] } }
+    function readLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_BOARD);
+        return raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        return [];
+      }
+    }
 
-    async function load(){
-      try{
-        const res = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
-        const { top } = await res.json();
-        renderBoard(top || []);
-      }catch{
+    async function load() {
+      try {
+        const response = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
+        const payload = await response.json();
+        renderBoard(payload.top || []);
+      } catch (error) {
         renderBoard(readLocal());
       }
     }
 
-    btn.addEventListener('click', load);
+    button.addEventListener("click", load);
     load();
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/nakes/service-worker.js'));
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("/nakes/service-worker.js"));
     }
   </script>
 </body>

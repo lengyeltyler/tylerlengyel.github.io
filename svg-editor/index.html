@@ -2,47 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SVG Editor — tylerlengyel.com</title>
-  <meta name="description" content="React SVG Editor embedded from its own GitHub repo." />
-  <style>
-    html,body {height:100%;margin:0;background:#0b0b0d;color:#f2f2f5;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-    .wrap{display:flex;flex-direction:column;min-height:100%}
-    header{position:sticky;top:0;z-index:10;display:flex;gap:16px;
-      align-items:center;padding:10px 12px;background:rgba(0,0,0,.85);
-      border-bottom:1px solid rgba(155,255,176,.25)}
-    header a{color:#9bffb0;text-decoration:none}
-    header a:hover{text-decoration:underline}
-    .frame{flex:1;min-height:calc(100vh - 52px);border:0;width:100%}
-    .health{padding:10px 12px;border-top:1px solid rgba(255,120,120,.35);
-      color:#ffd7d7;background:rgba(90,0,0,.35);font-size:14px}
-    .health[hidden]{display:none}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SVG Editor - tylerlengyel.com</title>
+  <meta
+    name="description"
+    content="SVG Editor embedded from its own GitHub repo."
+  />
+  <meta name="theme-color" content="#faf7f0" />
+  <link rel="stylesheet" href="/assets/site-theme.css" />
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <a href="/">Home</a>
-      <a href="/writing.html">Hypotheses Page</a>
-      <a href="/linearA/">Linear A</a>
-      <a href="/createPhil/">createPhil</a>
-      <strong>SVG Editor</strong>
-    </header>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-    <!-- Embed the build from the svg-editor repo -->
-    <iframe
-      id="editor-frame"
-      class="frame"
-      src="/svg-editor/editor.html?v=20260225-reset"
-      title="SVG Editor"
-      loading="eager"
-      allow="clipboard-write *; clipboard-read *">
-    </iframe>
-    <div id="editor-health" class="health" hidden></div>
+  <header class="site-header">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/writing.html">Writing</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
+        <a href="/nakes/">nakes</a>
+        <a href="/svg-editor/" aria-current="page">SVG Editor</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell is-wide frame-shell">
+    <section class="paper-panel" data-writing-root>
+      <p class="eyebrow">Tooling</p>
+      <h1>SVG Systems Lab</h1>
+      <p class="lede">
+        The editor runs locally in an embedded frame so the runtime stays fast while the page chrome
+        matches the rest of the site.
+      </p>
+      <p style="margin: 18px 0 0;">
+        <button class="link-button" data-motion-toggle type="button">Writing motion: on</button>
+      </p>
+    </section>
+
+    <section class="frame-panel" data-no-reveal>
+      <iframe
+        id="editor-frame"
+        class="embedded-frame"
+        src="/svg-editor/editor.html?v=20260225-reset"
+        title="SVG Editor"
+        loading="eager"
+        allow="clipboard-write *; clipboard-read *">
+      </iframe>
+    </section>
+
+    <div id="editor-health" class="notice" hidden></div>
 
     <noscript>This page loads a local SVG editor runtime. Enable JavaScript to use it.</noscript>
-  </div>
+  </main>
+
+  <script defer src="/assets/site-theme.js"></script>
   <script>
     (() => {
       const frame = document.getElementById("editor-frame");

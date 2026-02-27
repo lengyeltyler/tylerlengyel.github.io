@@ -1,12 +1,15 @@
 :root {
-  --bg: #101419;
-  --panel: #171d24;
-  --panel-border: #2a3442;
-  --text: #e9eef7;
-  --muted: #9aa7bb;
-  --accent: #4ea6ff;
-  --accent-strong: #2f86e2;
-  --danger: #cc5e68;
+  --bg: #faf7f0;
+  --panel: #fffdf8;
+  --panel-strong: #f8f3e8;
+  --panel-border: #ddd3c6;
+  --text: #111111;
+  --muted: #5e5951;
+  --accent: #9ec9ff;
+  --accent-soft: #edf5ff;
+  --accent-strong: #79b3fb;
+  --accent-ink: #16324f;
+  --danger: #b5535c;
 }
 
 * {
@@ -17,9 +20,12 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 12% -8%, rgba(158, 201, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 88% 0%, rgba(255, 242, 214, 0.24), transparent 36%),
+    var(--bg);
   color: var(--text);
-  font: 14px/1.4 "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font: 14px/1.45 "SF Pro Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
 }
 
 button,
@@ -30,7 +36,7 @@ input {
 .editor-shell {
   height: 100%;
   display: grid;
-  grid-template-rows: 54px 1fr 34px;
+  grid-template-rows: 58px 1fr 36px;
 }
 
 .toolbar {
@@ -40,7 +46,8 @@ input {
   gap: 12px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--panel-border);
-  background: #111720;
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(10px);
 }
 
 .tool-group,
@@ -52,27 +59,32 @@ input {
 
 .tool-button,
 .text-button {
-  border: 1px solid var(--panel-border);
-  color: var(--text);
-  background: #1e2631;
-  border-radius: 7px;
-  padding: 6px 10px;
+  border: 1px solid rgba(121, 179, 251, 0.18);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 7px 11px;
   cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .tool-button:hover,
-.text-button:hover {
-  border-color: #3c4b5f;
+.text-button:hover,
+.tool-button:focus-visible,
+.text-button:focus-visible {
+  border-color: rgba(121, 179, 251, 0.34);
+  background: #d9ecff;
+  box-shadow: 0 8px 20px rgba(121, 179, 251, 0.12);
 }
 
-.tool-button.is-active {
-  border-color: var(--accent);
-  background: #1f334a;
-}
-
+.tool-button.is-active,
 .text-button.is-active {
-  border-color: var(--accent);
-  background: #1f334a;
+  border-color: rgba(22, 50, 79, 0.16);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .editor-body {
@@ -84,9 +96,9 @@ input {
 .panel {
   min-height: 0;
   overflow: auto;
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), var(--panel));
   border-right: 1px solid var(--panel-border);
-  padding: 12px;
+  padding: 14px 12px;
 }
 
 .panel:last-child {
@@ -121,10 +133,10 @@ input {
 .field-row input {
   width: 110px;
   border: 1px solid var(--panel-border);
-  border-radius: 6px;
-  background: #111820;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
   color: var(--text);
-  padding: 4px 8px;
+  padding: 5px 8px;
 }
 
 .field-row input[type="color"] {
@@ -153,7 +165,7 @@ input {
 }
 
 .action-grid .text-button {
-  padding: 5px 6px;
+  padding: 6px 7px;
   font-size: 12px;
 }
 
@@ -165,18 +177,20 @@ input {
 .canvas-shell {
   min-height: 0;
   overflow: hidden;
-  background: radial-gradient(circle at top, #182332, #0f1319 65%);
+  background:
+    radial-gradient(circle at top, rgba(158, 201, 255, 0.24), transparent 34%),
+    linear-gradient(180deg, #f6efe4, #f7f4ed 65%);
   display: flex;
-  padding: 14px;
+  padding: 18px;
 }
 
 #editor-canvas {
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  border: 1px solid #2b3646;
+  border-radius: 18px;
+  border: 1px solid var(--panel-border);
   background: #ffffff;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+  box-shadow: 0 18px 40px rgba(40, 32, 18, 0.1);
   touch-action: none;
 }
 
@@ -194,7 +208,7 @@ input {
 }
 
 .layer-actions .text-button {
-  padding: 5px 8px;
+  padding: 6px 8px;
   font-size: 12px;
 }
 
@@ -204,16 +218,16 @@ input {
   justify-content: space-between;
   gap: 8px;
   border: 1px solid var(--panel-border);
-  border-radius: 7px;
-  background: #111820;
-  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 7px 9px;
   cursor: pointer;
   text-align: left;
 }
 
 .layer-item.is-selected {
-  border-color: var(--accent);
-  background: #16273a;
+  border-color: rgba(121, 179, 251, 0.4);
+  background: var(--accent-soft);
 }
 
 .layer-item .layer-name-wrap {
@@ -234,81 +248,81 @@ input {
 }
 
 .layer-item.is-dragging {
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
 .layer-item.drop-before {
-  box-shadow: inset 0 2px 0 0 var(--accent);
+  box-shadow: inset 0 2px 0 0 var(--accent-strong);
 }
 
 .layer-item.drop-after {
-  box-shadow: inset 0 -2px 0 0 var(--accent);
+  box-shadow: inset 0 -2px 0 0 var(--accent-strong);
 }
 
 .scene-object[data-selected="true"] {
-  filter: drop-shadow(0 0 0.75px #4498f8) drop-shadow(0 0 2px #4498f8);
+  filter: drop-shadow(0 0 0.8px rgba(121, 179, 251, 0.75)) drop-shadow(0 0 2px rgba(121, 179, 251, 0.75));
 }
 
 .selection-outline {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--accent-strong);
   stroke-width: 1.5;
   stroke-dasharray: 6 4;
   pointer-events: none;
 }
 
 .rotate-guide-line {
-  stroke: #6ab7ff;
+  stroke: var(--accent-strong);
   stroke-width: 1.2;
   pointer-events: none;
 }
 
 .transform-handle {
-  fill: #f6fbff;
-  stroke: #1674d5;
+  fill: #ffffff;
+  stroke: #4b89d6;
   stroke-width: 1.2;
 }
 
 .transform-handle:hover {
-  fill: #b5ddff;
+  fill: #d9ecff;
 }
 
 .path-anchor-handle {
-  fill: #f4fbff;
-  stroke: #1976d2;
-  stroke-width: 1.2;
+  fill: #ffffff;
+  stroke: #4b89d6;
+  stroke-width: 1.1;
   cursor: move;
 }
 
 .path-anchor-handle.is-active {
-  fill: #82c5ff;
-  stroke: #0d5dad;
+  fill: #cfe6ff;
+  stroke: #2a5f9f;
 }
 
 .path-bezier-line {
-  stroke: #69aef0;
+  stroke: #7aa7d7;
   stroke-width: 1;
   stroke-dasharray: 4 3;
   pointer-events: none;
 }
 
 .path-bezier-handle {
-  fill: #c5e8ff;
-  stroke: #1471cc;
+  fill: #edf5ff;
+  stroke: #4b89d6;
   stroke-width: 1.1;
   cursor: crosshair;
 }
 
 .marquee-rect {
-  fill: rgba(60, 145, 255, 0.14);
-  stroke: #3b90f2;
+  fill: rgba(121, 179, 251, 0.12);
+  stroke: var(--accent-strong);
   stroke-width: 1;
   stroke-dasharray: 4 2;
   pointer-events: none;
 }
 
 .smart-guide {
-  stroke: #16b3ff;
+  stroke: #69aef0;
   stroke-width: 1;
   stroke-dasharray: 3 3;
   pointer-events: none;
@@ -316,7 +330,7 @@ input {
 
 .statusbar {
   border-top: 1px solid var(--panel-border);
-  background: #10161e;
+  background: rgba(255, 253, 248, 0.94);
   color: var(--muted);
   display: flex;
   align-items: center;
