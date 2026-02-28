@@ -59,8 +59,43 @@
       const html = await response.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
-      const content = doc.body ? doc.body.innerHTML : html;
-      host.innerHTML = content;
+
+      // Sanitize: only allow known-safe element types before injecting into the page.
+      // This guards against unexpected script or iframe content if the generated file
+      // were ever corrupted or replaced, even though the source is same-origin.
+      const ALLOWED_TAGS = new Set([
+        "P","UL","OL","LI","STRONG","EM","B","I","SPAN","BR",
+        "H2","H3","H4","H5","H6",
+        "TABLE","THEAD","TBODY","TR","TH","TD",
+        "CODE","PRE","BLOCKQUOTE","HR","DL","DT","DD"
+      ]);
+      const BLOCKED_ATTRS = /^on/i; // strip inline event handlers
+
+      function sanitizeNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return node.cloneNode(false);
+        if (node.nodeType !== Node.ELEMENT_NODE) return null;
+        if (!ALLOWED_TAGS.has(node.tagName)) return null;
+        const el = document.createElement(node.tagName);
+        for (const attr of node.attributes) {
+          if (!BLOCKED_ATTRS.test(attr.name) && attr.name.toLowerCase() !== "style") {
+            el.setAttribute(attr.name, attr.value);
+          }
+        }
+        for (const child of node.childNodes) {
+          const sanitized = sanitizeNode(child);
+          if (sanitized) el.appendChild(sanitized);
+        }
+        return el;
+      }
+
+      const fragment = document.createDocumentFragment();
+      const source = doc.body || doc.documentElement;
+      for (const child of source.childNodes) {
+        const sanitized = sanitizeNode(child);
+        if (sanitized) fragment.appendChild(sanitized);
+      }
+      host.innerHTML = "";
+      host.appendChild(fragment);
     } catch (error) {
       host.innerHTML =
         "<p class='muted'>Plain-English summary is not available yet. Run <code>python3 linearA/research/run_all.py</code>.</p>";

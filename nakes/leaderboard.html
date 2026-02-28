@@ -70,7 +70,6 @@
       <a class="site-brand" href="/">Tyler Lengyel</a>
       <nav class="site-tabs" aria-label="Primary">
         <a href="/">Home</a>
-        <a href="/writing.html">Writing</a>
         <a href="/linearA/">Linear A</a>
         <a href="/createPhil/">createPhil</a>
         <a href="/nakes/" aria-current="page">nakes</a>
@@ -101,6 +100,7 @@
           offline.
         </span>
       </div>
+      <p id="boardStatus" class="hint" aria-live="polite" style="margin: 0; min-height: 1.4em;"></p>
 
       <div class="score-grid" id="scoresGrid">
         <div class="hdr">Name</div><div class="hdr">Score</div><div class="hdr">Level</div><div class="hdr">Date</div>
@@ -142,13 +142,25 @@
       }
     }
 
+    const boardStatus = document.getElementById("boardStatus");
+
     async function load() {
+      boardStatus.textContent = "Loading…";
       try {
         const response = await fetch(`${GLOBAL_API}/top`, { cache: "no-store" });
+        if (!response.ok) throw new Error("API error " + response.status);
         const payload = await response.json();
-        renderBoard(payload.top || []);
+        const list = payload.top || [];
+        renderBoard(list);
+        boardStatus.textContent = list.length
+          ? "✔ Live global leaderboard"
+          : "No global scores yet.";
       } catch (error) {
-        renderBoard(readLocal());
+        const local = readLocal();
+        renderBoard(local);
+        boardStatus.textContent = local.length
+          ? "⚠ Could not reach global leaderboard — showing your local scores."
+          : "⚠ Could not reach global leaderboard and no local scores found yet.";
       }
     }
 

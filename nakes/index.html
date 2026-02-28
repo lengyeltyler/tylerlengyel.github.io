@@ -157,6 +157,8 @@
         </div>
       </div>
       <canvas id="board" aria-label="nakes game area" role="img"></canvas>
+      <!-- Visually-hidden live region: announces game state to screen readers -->
+      <div id="a11y-announce" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
     </div>
 
     <!-- D-pad -->
@@ -216,6 +218,8 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const speedBtn = document.getElementById('speedBtn');
     const speedBtnLabel = document.getElementById('speedBtnLabel');
+    const announceEl = document.getElementById('a11y-announce');
+    function announce(msg){ if(announceEl) announceEl.textContent = msg; }
 
     // ====== Game State ======
     let SIZE, nakes, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
@@ -257,6 +261,7 @@
       speedLabel.textContent=SPEEDS[speedIndex].label;
       if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
       foodsThisLevel=0;
+      if(lv>1) announce("Level " + level + ".");
     }
     function maybeLevelUp(){
       if(level>=MAX_LEVEL) return;
@@ -316,6 +321,7 @@
       direction={x:1,y:0}; nextDirection={x:1,y:0};
       score=0; alive=true; paused=false; lastTick=0;
       placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing";
+      announce("New game started. Level 1.");
     }
     function placeFood(){
       while(true){
@@ -352,6 +358,7 @@
         // self collision
         if(nakes.some(s=>s.x===nx && s.y===ny)){
           alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
+          announce("Game over. Score: " + score + ". Level: " + level + ".");
           setTimeout(()=>{
             const name=prompt("Game Over! Enter your name for the leaderboard:", "") || "Player";
             addScoreToBoard(name, score, level);   // local (offline)
@@ -407,7 +414,7 @@
       }, {passive:true});
     })();
 
-    function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; }
+    function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; announce(paused?"Game paused.":"Game resumed."); }
     function changeSpeed(delta){
       const prev=speedIndex;
       speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta));
