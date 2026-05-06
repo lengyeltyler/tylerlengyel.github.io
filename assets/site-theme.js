@@ -1,5 +1,6 @@
 (() => {
   const MOTION_KEY = "site-motion-preference";
+  const FORCE_REDUCED_MOTION = true;
   const WRITING_KEY = "site-writing-played";
   const root = document.documentElement;
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -15,6 +16,7 @@
   }
 
   function getMotionMode() {
+    if (FORCE_REDUCED_MOTION) return "reduced";
     return readStoredMotion() || (motionQuery.matches ? "reduced" : "full");
   }
 
