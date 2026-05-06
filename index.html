@@ -4,24 +4,34 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tyler Lengyel | Homebase</title>
+
   <meta
     name="description"
     content="Sup: this is a living archive of random stuff I find interesting."
   />
+
   <link rel="canonical" href="https://tylerlengyel.com/" />
+
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Tyler Lengyel | Homebase" />
+
   <meta
     property="og:description"
     content="A living archive of tings I find interesting."
   />
+
   <meta property="og:url" content="https://tylerlengyel.com/" />
+
   <meta name="twitter:card" content="summary_large_image" />
+
   <meta property="og:image" content="https://tylerlengyel.com/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+
   <meta name="twitter:image" content="https://tylerlengyel.com/assets/og-image.png" />
-  <meta name="theme-color" content="#faf7f0" />
+
+  <meta name="theme-color" content="#050505" />
+
   <link rel="stylesheet" href="/assets/site-theme.css" />
 
   <style>
@@ -30,15 +40,17 @@
     .section-stack {
       background: linear-gradient(
         135deg,
-        #faf7f0 0%,
-        #f5f1e8 50%,
-        #eee7dc 100%
+        #050505 0%,
+        #111111 45%,
+        #1d1d1d 100%
       );
     }
 
     .site-header,
     .paper-panel,
-    .hero-title {
+    .hero-title,
+    .project-line,
+    .card-link {
       background: linear-gradient(
         135deg,
         #1e90ff 0%,
@@ -63,34 +75,37 @@
       border-radius: 18px;
       color: #faf7f0;
       display: inline-block;
+      background: linear-gradient(
+        135deg,
+        #2d9cff 0%,
+        #1f7fff 50%,
+        #0f52ba 100%
+      );
     }
 
     .surface-card {
       background: linear-gradient(
         135deg,
-        #faf7f0 0%,
-        #f6f1e8 50%,
-        #ece4d8 100%
+        #080808 0%,
+        #151515 50%,
+        #232323 100%
       );
-      color: #111111;
+
+      color: #faf7f0;
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     .surface-card h2,
     .surface-card p,
     .home-copy-heading,
     .section-note {
-      color: #111111;
+      color: #faf7f0;
     }
 
     .project-line,
     .card-link {
-      background: linear-gradient(
-        135deg,
-        #050505 0%,
-        #111111 50%,
-        #191919 100%
-      );
       color: #faf7f0 !important;
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     .project-line span,
@@ -104,8 +119,63 @@
       color: #faf7f0 !important;
     }
 
+    .site-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
     .site-tabs a {
       color: #faf7f0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .social-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 28px;
+    }
+
+    .social-links a {
+      width: 38px;
+      height: 38px;
+
+      border: 2px solid #faf7f0;
+      border-radius: 999px;
+
+      color: #faf7f0;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 0.72rem;
+      font-weight: 700;
+
+      text-decoration: none;
+
+      transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease;
+    }
+
+    .social-links a:hover {
+      background: #faf7f0;
+      color: #0f52ba;
+      transform: translateY(-2px);
+    }
+
+    .section-heading h2 {
+      color: #faf7f0;
+    }
+
+    .section-heading p {
+      color: rgba(250,247,240,0.8);
     }
   </style>
 
@@ -116,168 +186,306 @@
     "name": "Tyler Lengyel",
     "url": "https://tylerlengyel.com",
     "description": "Sup: this is a living archive of random stuff I find interesting.",
-    "knowsAbout": ["Blockchain Technology", "Generative Art", "Linear A", "Zero Knowledge Proofs", "Ethereum"]
+    "knowsAbout": [
+      "Blockchain Technology",
+      "Generative Art",
+      "Linear A",
+      "Zero Knowledge Proofs",
+      "Ethereum"
+    ]
   }
   </script>
 </head>
+
 <body class="home-page">
+
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
     <div class="site-frame home-nav-frame">
+
       <nav class="site-tabs" aria-label="Primary">
+
         <a href="/" aria-current="page">Home</a>
         <a href="/linearA/">Linear A</a>
         <a href="/createPhil/">createPhil</a>
         <a href="/nakes/">nakes</a>
         <a href="/svg-editor/">SVG Editor</a>
+
+        <div class="social-links" aria-label="Social links">
+
+          <a
+            href="https://x.com/tylerlengyel"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="X Account"
+          >
+            X
+          </a>
+
+          <a
+            href="https://github.com/lengyeltyler"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            GH
+          </a>
+
+          <a
+            href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+          >
+            IN
+          </a>
+
+          <a
+            href="https://www.instagram.com/lengyel_tyler/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            IG
+          </a>
+
+          <a
+            href="https://www.facebook.com/profile.php?id=61572755744935"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+          >
+            FB
+          </a>
+
+          <a
+            href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Substack"
+          >
+            SS
+          </a>
+
+        </div>
+
       </nav>
+
     </div>
   </header>
 
-<main id="main-content" class="page-shell page-stack" data-writing-root>
-  <section class="paper-panel">
-    <p class="eyebrow">just a guy</p>
+  <main id="main-content" class="page-shell page-stack" data-writing-root>
 
-    <h1 class="hero-title">
-      Tyler Lengyel | Homebase
-    </h1>
+    <section class="paper-panel">
 
-    <p class="lede">
-      This site is a living archive of ongoing experiments with things that I find interesting.
-      Artwork that I'm creating and have created. Or projects I plan on finishing at some point
-      in my lifetime.
-    </p>
+      <p class="eyebrow">just a guy</p>
 
-    <p class="lede" style="font-style: italic; font-weight: bold;">
-      "When you are content to be simply yourself and don't compare or compete,
-      everyone will respect you. ... A good traveler has no fixed plans,
-      and is not intent on arriving."
-      — Lao Tzu
-    </p>
+      <h1 class="hero-title">
+        Tyler Lengyel | Homebase
+      </h1>
+
+      <p class="lede">
+        This site is a living archive of ongoing experiments with things that I find interesting.
+        Artwork that I'm creating and have created. Or projects I plan on finishing at some point
+        in my lifetime.
+      </p>
+
+      <p class="lede" style="font-style: italic; font-weight: bold;">
+        "When you are content to be simply yourself and don't compare or compete,
+        everyone will respect you. ... A good traveler has no fixed plans,
+        and is not intent on arriving."
+        — Lao Tzu
+      </p>
 
       <div class="split-grid" style="margin-top: 24px;">
+
         <section class="surface-card">
+
           <h2>The Lab</h2>
+
           <p class="section-note">
             The core logic of my experiments.
           </p>
+
           <ol class="numbered-links" id="project-index"></ol>
+
         </section>
 
         <section class="surface-card">
+
           <div class="home-copy">
+
             <p class="home-copy-heading">Current Focus</p>
+
             <p>
               The history of Religion.
             </p>
+
             <p>
-              Phil becoming a Web3 Identity where you use your Phone as the hardware encleave to store 
-              a secret in order to allow you to use STARK proofs to authorize transactions.
+              Phil becoming a Web3 Identity where you use your Phone as the
+              hardware encleave to store a secret in order to allow you to use
+              STARK proofs to authorize transactions.
             </p>
+
           </div>
+
         </section>
+
       </div>
-    
+
     </section>
 
     <section class="section-stack">
+
       <div class="section-heading">
+
         <h2>Projects</h2>
-        <p class="section-note">Current labs and long-horizon systems work.</p>
+
+        <p class="section-note">
+          Current labs and long-horizon systems work.
+        </p>
+
       </div>
+
       <div class="card-grid" id="project-cards"></div>
+
     </section>
 
   </main>
 
   <script defer src="/assets/site-theme.js"></script>
+
   <script>
     (() => {
+
       const projects = [
         {
           id: "1",
           name: "Linear A Research",
           href: "/linearA/",
           path: "/linearA/",
-          description: "Tablet-by-tablet proto-decipherment notes and hypothesis tracking."
+          description:
+            "Tablet-by-tablet proto-decipherment notes and hypothesis tracking."
         },
+
         {
           id: "2",
           name: "createPhil (Legacy)",
           href: "/createPhil/",
           path: "/createPhil/",
-          description: "Legacy Phil build environment and historical generation tooling."
+          description:
+            "Legacy Phil build environment and historical generation tooling."
         },
+
         {
           id: "3",
           name: "illustrator",
           href: "/svg-editor/",
           path: "/svg-editor/",
-          description: "Vector editing workflows and constraint-focused SVG experimentation."
+          description:
+            "Vector editing workflows and constraint-focused SVG experimentation."
         },
+
         {
           id: "4",
           name: "nakes Arcade",
           href: "/nakes/",
           path: "/nakes/",
-          description: "Retro snake game with levels, leaderboard, and prize mode."
+          description:
+            "Retro snake game with levels, leaderboard, and prize mode."
         }
       ];
 
-      const projectIndex = document.getElementById("project-index");
-      const projectCards = document.getElementById("project-cards");
+      const projectIndex =
+        document.getElementById("project-index");
+
+      const projectCards =
+        document.getElementById("project-cards");
 
       function createProjectIndexItem(project) {
-        const item = document.createElement("li");
-        const link = document.createElement("a");
+
+        const item =
+          document.createElement("li");
+
+        const link =
+          document.createElement("a");
+
         link.className = "project-line";
         link.href = project.href;
 
-        const number = document.createElement("span");
+        const number =
+          document.createElement("span");
+
         number.className = "project-number";
         number.textContent = project.id;
 
-        const copy = document.createElement("span");
+        const copy =
+          document.createElement("span");
+
         copy.className = "project-copy";
 
-        const label = document.createElement("strong");
+        const label =
+          document.createElement("strong");
+
         label.textContent = project.name;
 
-        const detail = document.createElement("span");
+        const detail =
+          document.createElement("span");
+
         detail.textContent = project.path;
 
         copy.append(label, detail);
         link.append(number, copy);
         item.appendChild(link);
+
         return item;
       }
 
       function createProjectCard(project) {
-        const card = document.createElement("a");
+
+        const card =
+          document.createElement("a");
+
         card.className = "card-link";
         card.href = project.href;
 
-        const title = document.createElement("h3");
+        const title =
+          document.createElement("h3");
+
         title.textContent = project.name;
 
-        const path = document.createElement("p");
+        const path =
+          document.createElement("p");
+
         path.className = "card-path";
         path.textContent = project.path;
 
-        const description = document.createElement("p");
+        const description =
+          document.createElement("p");
+
         description.className = "card-description";
         description.textContent = project.description;
 
         card.append(title, path, description);
+
         return card;
       }
 
       projects.forEach((project) => {
-        projectIndex.appendChild(createProjectIndexItem(project));
-        projectCards.appendChild(createProjectCard(project));
+
+        projectIndex.appendChild(
+          createProjectIndexItem(project)
+        );
+
+        projectCards.appendChild(
+          createProjectCard(project)
+        );
+
       });
+
     })();
   </script>
+
 </body>
 </html>
