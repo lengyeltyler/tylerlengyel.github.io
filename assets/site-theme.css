@@ -21,6 +21,32 @@
   --radius-sm: 10px;
   --font-body: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, "Times New Roman", serif;
   --font-ui: "SF Pro Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --site-dark-bg: linear-gradient(
+    135deg,
+    #050505 0%,
+    #111111 45%,
+    #1d1d1d 100%
+  );
+  --site-dark-card: linear-gradient(
+    135deg,
+    #080808 0%,
+    #151515 50%,
+    #232323 100%
+  );
+  --site-blue-gradient: linear-gradient(
+    135deg,
+    #1e90ff 0%,
+    #1877f2 45%,
+    #0f52ba 100%
+  );
+  --site-blue-gradient-strong: linear-gradient(
+    135deg,
+    #2d9cff 0%,
+    #1f7fff 50%,
+    #0f52ba 100%
+  );
+  --site-off-white: #faf7f0;
+  --site-off-white-muted: rgba(250, 247, 240, 0.8);
 }
 
 * {
@@ -720,4 +746,229 @@ li {
     min-height: 62vh;
     height: 62vh;
   }
+}
+
+body.home-page,
+body.site-dark-page {
+  background: var(--site-dark-bg);
+  color: var(--site-off-white);
+}
+
+body.home-page .page-shell,
+body.site-dark-page .page-shell {
+  background: var(--site-dark-bg);
+}
+
+body.home-page .section-stack,
+body.home-page .card-grid,
+body.site-dark-page .section-stack,
+body.site-dark-page .card-grid {
+  background: transparent !important;
+}
+
+body.home-page .site-header {
+  background: var(--site-blue-gradient);
+}
+
+body.site-dark-page .site-header {
+  background: var(--site-blue-gradient);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.home-page .site-frame,
+body.site-dark-page .site-frame {
+  justify-content: center;
+}
+
+body.home-page .paper-panel,
+body.home-page .hero-title,
+body.home-page .project-line,
+body.home-page .card-link,
+body.site-dark-page .hero-title,
+body.site-dark-page .project-line,
+body.site-dark-page .card-link,
+body.site-dark-page .button,
+body.site-dark-page .link-button {
+  background: var(--site-blue-gradient);
+}
+
+body.site-dark-page .paper-panel {
+  background: var(--site-blue-gradient);
+  color: var(--site-off-white);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.home-page .paper-panel {
+  background: var(--site-blue-gradient);
+  color: var(--site-off-white);
+}
+
+body.home-page .paper-panel .lede,
+body.home-page .paper-panel .eyebrow,
+body.site-dark-page .paper-panel .lede,
+body.site-dark-page .paper-panel .eyebrow {
+  color: var(--site-off-white);
+}
+
+body.home-page .hero-title,
+body.site-dark-page .hero-title {
+  font-size: 4rem;
+  line-height: 1.05;
+  padding: 18px 24px;
+  border-radius: 18px;
+  color: var(--site-off-white);
+  display: inline-block;
+  background: var(--site-blue-gradient-strong);
+}
+
+body.home-page .surface-card,
+body.site-dark-page .surface-card,
+body.site-dark-page .frame-panel,
+body.site-dark-page .notice {
+  background: var(--site-dark-card);
+  color: var(--site-off-white);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.home-page .surface-card h2,
+body.home-page .surface-card p,
+body.home-page .home-copy-heading,
+body.home-page .section-note,
+body.site-dark-page .surface-card h2,
+body.site-dark-page .surface-card p,
+body.site-dark-page .home-copy-heading,
+body.site-dark-page .section-note {
+  color: var(--site-off-white);
+}
+
+body.home-page .project-line,
+body.home-page .card-link,
+body.site-dark-page .project-line,
+body.site-dark-page .card-link,
+body.site-dark-page .button,
+body.site-dark-page .link-button {
+  color: var(--site-off-white) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.home-page .project-line span,
+body.home-page .project-line strong,
+body.home-page .project-number,
+body.home-page .project-copy,
+body.home-page .card-link h3,
+body.home-page .card-link p,
+body.home-page .card-path,
+body.home-page .card-description,
+body.site-dark-page .project-line span,
+body.site-dark-page .project-line strong,
+body.site-dark-page .project-number,
+body.site-dark-page .project-copy,
+body.site-dark-page .card-link h3,
+body.site-dark-page .card-link p,
+body.site-dark-page .card-path,
+body.site-dark-page .card-description {
+  color: var(--site-off-white) !important;
+}
+
+body.home-page .site-tabs,
+body.site-dark-page .site-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+body.home-page .site-tabs a,
+body.site-dark-page .site-tabs a {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--site-off-white) !important;
+  box-shadow: none;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+body.home-page .site-tabs a:hover,
+body.home-page .site-tabs a:focus-visible,
+body.home-page .site-tabs a[aria-current="page"],
+body.home-page .site-tabs a.is-active,
+body.site-dark-page .site-tabs a:hover,
+body.site-dark-page .site-tabs a:focus-visible,
+body.site-dark-page .site-tabs a[aria-current="page"],
+body.site-dark-page .site-tabs a.is-active {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+body.site-dark-page .site-tabs a[aria-current="page"],
+body.site-dark-page .site-tabs a.is-active {
+  text-decoration: underline;
+  text-decoration-color: rgba(250, 247, 240, 0.36);
+  text-underline-offset: 0.28em;
+}
+
+.social-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: 28px;
+}
+
+.social-links a {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.social-links a:hover {
+  transform: translateY(-2px);
+  opacity: 0.82;
+}
+
+.social-links img {
+  width: 22px;
+  height: 22px;
+  display: block;
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(96%)
+    sepia(9%)
+    saturate(294%)
+    hue-rotate(332deg)
+    brightness(105%)
+    contrast(96%);
+}
+
+body.home-page .section-heading h2,
+body.site-dark-page .section-heading h2,
+body.site-dark-page h1,
+body.site-dark-page h2,
+body.site-dark-page h3 {
+  color: var(--site-off-white);
+}
+
+body.home-page .section-heading p,
+body.site-dark-page .section-heading p,
+body.site-dark-page .muted-text,
+body.site-dark-page .meta-line,
+body.site-dark-page .helper-text {
+  color: var(--site-off-white-muted);
+}
+
+body.site-dark-page .motion-toggle {
+  background: rgba(8, 8, 8, 0.92);
+  color: var(--site-off-white);
+  border-color: rgba(255, 255, 255, 0.14);
 }
