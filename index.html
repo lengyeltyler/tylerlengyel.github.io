@@ -23,6 +23,92 @@
   <meta name="twitter:image" content="https://tylerlengyel.com/assets/og-image.png" />
   <meta name="theme-color" content="#faf7f0" />
   <link rel="stylesheet" href="/assets/site-theme.css" />
+
+  <style>
+    body,
+    .page-shell,
+    .section-stack {
+      background: linear-gradient(
+        135deg,
+        #faf7f0 0%,
+        #f5f1e8 50%,
+        #eee7dc 100%
+      );
+    }
+
+    .site-header,
+    .paper-panel,
+    .hero-title {
+      background: linear-gradient(
+        135deg,
+        #1e90ff 0%,
+        #1877f2 45%,
+        #0f52ba 100%
+      );
+    }
+
+    .paper-panel {
+      color: #faf7f0;
+    }
+
+    .paper-panel .lede,
+    .paper-panel .eyebrow {
+      color: #faf7f0;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      line-height: 1.05;
+      padding: 18px 24px;
+      border-radius: 18px;
+      color: #faf7f0;
+      display: inline-block;
+    }
+
+    .surface-card {
+      background: linear-gradient(
+        135deg,
+        #faf7f0 0%,
+        #f6f1e8 50%,
+        #ece4d8 100%
+      );
+      color: #111111;
+    }
+
+    .surface-card h2,
+    .surface-card p,
+    .home-copy-heading,
+    .section-note {
+      color: #111111;
+    }
+
+    .project-line,
+    .card-link {
+      background: linear-gradient(
+        135deg,
+        #050505 0%,
+        #111111 50%,
+        #191919 100%
+      );
+      color: #faf7f0 !important;
+    }
+
+    .project-line span,
+    .project-line strong,
+    .project-number,
+    .project-copy,
+    .card-link h3,
+    .card-link p,
+    .card-path,
+    .card-description {
+      color: #faf7f0 !important;
+    }
+
+    .site-tabs a {
+      color: #faf7f0;
+    }
+  </style>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -53,20 +139,7 @@
   <section class="paper-panel">
     <p class="eyebrow">just a guy</p>
 
-    <h1 style="
-      font-size: 4rem;
-      line-height: 1.05;
-      padding: 18px 24px;
-      border-radius: 18px;
-      background: linear-gradient(
-        135deg,
-        #1e90ff 0%,
-        #1877f2 45%,
-        #0f52ba 100%
-      );
-      color: white;
-      display: inline-block;
-    ">
+    <h1 class="hero-title">
       Tyler Lengyel | Homebase
     </h1>
 
@@ -74,8 +147,6 @@
       This site is a living archive of ongoing experiments with things that I find interesting.
       Artwork that I'm creating and have created. Or projects I plan on finishing at some point
       in my lifetime.
-    </p>
-
     </p>
 
     <p class="lede" style="font-style: italic; font-weight: bold;">
@@ -99,10 +170,10 @@
             <p class="home-copy-heading">Current Focus</p>
             <p>
               The history of Religion.
+            </p>
             <p>
               Phil becoming a Web3 Identity where you use your Phone as the hardware encleave to store 
               a secret in order to allow you to use STARK proofs to authorize transactions.
-            </p>
             </p>
           </div>
         </section>
@@ -156,10 +227,6 @@
 
       const projectIndex = document.getElementById("project-index");
       const projectCards = document.getElementById("project-cards");
-      const projectPrompt = document.getElementById("project-prompt");
-      const projectNumber = document.getElementById("project-number");
-      const promptStatus = document.getElementById("prompt-status");
-      const projectMap = Object.fromEntries(projects.map((project) => [project.id, project]));
 
       function createProjectIndexItem(project) {
         const item = document.createElement("li");
@@ -206,27 +273,9 @@
         return card;
       }
 
-      function openProject(projectId) {
-        const target = projectMap[projectId];
-        if (!target) return false;
-        window.location.href = target.href;
-        return true;
-      }
-
       projects.forEach((project) => {
         projectIndex.appendChild(createProjectIndexItem(project));
         projectCards.appendChild(createProjectCard(project));
-      });
-
-      projectPrompt.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const value = projectNumber.value.trim();
-        if (openProject(value)) return;
-        promptStatus.textContent = "Unknown project. Use 1, 2, 3, or 4.";
-      });
-
-      projectNumber.addEventListener("input", () => {
-        promptStatus.textContent = "";
       });
     })();
   </script>
