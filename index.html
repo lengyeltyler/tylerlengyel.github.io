@@ -36,14 +36,18 @@
 
   <style>
     body,
-    .page-shell,
-    .section-stack {
+    .page-shell {
       background: linear-gradient(
         135deg,
         #050505 0%,
         #111111 45%,
         #1d1d1d 100%
       );
+    }
+
+    .section-stack,
+    .card-grid {
+      background: transparent !important;
     }
 
     .site-header,
@@ -128,46 +132,39 @@
     }
 
     .site-tabs a {
-      color: #faf7f0;
+      color: #faf7f0 !important;
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .social-links {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       margin-left: 28px;
     }
 
     .social-links a {
-      width: 38px;
-      height: 38px;
-
-      border: 2px solid #faf7f0;
-      border-radius: 999px;
-
-      color: #faf7f0;
-
+      width: 34px;
+      height: 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-
-      font-size: 0.72rem;
-      font-weight: 700;
-
       text-decoration: none;
-
       transition:
         transform 0.18s ease,
-        background 0.18s ease,
-        color 0.18s ease;
+        opacity 0.18s ease;
     }
 
     .social-links a:hover {
-      background: #faf7f0;
-      color: #0f52ba;
       transform: translateY(-2px);
+      opacity: 0.82;
+    }
+
+    .social-links img {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .section-heading h2 {
@@ -220,7 +217,7 @@
             rel="noopener noreferrer"
             aria-label="X Account"
           >
-            X
+            <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
           </a>
 
           <a
@@ -229,7 +226,7 @@
             rel="noopener noreferrer"
             aria-label="GitHub"
           >
-            GH
+            <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
           </a>
 
           <a
@@ -238,7 +235,7 @@
             rel="noopener noreferrer"
             aria-label="LinkedIn"
           >
-            IN
+            <img src="https://cdn.simpleicons.org/linkedin/faf7f0" alt="" />
           </a>
 
           <a
@@ -247,7 +244,7 @@
             rel="noopener noreferrer"
             aria-label="Instagram"
           >
-            IG
+            <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
           </a>
 
           <a
@@ -256,7 +253,7 @@
             rel="noopener noreferrer"
             aria-label="Facebook"
           >
-            FB
+            <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
           </a>
 
           <a
@@ -265,7 +262,7 @@
             rel="noopener noreferrer"
             aria-label="Substack"
           >
-            SS
+            <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
           </a>
 
         </div>
