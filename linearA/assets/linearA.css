@@ -448,3 +448,7 @@ code {
     padding: 24px;
   }
 }
+
+body {
+  outline: 10px solid red !important;
+}
