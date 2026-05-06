@@ -193,9 +193,13 @@
   };
 
   document.addEventListener("DOMContentLoaded", () => {
-    root.dataset.motion = getMotionMode();
+  root.dataset.motion = getMotionMode();
+
+  if (!FORCE_REDUCED_MOTION) {
     buildMotionToggle();
-    applyMotionMode(root.dataset.motion);
     attachMotionListener();
-  });
+  }
+
+  applyMotionMode(root.dataset.motion);
+});
 })();
