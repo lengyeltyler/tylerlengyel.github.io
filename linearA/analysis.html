@@ -4,14 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Linear A — Analysis (Technical)</title>
-
-<meta
-  name="description"
-  content="Technical Linear A pipeline outputs: model bakeoff, adversarial suite, and confidence components."
-/>
-
+<meta name="description" content="Technical Linear A pipeline outputs: model bakeoff, adversarial suite, and confidence components." />
 <link rel="canonical" href="https://tylerlengyel.com/linearA/analysis.html" />
-
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -19,121 +13,166 @@
   "headline": "Linear A — Analysis (Technical)",
   "description": "Technical Linear A pipeline outputs: model bakeoff, adversarial suite, and confidence components.",
   "url": "https://tylerlengyel.com/linearA/analysis.html",
-  "author": {
-    "@type": "Person",
-    "name": "Tyler Lengyel",
-    "url": "https://tylerlengyel.com"
-  },
-  "about": {
-    "@type": "Thing",
-    "name": "Linear A script"
-  }
+  "author": { "@type": "Person", "name": "Tyler Lengyel", "url": "https://tylerlengyel.com" },
+  "about": { "@type": "Thing", "name": "Linear A script" }
 }
 </script>
-
 <link rel="stylesheet" href="/linearA/assets/linearA.css" />
 <script defer src="/linearA/assets/linearA.js"></script>
 </head>
-
 <body>
+  <header class="site-header">
+    <div class="site-frame home-nav-frame">
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/linearA/" aria-current="page">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
+        <a href="/nakes/">nakes</a>
+        <a href="/svg-editor/">SVG Editor</a>
 
-<header class="site-header">
-  <div class="site-frame home-nav-frame">
+        <div class="social-links" aria-label="Social links">
+          <a href="https://x.com/tylerlengyel" target="_blank" rel="noopener noreferrer" aria-label="X Account">
+            <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
+          </a>
+          <a href="https://github.com/lengyeltyler" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
+          </a>
+          <a href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/linkedin.svg" alt="" />
+          </a>
+          <a href="https://www.instagram.com/lengyel_tyler/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
+          </a>
+          <a href="https://www.facebook.com/profile.php?id=61572755744935" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+            <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
+          </a>
+          <a href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page" target="_blank" rel="noopener noreferrer" aria-label="Substack">
+            <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
 
-    <nav class="site-tabs" aria-label="Primary">
+  <div class="site-shell">
+    <div class="la-top">
+      <div class="la-breadcrumb"><a href="/">Home</a> / <a href="/linearA/index.html">Linear A</a> / <strong>Analysis</strong></div>
+      <div class="latest-badge">Latest run: <span data-latest-run>loading…</span></div>
+    </div>
 
-      <a href="/">Home</a>
-      <a href="/linearA/" aria-current="page">Linear A</a>
-      <a href="/createPhil/">createPhil</a>
-      <a href="/nakes/">nakes</a>
-      <a href="/svg-editor/">SVG Editor</a>
-
-      <div class="social-links" aria-label="Social links">
-
-        <a href="https://x.com/tylerlengyel" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
-        </a>
-
-        <a href="https://github.com/lengyeltyler" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
-        </a>
-
-        <a href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/linkedin.svg" alt="" />
-        </a>
-
-        <a href="https://www.instagram.com/lengyel_tyler/" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
-        </a>
-
-        <a href="https://www.facebook.com/profile.php?id=61572755744935" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
-        </a>
-
-        <a href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page" target="_blank" rel="noopener noreferrer">
-          <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
-        </a>
-
-      </div>
-
+    <nav class="la-tabs" aria-label="Linear A navigation">
+      <a href="/linearA/index.html">Overview</a>
+      <a class="is-active" href="/linearA/analysis.html">Analysis (Technical)</a>
+      <a href="/linearA/findings.html">Findings (Plain English)</a>
+      <a href="/linearA/downloads.html">Data Downloads</a>
     </nav>
 
-  </div>
-</header>
+    <section class="la-hero">
+      <h1>Analysis (Technical)</h1>
+      <p class="muted">
+        This page summarizes Phase 1-5 outputs from the reproducible pipeline. Structural confidence is evaluated with
+        cross-validation and falsification tests. No semantic decipherment is claimed.
+      </p>
 
-<div class="site-shell">
+      <div class="key-takeaway">
+        <strong>Key takeaway</strong>
+        Model fit is strongest for accounting-style templates, but corpus size and artifact diversity still limit certainty.
+      </div>
+    </section>
 
-  <div class="la-top">
-    <div class="la-breadcrumb">
-      <a href="/">Home</a> /
-      <a href="/linearA/index.html">Linear A</a> /
-      <strong>Analysis</strong>
+    <h2>Latest Run Snapshot</h2>
+    <div data-tech-summary class="embed-box">
+      <p class="muted" style="padding: 12px;">Loading run summary…</p>
     </div>
 
-    <div class="latest-badge">
-      Latest run:
-      <span data-latest-run>loading…</span>
+    <h2>Core Technical Outputs</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Output</th>
+            <th>Purpose</th>
+            <th>Latest Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>phase1_corpus_manifest.csv</code></td>
+            <td>Canonical corpus lines with origin counts and provenance tags.</td>
+            <td><a href="/linearA/research/output/latest/phase1_corpus_manifest.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>phase1_normalization_mapping_log.csv</code></td>
+            <td>Reversible token-by-token variant normalization log.</td>
+            <td><a href="/linearA/research/output/latest/phase1_normalization_mapping_log.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>phase5_model_bakeoff_scores.csv</code></td>
+            <td>Cross-validated model comparison across three competing structure hypotheses.</td>
+            <td><a href="/linearA/research/output/latest/phase5_model_bakeoff_scores.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>phase5_adversarial_suite.csv</code></td>
+            <td>Falsification controls and stress-test effects.</td>
+            <td><a href="/linearA/research/output/latest/phase5_adversarial_suite.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>phase5_confidence_components.csv</code></td>
+            <td>Confidence decomposition (corpus, normalization, OOS, robustness).</td>
+            <td><a href="/linearA/research/output/latest/phase5_confidence_components.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>phase5_confidence_sensitivity.csv</code></td>
+            <td>Sensitivity analysis under weight variation scenarios.</td>
+            <td><a href="/linearA/research/output/latest/phase5_confidence_sensitivity.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>external_expansion_delta_report.md</code></td>
+            <td>Before/after comparison of corpus expansion impact on fit and confidence.</td>
+            <td><a href="/linearA/research/output/latest/external_expansion_delta_report.md">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>research_log.md</code></td>
+            <td>Structured run log and confidence statement context.</td>
+            <td><a href="/linearA/research/output/latest/research_log.md">Open</a></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>
 
-  <nav class="la-tabs" aria-label="Linear A navigation">
-    <a href="/linearA/index.html">Overview</a>
-    <a class="is-active" href="/linearA/analysis.html">
-      Analysis (Technical)
-    </a>
-    <a href="/linearA/findings.html">Findings (Plain English)</a>
-    <a href="/linearA/downloads.html">Data Downloads</a>
-  </nav>
+    <h2>External Ingestion Controls</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Artifact</th>
+            <th>Purpose</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>external_corpus_import_raw.csv</code></td>
+            <td>Raw harvested rows from authoritative external archives before validation.</td>
+            <td><a href="/linearA/research/data/external_corpus_import_raw.csv">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>external_corpus_validation_report.md</code></td>
+            <td>Validation gate output (duplicates, malformed rows, unknown signs, merge decision).</td>
+            <td><a href="/linearA/research/data/external_corpus_validation_report.md">Open</a></td>
+          </tr>
+          <tr>
+            <td><code>external_corpus.csv</code></td>
+            <td>Merged external corpus with provenance URL and ingestion timestamp fields.</td>
+            <td><a href="/linearA/research/data/external_corpus.csv">Open</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <section class="la-hero">
-
-    <h1>Analysis (Technical)</h1>
-
-    <p class="muted">
-      This page summarizes Phase 1-5 outputs from the reproducible pipeline.
-      Structural confidence is evaluated with cross-validation and falsification tests.
-      No semantic decipherment is claimed.
+    <p class="table-note">
+      For all files in one place, use <a href="/linearA/downloads.html">Data Downloads</a>.
     </p>
-
-    <div class="key-takeaway">
-      <strong>Key takeaway</strong>
-      Model fit is strongest for accounting-style templates,
-      but corpus size and artifact diversity still limit certainty.
-    </div>
-
-  </section>
-
-  <h2>Latest Run Snapshot</h2>
-
-  <div data-tech-summary class="embed-box">
-    <p class="muted" style="padding: 12px;">
-      Loading run summary…
-    </p>
   </div>
-
-  <!-- KEEP THE REST OF YOUR EXISTING TABLES EXACTLY AS THEY ARE -->
-
-</div>
-
 </body>
 </html>
