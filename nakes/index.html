@@ -3,7 +3,7 @@
 <head>
   <!-- PWA -->
   <link rel="manifest" href="/nakes/manifest.json">
-  <meta name="theme-color" content="#faf7f0">
+  <meta name="theme-color" content="#050505">
   <!-- iOS standalone feel when added to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,139 +15,354 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+
   <style>
     :root{
-      --bg:#faf7f0; --grid:#d6e0ee; --nakes:#2e4e75; --nakesHead:#111111; --food:#9ec9ff;
-      --ui:#111111; --accent:#9ec9ff;
+      --off-white:#faf7f0;
+
+      --dark-0:#050505;
+      --dark-1:#111111;
+      --dark-2:#1d1d1d;
+
+      --panel-dark-0:#080808;
+      --panel-dark-1:#151515;
+      --panel-dark-2:#232323;
+
+      --dodger-0:#1e90ff;
+      --dodger-1:#1877f2;
+      --dodger-2:#0f52ba;
+
+      --bg:#050505;
+      --grid:rgba(250,247,240,.12);
+      --nakes:#1e90ff;
+      --nakesHead:#faf7f0;
+      --food:#0f52ba;
+      --ui:#faf7f0;
+      --accent:#1e90ff;
+
       --size:20;
       --desktop-max:560px;
       --gap:14px;
+
       --safe-top: env(safe-area-inset-top);
       --safe-right: env(safe-area-inset-right);
       --safe-bottom: env(safe-area-inset-bottom);
       --safe-left: env(safe-area-inset-left);
     }
+
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
+
     body{
-      background:
-        radial-gradient(circle at 12% -8%, rgba(158,201,255,.18), transparent 36%),
-        radial-gradient(circle at 88% 0%, rgba(255,242,214,.24), transparent 36%),
-        var(--bg);
+      background:linear-gradient(
+        135deg,
+        var(--dark-0) 0%,
+        var(--dark-1) 45%,
+        var(--dark-2) 100%
+      );
       color:var(--ui);
       font-family:"SF Pro Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
       touch-action:none;
-      -webkit-user-select:none; user-select:none;
+      -webkit-user-select:none;
+      user-select:none;
       overflow:hidden;
     }
 
     .app{
-      position:fixed; inset:0;
+      position:fixed;
+      inset:0;
       padding:calc(var(--safe-top) + 10px) calc(var(--safe-right) + 10px)
               calc(var(--safe-bottom) + 10px) calc(var(--safe-left) + 10px);
-      display:grid; grid-template-rows:1fr auto; gap:var(--gap);
-      max-width:min(100vw,100svw); max-height:min(100vh,100svh);
+      display:grid;
+      grid-template-rows:1fr auto;
+      gap:var(--gap);
+      max-width:min(100vw,100svw);
+      max-height:min(100vh,100svh);
     }
 
     .hud{
-      position:absolute; left:0; right:0; top:10px;
+      position:absolute;
+      left:0;
+      right:0;
+      top:10px;
       padding:0 10px;
-      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
       pointer-events:none;
     }
+
     .route-tabs{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      pointer-events:auto;
+      align-items:center;
+    }
+
+    .route-tabs a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:7px 11px;
+      border-radius:999px;
+      border:1px solid rgba(250,247,240,.18);
+      background:linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+      color:var(--off-white);
+      text-decoration:none;
+      font-size:13px;
+      font-weight:700;
+      box-shadow:0 10px 24px rgba(0,0,0,.24);
+    }
+
+    .route-tabs a:hover{
+      transform:translateY(-1px);
+      box-shadow:0 14px 28px rgba(30,144,255,.2);
+    }
+
+    .social-links {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-left:4px;
+    }
+
+    .social-links a {
+      width:28px;
+      height:28px;
+      min-height:28px;
+      padding:0;
+      background:transparent;
+      border:0;
+      box-shadow:none;
+    }
+
+    .social-links img {
+      width:20px;
+      height:20px;
+      display:block;
+      filter:
+        brightness(0)
+        saturate(100%)
+        invert(96%)
+        sepia(9%)
+        saturate(294%)
+        hue-rotate(332deg)
+        brightness(105%)
+        contrast(96%);
+    }
+
+    .title{
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--off-white);
+      text-shadow:0 2px 14px rgba(30,144,255,.3);
+    }
+
+    .stats{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
-      pointer-events:auto;
     }
-    .route-tabs a{
-      display:inline-flex; align-items:center; justify-content:center;
-      min-height:36px; padding:7px 11px; border-radius:999px;
-      border:1px solid rgba(121,179,251,.18);
-      background:rgba(237,245,255,.92);
-      color:#16324f; text-decoration:none; font-size:13px; font-weight:700;
-      box-shadow:0 10px 20px rgba(40,32,18,.05);
-    }
-    .route-tabs a:hover{background:#d9ecff}
-    .title{
-      font-weight:700;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#28466e;
-    }
-    .stats{display:flex; gap:8px; flex-wrap:wrap}
+
     .pill{
       pointer-events:auto;
-      border:1px solid rgba(121,179,251,.18);
+      border:1px solid rgba(250,247,240,.14);
       border-radius:999px;
       padding:5px 9px;
       font-size:13px;
-      color:var(--ui);
-      background:rgba(255,255,255,.9);
-      box-shadow:0 10px 20px rgba(40,32,18,.06);
+      color:var(--off-white);
+      background:linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      box-shadow:0 10px 22px rgba(0,0,0,.28);
     }
 
-    .stage{ position:relative; display:grid; place-items:center; min-height:0; }
+    .stage{
+      position:relative;
+      display:grid;
+      place-items:center;
+      min-height:0;
+    }
 
     canvas{
-      display:block; width:100%; height:auto; max-width:var(--desktop-max);
+      display:block;
+      width:100%;
+      height:auto;
+      max-width:var(--desktop-max);
       aspect-ratio:1/1;
-      border:1px solid #d8d0c3; border-radius:20px;
-      background:linear-gradient(#ffffff,#f7f9fc);
-      box-shadow:0 22px 42px rgba(40,32,18,.09);
+      border:1px solid rgba(250,247,240,.14);
+      border-radius:20px;
+      background:linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      box-shadow:0 24px 60px rgba(0,0,0,.34);
       image-rendering:pixelated;
       touch-action:none;
     }
 
     .controls{
-      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
-      max-width:var(--desktop-max); margin:0 auto;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      max-width:var(--desktop-max);
+      margin:0 auto;
       padding-bottom:2px;
     }
+
     .btn{
-      border:1px solid rgba(121,179,251,.18);
+      border:1px solid rgba(250,247,240,.16);
       border-radius:16px;
       padding:14px 12px;
       text-align:center;
-      background:rgba(237,245,255,.92);
-      color:#16324f;
-      font-weight:700;
+      background:linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+      color:var(--off-white);
+      font-weight:800;
       cursor:pointer;
-      transition:transform .04s ease, background .1s ease, box-shadow .1s ease;
+      transition:transform .04s ease, background .1s ease, box-shadow .1s ease, opacity .1s ease;
       touch-action:manipulation;
       font-size:17px;
-      box-shadow:0 10px 22px rgba(40,32,18,.05);
+      box-shadow:0 12px 28px rgba(0,0,0,.24);
     }
-    .btn:active{transform:translateY(1px) scale(.99); background:#d9ecff}
+
+    .btn:active{
+      transform:translateY(1px) scale(.99);
+      opacity:.9;
+    }
+
+    .btn:hover{
+      box-shadow:0 16px 34px rgba(30,144,255,.22);
+    }
+
     .grid-spacer{visibility:hidden}
     .controls .full { grid-column: 1 / -1; }
 
-    .extras{max-width:var(--desktop-max); margin:10px auto 0}
-    .help{font-size:13px; color:#595550; margin-bottom:8px}
+    .extras{
+      max-width:var(--desktop-max);
+      margin:10px auto 0;
+    }
+
+    .help{
+      font-size:13px;
+      color:rgba(250,247,240,.78);
+      margin-bottom:8px;
+    }
+
+    #prize-root {
+      color:var(--off-white);
+    }
+
     @media (max-width: 640px){
       .hud{
-        position: static; inset: auto; padding: 0 2px 6px 2px; display: block; pointer-events: auto;
+        position:static;
+        inset:auto;
+        padding:0 2px 6px 2px;
+        display:block;
+        pointer-events:auto;
       }
-      .route-tabs{ margin-bottom: 6px; }
-      .title{ font-size: 13px; margin-bottom: 4px; }
-      .stats{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 4px 6px; }
-      .pill{ font-size: 11px; padding: 3px 7px; border-radius: 10px; }
-      .btn{ padding: 12px; font-size: 15px; border-radius: 12px; }
-      .controls{ gap: 6px; }
-      .extras{ display: none; }
+
+      .route-tabs{
+        margin-bottom:6px;
+      }
+
+      .social-links {
+        margin-left:0;
+      }
+
+      .title{
+        font-size:13px;
+        margin-bottom:4px;
+      }
+
+      .stats{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0,1fr));
+        gap:4px 6px;
+      }
+
+      .pill{
+        font-size:11px;
+        padding:3px 7px;
+        border-radius:10px;
+      }
+
+      .btn{
+        padding:12px;
+        font-size:15px;
+        border-radius:12px;
+      }
+
+      .controls{
+        gap:6px;
+      }
+
+      .extras{
+        display:none;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="app">
     <div class="stage">
       <div class="hud">
         <nav class="route-tabs" aria-label="Game links">
           <a href="/" rel="home">Home</a>
+          <a href="/linearA/">Linear A</a>
+          <a href="/createPhil/">createPhil</a>
+          <a href="/nakes/" aria-current="page">nakes</a>
+          <a href="/svg-editor/">SVG Editor</a>
           <a href="/nakes/leaderboard.html">Leaderboard</a>
+
+          <div class="social-links" aria-label="Social links">
+            <a href="https://x.com/tylerlengyel" target="_blank" rel="noopener noreferrer" aria-label="X Account">
+              <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
+            </a>
+
+            <a href="https://github.com/lengyeltyler" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
+            </a>
+
+            <a href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <img src="https://cdn.simpleicons.org/linkedin/faf7f0" alt="" />
+            </a>
+
+            <a href="https://www.instagram.com/lengyel_tyler/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
+            </a>
+
+            <a href="https://www.facebook.com/profile.php?id=61572755744935" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
+            </a>
+
+            <a href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page" target="_blank" rel="noopener noreferrer" aria-label="Substack">
+              <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
+            </a>
+          </div>
         </nav>
+
         <div class="title">S N A K E</div>
+
         <div class="stats">
           <div class="pill">Score: <span id="score">0</span></div>
           <div class="pill">High: <span id="high">0</span></div>
@@ -156,12 +371,12 @@
           <div class="pill" id="stateLabel">Playing</div>
         </div>
       </div>
+
       <canvas id="board" aria-label="nakes game area" role="img"></canvas>
-      <!-- Visually-hidden live region: announces game state to screen readers -->
+
       <div id="a11y-announce" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
     </div>
 
-    <!-- D-pad -->
     <div>
       <div class="controls">
         <div class="grid-spacer"></div>
@@ -176,23 +391,21 @@
         <button class="btn" data-dir="down">▼ Down</button>
         <div class="grid-spacer"></div>
 
-        <!-- Speed cycles Chill → Normal → Snappy → Turbo -->
         <button class="btn full" id="speedBtn" aria-label="Change speed">
           Speed: <span id="speedBtnLabel">Normal</span>
         </button>
+
         <a class="btn full" id="scoresBtn" href="/nakes/leaderboard.html" role="button" style="display:inline-block; text-decoration:none; text-align:center;">
           🏆 Leaderboard
         </a>
       </div>
 
-      <!-- ONE light extras block (no embedded table) -->
       <div class="extras">
         <div class="help">
           Keys: Arrows/WASD. Space/P = Pause. R = Restart. + / – = Speed.
           Wrap edges • 69 levels • Top-10 scoreboard • Offline PWA.
         </div>
 
-        <!-- ✅ Prize widget container -->
         <div id="prize-root" style="margin:8px 0"></div>
       </div>
     </div>
@@ -284,21 +497,19 @@
       const appW = app.clientWidth;
       const appH = app.clientHeight;
 
-      const ctrH = controls.offsetHeight + 8;                // always subtract D-pad
+      const ctrH = controls.offsetHeight + 8;
       const extraH = extras && getComputedStyle(extras).display !== 'none'
-        ? extras.offsetHeight + 8                              // subtract extras on desktop
+        ? extras.offsetHeight + 8
         : 0;
       const hudIsOverlay = getComputedStyle(hud).position === 'absolute';
-      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6); // subtract HUD only when above canvas (mobile)
+      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6);
 
       const size = Math.min(appW, appH - ctrH - extraH - hudH);
-      const cssSize = Math.max(240, size); // minimum so it never gets too tiny
+      const cssSize = Math.max(240, size);
 
-      // Set only width; height comes from aspect-ratio so it stays perfectly square
       canvas.style.width = cssSize + "px";
-      canvas.style.height = ""; // let CSS handle it
+      canvas.style.height = "";
 
-      // Measure the *actual* rendered width to size the backing buffer
       const rectW = Math.floor(canvas.getBoundingClientRect().width);
       LOGICAL_PX = rectW;
 
@@ -323,63 +534,114 @@
       placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing";
       announce("New game started. Level 1.");
     }
+
     function placeFood(){
       while(true){
         const x=Math.floor(Math.random()*SIZE), y=Math.floor(Math.random()*SIZE);
         if(!nakes.some(s=>s.x===x && s.y===y)){ food={x,y}; return; }
       }
     }
-    function setDirection(dx,dy){ if(dx===-direction.x && dy===-direction.y) return; nextDirection={x:dx,y:dy}; }
+
+    function setDirection(dx,dy){
+      if(dx===-direction.x && dy===-direction.y) return;
+      nextDirection={x:dx,y:dy};
+    }
 
     function draw(){
       const cp=cellPx(), px=cp*SIZE, offset=Math.floor((LOGICAL_PX - px)/2);
-      ctx.fillStyle=getVar('--bg'); ctx.fillRect(0,0,LOGICAL_PX,LOGICAL_PX);
-      ctx.strokeStyle=getVar('--grid'); ctx.lineWidth=1; ctx.beginPath();
-      for(let i=1;i<SIZE;i++){ const g=offset+i*cp+0.5; ctx.moveTo(g,offset); ctx.lineTo(g,offset+px); ctx.moveTo(offset,g); ctx.lineTo(offset+px,g); }
+      ctx.fillStyle=getVar('--bg');
+      ctx.fillRect(0,0,LOGICAL_PX,LOGICAL_PX);
+
+      ctx.strokeStyle=getVar('--grid');
+      ctx.lineWidth=1;
+      ctx.beginPath();
+
+      for(let i=1;i<SIZE;i++){
+        const g=offset+i*cp+0.5;
+        ctx.moveTo(g,offset);
+        ctx.lineTo(g,offset+px);
+        ctx.moveTo(offset,g);
+        ctx.lineTo(offset+px,g);
+      }
+
       ctx.stroke();
+
       fillCell(food.x,food.y,getVar('--food'),cp,offset);
-      for(let i=0;i<nakes.length;i++){ const seg=nakes[i]; fillCell(seg.x,seg.y, i===0?getVar('--nakesHead'):getVar('--nakes'),cp,offset); }
+
+      for(let i=0;i<nakes.length;i++){
+        const seg=nakes[i];
+        fillCell(seg.x,seg.y, i===0?getVar('--nakesHead'):getVar('--nakes'),cp,offset);
+      }
     }
-    function fillCell(x,y,color,cp,offset){ ctx.fillStyle=color; ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp); }
+
+    function fillCell(x,y,color,cp,offset){
+      ctx.fillStyle=color;
+      ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp);
+    }
 
     function step(ts){
       if(!alive){ draw(); return; }
-      if(paused){ draw(); requestAnimationFrame(step); return; }
+
+      if(paused){
+        draw();
+        requestAnimationFrame(step);
+        return;
+      }
+
       if(!lastTick) lastTick=ts;
+
       const interval=SPEEDS[speedIndex].ms;
+
       if(ts-lastTick>=interval){
         lastTick=ts;
         direction=nextDirection;
+
         const head=nakes[0];
         let nx=head.x+direction.x, ny=head.y+direction.y;
-        // wrap
+
         if(nx<0) nx=SIZE-1; else if(nx>=SIZE) nx=0;
         if(ny<0) ny=SIZE-1; else if(ny>=SIZE) ny=0;
-        // self collision
+
         if(nakes.some(s=>s.x===nx && s.y===ny)){
-          alive=false; stateLabel.textContent="Game Over"; saveHigh(); draw();
+          alive=false;
+          stateLabel.textContent="Game Over";
+          saveHigh();
+          draw();
           announce("Game over. Score: " + score + ". Level: " + level + ".");
+
           setTimeout(()=>{
             const name=prompt("Game Over! Enter your name for the leaderboard:", "") || "Player";
-            addScoreToBoard(name, score, level);   // local (offline)
-            submitGlobalScore(name, score, level); // global (online)
-            window.__sendPrize?.(level);           // ✅ trigger prize flow (non-blocking)
+            addScoreToBoard(name, score, level);
+            submitGlobalScore(name, score, level);
+            window.__sendPrize?.(level);
           }, 20);
-          requestAnimationFrame(step); return;
+
+          requestAnimationFrame(step);
+          return;
         }
+
         nakes.unshift({x:nx,y:ny});
+
         if(nx===food.x && ny===food.y){
-          score+=1; foodsThisLevel+=1; scoreEl.textContent=score; placeFood(); maybeLevelUp();
+          score+=1;
+          foodsThisLevel+=1;
+          scoreEl.textContent=score;
+          placeFood();
+          maybeLevelUp();
         }else{
           nakes.pop();
         }
       }
-      draw(); requestAnimationFrame(step);
+
+      draw();
+      requestAnimationFrame(step);
     }
 
     // ====== Input (keys + buttons + swipe) ======
     window.addEventListener('keydown', (e)=>{
-      const k=e.key.toLowerCase(); let handled=false;
+      const k=e.key.toLowerCase();
+      let handled=false;
+
       if(k==='arrowup'||k==='w'){ setDirection(0,-1); handled=true; }
       else if(k==='arrowdown'||k==='s'){ setDirection(0,1); handled=true; }
       else if(k==='arrowleft'||k==='a'){ setDirection(-1,0); handled=true; }
@@ -388,7 +650,8 @@
       else if(k==='r'){ reset(); handled=true; }
       else if(k==='+'||k==='='){ changeSpeed(1); handled=true; }
       else if(k==='-'||k==='_'){ changeSpeed(-1); handled=true; }
-      if(handled) e.preventDefault(); // stop page scroll on arrows/space
+
+      if(handled) e.preventDefault();
     }, {passive:false});
 
     document.querySelectorAll('[data-dir]').forEach(btn=>{
@@ -400,29 +663,54 @@
         if(d==='right') setDirection(1,0);
       });
     });
+
     if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
 
     // swipe on canvas
     (function(){
-      const el=canvas; let startX=0,startY=0,active=false; const minDist=18;
-      el.addEventListener('touchstart', e=>{ const t=e.changedTouches[0]; startX=t.clientX; startY=t.clientY; active=true; }, {passive:true});
+      const el=canvas;
+      let startX=0,startY=0,active=false;
+      const minDist=18;
+
+      el.addEventListener('touchstart', e=>{
+        const t=e.changedTouches[0];
+        startX=t.clientX;
+        startY=t.clientY;
+        active=true;
+      }, {passive:true});
+
       el.addEventListener('touchend', e=>{
-        if(!active) return; active=false; const t=e.changedTouches[0];
+        if(!active) return;
+        active=false;
+        const t=e.changedTouches[0];
         const dx=t.clientX-startX, dy=t.clientY-startY;
+
         if(Math.max(Math.abs(dx),Math.abs(dy))<minDist) return;
-        if(Math.abs(dx)>Math.abs(dy)){ setDirection(dx>0?1:-1,0); } else { setDirection(0,dy>0?1:-1); }
+
+        if(Math.abs(dx)>Math.abs(dy)){
+          setDirection(dx>0?1:-1,0);
+        } else {
+          setDirection(0,dy>0?1:-1);
+        }
       }, {passive:true});
     })();
 
-    function togglePause(){ paused=!paused; stateLabel.textContent=paused?"Paused":"Playing"; announce(paused?"Game paused.":"Game resumed."); }
+    function togglePause(){
+      paused=!paused;
+      stateLabel.textContent=paused?"Paused":"Playing";
+      announce(paused?"Game paused.":"Game resumed.");
+    }
+
     function changeSpeed(delta){
       const prev=speedIndex;
       speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta));
+
       if(speedIndex!==prev){
         speedLabel.textContent=SPEEDS[speedIndex].label;
         if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
       }
     }
+
     if (speedBtn) speedBtn.addEventListener('click', ()=> changeSpeed(1));
 
     // ====== Boot ======
@@ -433,6 +721,7 @@
       draw();
       requestAnimationFrame(step);
     }
+
     window.addEventListener('load', boot, {passive:true});
     document.addEventListener('visibilitychange', ()=>{ lastTick=0; }, {passive:true});
     window.addEventListener('resize', ()=>{ lastTick=0; }, {passive:true});
@@ -443,10 +732,11 @@
     }
   </script>
 
-  <!-- ✅ Prize module: mounts widget and exposes window.__sendPrize -->
   <script type="module">
     import { mountPrizeWidget, prizeFinish } from "/nakes/prize.js";
+
     mountPrizeWidget("#prize-root");
+
     window.__sendPrize = async (finalLevel) => {
       try {
         const res = await prizeFinish(finalLevel);
