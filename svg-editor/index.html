@@ -3,44 +3,321 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>SVG Editor - tylerlengyel.com</title>
+
   <meta
     name="description"
     content="SVG Editor embedded from its own GitHub repo."
   />
-  <meta name="theme-color" content="#faf7f0" />
+
+  <meta name="theme-color" content="#050505" />
+
   <link rel="stylesheet" href="/assets/site-theme.css" />
+
+  <style>
+    :root {
+      --off-white: #faf7f0;
+
+      --dark-0: #050505;
+      --dark-1: #111111;
+      --dark-2: #1d1d1d;
+
+      --panel-dark-0: #080808;
+      --panel-dark-1: #151515;
+      --panel-dark-2: #232323;
+
+      --dodger-0: #1e90ff;
+      --dodger-1: #1877f2;
+      --dodger-2: #0f52ba;
+    }
+
+    body,
+    .page-shell,
+    .frame-shell {
+      background: linear-gradient(
+        135deg,
+        var(--dark-0) 0%,
+        var(--dark-1) 45%,
+        var(--dark-2) 100%
+      );
+    }
+
+    body::before {
+      display: none;
+    }
+
+    .site-header {
+      background: linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+
+      border-bottom: 1px solid rgba(250,247,240,0.16);
+    }
+
+    .site-brand {
+      color: var(--off-white) !important;
+    }
+
+    .site-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .site-tabs a {
+      color: var(--off-white) !important;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .social-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-left: 28px;
+    }
+
+    .social-links a {
+      width: 34px;
+      height: 34px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      text-decoration: none;
+
+      transition:
+        transform 0.18s ease,
+        opacity 0.18s ease;
+    }
+
+    .social-links a:hover {
+      transform: translateY(-2px);
+      opacity: 0.82;
+    }
+
+    .social-links img {
+      width: 22px;
+      height: 22px;
+      display: block;
+
+      filter:
+        brightness(0)
+        saturate(100%)
+        invert(96%)
+        sepia(9%)
+        saturate(294%)
+        hue-rotate(332deg)
+        brightness(105%)
+        contrast(96%);
+    }
+
+    .paper-panel {
+      background: linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+
+      border: 1px solid rgba(250,247,240,0.18);
+
+      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+    }
+
+    .paper-panel,
+    .paper-panel h1,
+    .paper-panel p,
+    .paper-panel .eyebrow,
+    .paper-panel .lede {
+      color: var(--off-white);
+    }
+
+    .frame-panel,
+    .notice {
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+
+      border: 1px solid rgba(250,247,240,0.12);
+
+      box-shadow: 0 20px 48px rgba(0,0,0,0.28);
+
+      color: var(--off-white);
+    }
+
+    .embedded-frame {
+      border-radius: 14px;
+      background: #050505;
+    }
+
+    .link-button,
+    .button {
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+
+      border: 1px solid rgba(250,247,240,0.16);
+
+      color: var(--off-white);
+
+      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
+    }
+
+    .link-button:hover,
+    .button:hover,
+    .link-button:focus-visible,
+    .button:focus-visible {
+      transform: translateY(-1px);
+
+      border-color: rgba(250,247,240,0.32);
+
+      box-shadow: 0 16px 32px rgba(30,144,255,0.18);
+    }
+
+    @media (max-width: 720px) {
+
+      .social-links {
+        margin-left: 0;
+      }
+
+      .site-frame {
+        justify-content: center;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
+
     <div class="site-frame">
-      <a class="site-brand" href="/">Tyler Lengyel</a>
+
+      <a class="site-brand" href="/">
+        Tyler Lengyel
+      </a>
+
       <nav class="site-tabs" aria-label="Primary">
+
         <a href="/">Home</a>
         <a href="/linearA/">Linear A</a>
         <a href="/createPhil/">createPhil</a>
         <a href="/nakes/">nakes</a>
         <a href="/svg-editor/" aria-current="page">SVG Editor</a>
+
+        <div class="social-links" aria-label="Social links">
+
+          <a
+            href="https://x.com/tylerlengyel"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="X Account"
+          >
+            <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
+          </a>
+
+          <a
+            href="https://github.com/lengyeltyler"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+          >
+            <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
+          </a>
+
+          <a
+            href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+          >
+            <img src="https://cdn.simpleicons.org/linkedin/faf7f0" alt="" />
+          </a>
+
+          <a
+            href="https://www.instagram.com/lengyel_tyler/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
+          </a>
+
+          <a
+            href="https://www.facebook.com/profile.php?id=61572755744935"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+          >
+            <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
+          </a>
+
+          <a
+            href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Substack"
+          >
+            <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
+          </a>
+
+        </div>
+
       </nav>
+
     </div>
+
   </header>
 
   <main id="main-content" class="page-shell is-wide frame-shell">
+
     <section class="paper-panel" data-writing-root>
-      <p class="eyebrow">Tooling</p>
-      <h1>SVG Systems Lab</h1>
+
+      <p class="eyebrow">
+        Tooling
+      </p>
+
+      <h1>
+        SVG Systems Lab
+      </h1>
+
       <p class="lede">
         The editor runs locally in an embedded frame so the runtime stays fast while the page chrome
         matches the rest of the site.
       </p>
+
       <p style="margin: 18px 0 0;">
-        <button class="link-button" data-motion-toggle type="button">Writing motion: on</button>
+
+        <button
+          class="link-button"
+          data-motion-toggle
+          type="button"
+        >
+          Writing motion: on
+        </button>
+
       </p>
+
     </section>
 
     <section class="frame-panel" data-no-reveal>
+
       <iframe
         id="editor-frame"
         class="embedded-frame"
@@ -49,46 +326,68 @@
         loading="eager"
         allow="clipboard-write *; clipboard-read *">
       </iframe>
+
     </section>
 
     <div id="editor-health" class="notice" hidden></div>
 
-    <noscript>This page loads a local SVG editor runtime. Enable JavaScript to use it.</noscript>
+    <noscript>
+      This page loads a local SVG editor runtime. Enable JavaScript to use it.
+    </noscript>
+
   </main>
 
   <script defer src="/assets/site-theme.js"></script>
+
   <script>
     (() => {
-      const frame = document.getElementById("editor-frame");
-      const health = document.getElementById("editor-health");
+
+      const frame =
+        document.getElementById("editor-frame");
+
+      const health =
+        document.getElementById("editor-health");
+
       if (!frame || !health) {
         console.error("[svg-editor] Missing frame health check elements.");
         return;
       }
 
       const fail = (message) => {
+
         health.hidden = false;
         health.textContent = message;
+
         console.error(`[svg-editor] ${message}`);
       };
 
       let loaded = false;
+
       const timeoutId = setTimeout(() => {
+
         if (!loaded) {
           fail("SVG editor initialization timed out. Try reloading the page.");
         }
+
       }, 5000);
 
       frame.addEventListener("load", () => {
+
         loaded = true;
         clearTimeout(timeoutId);
+
       });
 
       frame.addEventListener("error", () => {
+
         clearTimeout(timeoutId);
+
         fail("SVG editor failed to load in the embedded frame.");
+
       });
+
     })();
   </script>
+
 </body>
 </html>
