@@ -374,6 +374,7 @@ button {
   top: 50%;
   transform-origin: 0 0;
   background: var(--ve-artboard);
+  will-change: width, height, transform;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.24),
     0 18px 60px rgba(0, 0, 0, 0.55);
@@ -386,6 +387,31 @@ button {
   background: var(--ve-artboard);
   touch-action: none;
   cursor: crosshair;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+#scene-root,
+#scene-root .scene-object,
+#scene-root .raw-vector-content {
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+#scene-root image,
+#scene-root [data-raster-content="true"] {
+  image-rendering: auto;
+}
+
+#grid-bg,
+#minor-grid-pattern path,
+#major-grid-pattern path {
+  shape-rendering: crispEdges;
+}
+
+#overlay-root,
+#overlay-root * {
+  vector-effect: non-scaling-stroke;
 }
 
 .is-hand-tool #editor-canvas {
@@ -660,16 +686,13 @@ button {
   background-image: linear-gradient(90deg, var(--swatch-a), var(--swatch-b));
 }
 
-.scene-object[data-selected="true"] {
-  filter: drop-shadow(0 0 0.8px rgba(70, 160, 255, 0.95)) drop-shadow(0 0 2px rgba(70, 160, 255, 0.8));
-}
-
 .selection-outline {
   fill: none;
   stroke: var(--ve-accent);
   stroke-width: 1.5;
   stroke-dasharray: 6 4;
   pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .rotate-guide-line,
@@ -677,6 +700,7 @@ button {
 .smart-guide {
   stroke: var(--ve-accent);
   pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .rotate-guide-line {
@@ -687,6 +711,7 @@ button {
   fill: #f5f9ff;
   stroke: #187de0;
   stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
 }
 
 .transform-handle:hover {
@@ -699,6 +724,7 @@ button {
   stroke: #187de0;
   stroke-width: 1.1;
   cursor: move;
+  vector-effect: non-scaling-stroke;
 }
 
 .path-anchor-handle.is-active {
@@ -735,6 +761,7 @@ button {
   stroke-width: 1.2;
   stroke-dasharray: 5 4;
   pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .marquee-rect {
@@ -743,6 +770,7 @@ button {
   stroke-width: 1;
   stroke-dasharray: 4 2;
   pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .smart-guide {

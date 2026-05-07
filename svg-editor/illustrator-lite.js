@@ -1539,9 +1539,11 @@ function updateWorkspaceClasses() {
 }
 
 function applyViewTransform() {
-  dom.artboardWrap.style.width = `${state.doc.width}px`;
-  dom.artboardWrap.style.height = `${state.doc.height}px`;
-  dom.artboardWrap.style.transform = `translate(${round(state.view.panX, 2)}px, ${round(state.view.panY, 2)}px) scale(${round(state.view.zoom, 4)}) translate(-50%, -50%)`;
+  const renderedWidth = Math.max(1, state.doc.width * state.view.zoom);
+  const renderedHeight = Math.max(1, state.doc.height * state.view.zoom);
+  dom.artboardWrap.style.width = `${round(renderedWidth, 2)}px`;
+  dom.artboardWrap.style.height = `${round(renderedHeight, 2)}px`;
+  dom.artboardWrap.style.transform = `translate(${round(state.view.panX, 2)}px, ${round(state.view.panY, 2)}px) translate(-50%, -50%)`;
   dom.zoomReadout.textContent = `${Math.round(state.view.zoom * 100)}%`;
   dom.gridToggleBtn.classList.toggle("is-active", state.view.grid);
   dom.rulersToggleBtn.classList.toggle("is-active", state.view.rulers);
@@ -1565,7 +1567,7 @@ function fitArtboardToScreen() {
 
 function setZoom(nextZoom, anchorEvent = null) {
   const previous = state.view.zoom;
-  state.view.zoom = clamp(nextZoom, 0.08, 8);
+  state.view.zoom = clamp(nextZoom, 0.08, 16);
   if (anchorEvent && previous !== state.view.zoom) {
     const rect = dom.pasteboard.getBoundingClientRect();
     const cx = anchorEvent.clientX - rect.left - rect.width / 2;
@@ -2736,7 +2738,9 @@ function renderShape(shape, parentNode) {
     }
   } else if (shape.type === "raw") {
     const rawNode = createSvgElement("g");
+    rawNode.setAttribute("class", "raw-vector-content");
     rawNode.innerHTML = shape.geometry?.markup || "";
+    applyVectorRenderingHints(rawNode);
     group.appendChild(rawNode);
   } else if (shape.type === "group") {
     for (const child of shape.children || []) {
@@ -2745,6 +2749,24 @@ function renderShape(shape, parentNode) {
   }
 
   parentNode.appendChild(group);
+}
+
+function applyVectorRenderingHints(root) {
+  const vectorSelector = "path,rect,circle,ellipse,line,polyline,polygon,text,g,use,symbol";
+  for (const element of root.querySelectorAll(vectorSelector)) {
+    if (!element.hasAttribute("shape-rendering")) {
+      element.setAttribute("shape-rendering", "geometricPrecision");
+    }
+    if (element.localName === "text" && !element.hasAttribute("text-rendering")) {
+      element.setAttribute("text-rendering", "geometricPrecision");
+    }
+  }
+  for (const image of root.querySelectorAll("image")) {
+    if (!image.hasAttribute("preserveAspectRatio")) {
+      image.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    }
+    image.setAttribute("data-raster-content", "true");
+  }
 }
 
 function gradientToSvgNode(gradient) {
@@ -3298,6 +3320,8 @@ function updateArtboardsPanel() {
 function render() {
   normalizeArtboards(state.doc);
   dom.canvas.setAttribute("viewBox", `0 0 ${state.doc.width} ${state.doc.height}`);
+  dom.canvas.setAttribute("width", String(state.doc.width));
+  dom.canvas.setAttribute("height", String(state.doc.height));
   dom.canvasBackground.setAttribute("width", String(state.doc.width));
   dom.canvasBackground.setAttribute("height", String(state.doc.height));
   dom.gridBackground.setAttribute("width", String(state.doc.width));
