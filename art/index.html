@@ -16,52 +16,144 @@
   <link rel="stylesheet" href="/assets/site-theme.css" />
 
   <style>
-    .art-hero {
-      display: grid;
-      gap: 14px;
+    :root {
+      --off-white: #faf7f0;
+      --dark-0: #050505;
+      --dark-1: #111111;
+      --dark-2: #1d1d1d;
+      --panel-dark-0: #080808;
+      --panel-dark-1: #151515;
+      --panel-dark-2: #232323;
+      --dodger-0: #1e90ff;
+      --dodger-1: #1877f2;
+      --dodger-2: #0f52ba;
     }
 
-    .art-tabs {
+    body,
+    .page-shell {
+      background: linear-gradient(
+        135deg,
+        var(--dark-0) 0%,
+        var(--dark-1) 45%,
+        var(--dark-2) 100%
+      );
+    }
+
+    body::before {
+      display: none;
+    }
+
+    .site-header,
+    .paper-panel {
+      background: linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+    }
+
+    .site-header {
+      border-bottom: 1px solid rgba(250, 247, 240, 0.16);
+    }
+
+    .site-brand {
+      color: var(--off-white) !important;
+    }
+
+    .site-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .site-tabs a {
+      color: var(--off-white) !important;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .art-page .paper-panel {
+      display: grid;
+      gap: 18px;
+      border: 1px solid rgba(250, 247, 240, 0.18);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      color: var(--off-white);
+    }
+
+    .art-page .paper-panel,
+    .art-page .paper-panel h1,
+    .art-page .paper-panel p,
+    .art-page .paper-panel .eyebrow,
+    .art-page .lede {
+      color: var(--off-white);
+    }
+
+    .art-page .lede {
+      max-width: 46rem;
+    }
+
+    .art-nav {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 18px;
+      margin-top: 6px;
     }
 
     .gallery-panel {
-      padding: 0;
-      overflow: hidden;
+      display: grid;
+      gap: 18px;
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      border: 1px solid rgba(250, 247, 240, 0.12);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+      color: var(--off-white);
     }
 
     .gallery-heading {
-      padding: 22px 22px 0;
+      display: grid;
+      gap: 5px;
     }
 
-    .gallery-heading h2 {
-      margin: 0;
-      font: 700 1.35rem/1.2 var(--font-ui);
-    }
-
+    .gallery-heading h2,
     .gallery-heading p {
-      margin: 8px 0 0;
-      color: var(--muted);
+      margin: 0;
+    }
+
+    .gallery-heading h2,
+    .gallery-heading .eyebrow,
+    .gallery-heading .section-note {
+      color: var(--off-white);
+    }
+
+    .gallery-meta {
+      color: rgba(250, 247, 240, 0.74);
+      font: 600 0.88rem/1.3 var(--font-ui);
     }
 
     .pepe-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
       gap: 14px;
-      padding: 22px;
     }
 
     .pepe-card {
-      display: grid;
-      gap: 9px;
-      padding: 10px;
-      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 100%;
+      padding: 12px;
+      border: 1px solid rgba(250, 247, 240, 0.12);
       border-radius: var(--radius-md);
-      background: var(--paper-soft);
-      color: var(--ink);
+      background: linear-gradient(180deg, rgba(250, 247, 240, 0.96), #f3ede2);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+      color: #111111;
       cursor: pointer;
       text-align: left;
       transition:
@@ -72,18 +164,25 @@
 
     .pepe-card:hover,
     .pepe-card:focus-visible {
-      transform: translateY(-2px);
-      border-color: var(--accent-strong);
-      box-shadow: 0 16px 34px var(--shadow-strong);
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.36);
+      box-shadow: 0 18px 38px rgba(30, 144, 255, 0.18);
     }
 
     .pepe-card img {
       width: 100%;
-      aspect-ratio: 1;
+      aspect-ratio: 4 / 5;
       display: block;
       object-fit: cover;
       border-radius: var(--radius-sm);
-      background: #111111;
+      background:
+        linear-gradient(135deg, #080808 0%, #151515 50%, #232323 100%);
+      transition: transform 180ms ease;
+    }
+
+    .pepe-card:hover img,
+    .pepe-card:focus-visible img {
+      transform: scale(1.012);
     }
 
     .pepe-card span {
@@ -91,7 +190,27 @@
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
-      font: 700 0.84rem/1.2 var(--font-ui);
+      color: #111111;
+      font: 600 0.86rem/1.3 var(--font-ui);
+    }
+
+    .art-nav .link-button {
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      border: 1px solid rgba(250, 247, 240, 0.16);
+      color: var(--off-white);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    }
+
+    .art-nav .link-button:hover,
+    .art-nav .link-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.32);
+      box-shadow: 0 16px 32px rgba(30, 144, 255, 0.18);
     }
 
     .lightbox {
@@ -101,7 +220,10 @@
       display: grid;
       place-items: center;
       padding: 24px;
-      background: rgba(5, 5, 5, 0.86);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(121, 179, 251, 0.16), transparent 34%),
+        rgba(5, 5, 5, 0.86);
+      backdrop-filter: blur(10px);
     }
 
     .lightbox[hidden] {
@@ -133,6 +255,18 @@
       background: rgba(250, 247, 240, 0.1);
       color: #faf7f0;
       cursor: pointer;
+      font: 700 0.9rem/1.1 var(--font-ui);
+      transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+    }
+
+    .lightbox-bar button:hover,
+    .lightbox-bar button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.36);
+      background: rgba(250, 247, 240, 0.16);
     }
 
     .lightbox img {
@@ -140,6 +274,7 @@
       max-height: calc(100vh - 120px);
       justify-self: center;
       object-fit: contain;
+      border: 1px solid rgba(250, 247, 240, 0.14);
       border-radius: var(--radius-md);
       box-shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
     }
@@ -148,21 +283,20 @@
       overflow: hidden;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 760px) {
       .pepe-grid {
-        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
         gap: 10px;
-        padding: 14px;
       }
 
-      .gallery-heading {
-        padding: 18px 16px 0;
+      .pepe-card {
+        padding: 9px;
       }
     }
   </style>
 </head>
 
-<body>
+<body class="art-page">
   <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="site-header">
@@ -182,21 +316,23 @@
 
   <main id="main-content" class="page-shell is-wide">
     <div class="page-stack">
-      <section class="paper-panel art-hero">
+      <section class="paper-panel">
         <p class="eyebrow">Art</p>
         <h1>Art</h1>
         <p class="lede">
           A small local gallery archive. The first room is Pepe.
         </p>
-        <div class="art-tabs" aria-label="Art sections">
+        <nav class="art-nav" aria-label="Art sections">
           <a class="link-button is-active" href="#pepe">Pepe</a>
-        </div>
+        </nav>
       </section>
 
       <section id="pepe" class="surface-card gallery-panel" aria-labelledby="pepe-heading">
         <div class="gallery-heading">
+          <p class="eyebrow">Gallery</p>
           <h2 id="pepe-heading">Pepe</h2>
-          <p>Movie-poster-style Pepe variations from the local archive.</p>
+          <p class="section-note">Movie-poster-style Pepe variations from the local archive.</p>
+          <p class="gallery-meta">75 images</p>
         </div>
         <div class="pepe-grid" data-pepe-gallery></div>
       </section>
