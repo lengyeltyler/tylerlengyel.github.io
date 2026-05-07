@@ -5,13 +5,37 @@ const TOOLS = {
   RECT: "rect",
   ELLIPSE: "ellipse",
   PEN: "pen",
-  DIRECT: "direct"
+  PENCIL: "pencil",
+  DIRECT: "direct",
+  LINE: "line",
+  POLYGON: "polygon",
+  TEXT: "text",
+  HAND: "hand",
+  ZOOM: "zoom",
+  EYEDROPPER: "eyedropper"
 };
 
 const DEFAULT_STYLE = {
   fill: "#90caf955",
   stroke: "#1976d2",
   strokeWidth: 2,
+  strokeJoin: "miter",
+  strokeCap: "butt",
+  strokeDasharray: "",
+  strokeMiterlimit: 4,
+  fillOpacity: 1,
+  strokeOpacity: 1,
+  opacity: 1
+};
+
+const SVG_IMPORT_DEFAULT_STYLE = {
+  ...DEFAULT_STYLE,
+  color: "#000000",
+  fill: "#000000",
+  stroke: "none",
+  strokeWidth: 1,
+  fillOpacity: 1,
+  strokeOpacity: 1,
   opacity: 1
 };
 
@@ -29,12 +53,17 @@ const STORAGE_CANONICAL_KEY = "svg-editor:canonical-shapes:v2";
 const dom = {
   toolGroup: document.getElementById("tool-group"),
   canvas: document.getElementById("editor-canvas"),
+  pasteboard: document.getElementById("pasteboard"),
+  artboardWrap: document.getElementById("artboard-wrap"),
   canvasBackground: document.getElementById("canvas-bg"),
+  gridBackground: document.getElementById("grid-bg"),
   scene: document.getElementById("scene-root"),
   overlay: document.getElementById("overlay-root"),
+  activeToolLabel: document.getElementById("active-tool-label"),
   layers: document.getElementById("layers-list"),
   layerForwardBtn: document.getElementById("layer-forward-btn"),
   layerBackwardBtn: document.getElementById("layer-backward-btn"),
+  addLayerBtn: document.getElementById("add-layer-btn"),
   groupBtn: document.getElementById("group-btn"),
   ungroupBtn: document.getElementById("ungroup-btn"),
   alignLeftBtn: document.getElementById("align-left-btn"),
@@ -49,12 +78,36 @@ const dom = {
   booleanSubtractBtn: document.getElementById("boolean-subtract-btn"),
   booleanIntersectBtn: document.getElementById("boolean-intersect-btn"),
   snapToggleBtn: document.getElementById("snap-toggle-btn"),
+  gridToggleBtn: document.getElementById("grid-toggle-btn"),
+  rulersToggleBtn: document.getElementById("rulers-toggle-btn"),
+  importSvgToolbarBtn: document.getElementById("import-svg-toolbar-btn"),
+  toggleCodeToolbarBtn: document.getElementById("toggle-code-toolbar-btn"),
+  zoomReadout: document.getElementById("zoom-readout"),
+  zoomInBtn: document.getElementById("zoom-in-btn"),
+  zoomOutBtn: document.getElementById("zoom-out-btn"),
+  fitScreenBtn: document.getElementById("fit-screen-btn"),
+  resetViewBtn: document.getElementById("reset-view-btn"),
   statusLeft: document.getElementById("status-left"),
+  objectNameInput: document.getElementById("object-name-input"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
   fillInput: document.getElementById("fill-input"),
   strokeInput: document.getElementById("stroke-input"),
+  fillModeInput: document.getElementById("fill-mode-input"),
+  strokeModeInput: document.getElementById("stroke-mode-input"),
+  fillGradientStartInput: document.getElementById("fill-gradient-start-input"),
+  fillGradientEndInput: document.getElementById("fill-gradient-end-input"),
+  fillGradientAngleInput: document.getElementById("fill-gradient-angle-input"),
+  strokeGradientStartInput: document.getElementById("stroke-gradient-start-input"),
+  strokeGradientEndInput: document.getElementById("stroke-gradient-end-input"),
+  strokeGradientAngleInput: document.getElementById("stroke-gradient-angle-input"),
+  fillOpacityInput: document.getElementById("fill-opacity-input"),
+  strokeOpacityInput: document.getElementById("stroke-opacity-input"),
   strokeWidthInput: document.getElementById("stroke-width-input"),
+  strokeDashInput: document.getElementById("stroke-dash-input"),
+  miterLimitInput: document.getElementById("miter-limit-input"),
+  strokeJoinInput: document.getElementById("stroke-join-input"),
+  strokeCapInput: document.getElementById("stroke-cap-input"),
   opacityInput: document.getElementById("opacity-input"),
   transformXInput: document.getElementById("transform-x-input"),
   transformYInput: document.getElementById("transform-y-input"),
@@ -64,19 +117,37 @@ const dom = {
   selectionSummary: document.getElementById("selection-summary"),
   undoBtn: document.getElementById("undo-btn"),
   redoBtn: document.getElementById("redo-btn"),
+  undoToolbarBtn: document.getElementById("undo-toolbar-btn"),
+  redoToolbarBtn: document.getElementById("redo-toolbar-btn"),
+  duplicateBtn: document.getElementById("duplicate-btn"),
+  deleteBtn: document.getElementById("delete-btn"),
+  importSvgBtn: document.getElementById("import-svg-btn"),
+  importSvgInput: document.getElementById("import-svg-input"),
   downloadSvgBtn: document.getElementById("download-svg-btn"),
-  copySvgBtn: document.getElementById("copy-svg-btn")
+  copySvgBtn: document.getElementById("copy-svg-btn"),
+  pencilSmoothingInput: document.getElementById("pencil-smoothing-input"),
+  toggleCodeBtn: document.getElementById("toggle-code-btn"),
+  codeDrawer: document.getElementById("code-drawer"),
+  svgCodeInput: document.getElementById("svg-code-input"),
+  svgValidationMessage: document.getElementById("svg-validation-message"),
+  applySvgCodeBtn: document.getElementById("apply-svg-code-btn"),
+  refreshSvgCodeBtn: document.getElementById("refresh-svg-code-btn")
 };
 
 const requiredDomKeys = [
   "toolGroup",
   "canvas",
+  "pasteboard",
+  "artboardWrap",
   "canvasBackground",
+  "gridBackground",
   "scene",
   "overlay",
+  "activeToolLabel",
   "layers",
   "layerForwardBtn",
   "layerBackwardBtn",
+  "addLayerBtn",
   "groupBtn",
   "ungroupBtn",
   "alignLeftBtn",
@@ -91,12 +162,36 @@ const requiredDomKeys = [
   "booleanSubtractBtn",
   "booleanIntersectBtn",
   "snapToggleBtn",
+  "gridToggleBtn",
+  "rulersToggleBtn",
+  "importSvgToolbarBtn",
+  "toggleCodeToolbarBtn",
+  "zoomReadout",
+  "zoomInBtn",
+  "zoomOutBtn",
+  "fitScreenBtn",
+  "resetViewBtn",
   "statusLeft",
+  "objectNameInput",
   "docWidth",
   "docHeight",
   "fillInput",
   "strokeInput",
+  "fillModeInput",
+  "strokeModeInput",
+  "fillGradientStartInput",
+  "fillGradientEndInput",
+  "fillGradientAngleInput",
+  "strokeGradientStartInput",
+  "strokeGradientEndInput",
+  "strokeGradientAngleInput",
+  "fillOpacityInput",
+  "strokeOpacityInput",
   "strokeWidthInput",
+  "strokeDashInput",
+  "miterLimitInput",
+  "strokeJoinInput",
+  "strokeCapInput",
   "opacityInput",
   "transformXInput",
   "transformYInput",
@@ -106,8 +201,21 @@ const requiredDomKeys = [
   "selectionSummary",
   "undoBtn",
   "redoBtn",
+  "undoToolbarBtn",
+  "redoToolbarBtn",
+  "duplicateBtn",
+  "deleteBtn",
+  "importSvgBtn",
+  "importSvgInput",
   "downloadSvgBtn",
-  "copySvgBtn"
+  "copySvgBtn",
+  "pencilSmoothingInput",
+  "toggleCodeBtn",
+  "codeDrawer",
+  "svgCodeInput",
+  "svgValidationMessage",
+  "applySvgCodeBtn",
+  "refreshSvgCodeBtn"
 ];
 
 for (const key of requiredDomKeys) {
@@ -119,11 +227,13 @@ for (const key of requiredDomKeys) {
 const state = {
   doc: {
     width: 1200,
-    height: 800
+    height: 800,
+    defs: ""
   },
   tool: TOOLS.SELECT,
   objects: [],
   selection: [],
+  activeLayerId: null,
   activePathId: null,
   directSelection: {
     pathId: null,
@@ -140,7 +250,19 @@ const state = {
     marqueeCurrent: null,
     marqueeAdditive: false,
     snapGuides: [],
-    startSelectionBounds: null
+    startSelectionBounds: null,
+    pencilPoints: null,
+    penDragPathId: null,
+    penDragAnchorIndex: null,
+    hoverAnchor: null,
+    penHistoryPathId: null,
+    dragStartLocal: null,
+    dragAnchorSnapshot: null,
+    dragHandleSnapshot: null,
+    activeHandle: null,
+    livePreviewPoint: null,
+    rafPending: false,
+    lastCursorPoint: null
   },
   history: {
     undo: [],
@@ -149,6 +271,14 @@ const state = {
   snap: {
     enabled: true,
     threshold: 6
+  },
+  view: {
+    zoom: 0.62,
+    panX: 0,
+    panY: 0,
+    grid: true,
+    rulers: true,
+    fitted: false
   }
 };
 
@@ -170,9 +300,144 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? clamp(number, min, max) : fallback;
+}
+
 function round(value, precision = 3) {
   const m = 10 ** precision;
   return Math.round(value * m) / m;
+}
+
+function matrixIdentity() {
+  return [1, 0, 0, 1, 0, 0];
+}
+
+function matrixMultiply(left, right) {
+  const [a1, b1, c1, d1, e1, f1] = left || matrixIdentity();
+  const [a2, b2, c2, d2, e2, f2] = right || matrixIdentity();
+  return [
+    a1 * a2 + c1 * b2,
+    b1 * a2 + d1 * b2,
+    a1 * c2 + c1 * d2,
+    b1 * c2 + d1 * d2,
+    a1 * e2 + c1 * f2 + e1,
+    b1 * e2 + d1 * f2 + f1
+  ];
+}
+
+function matrixTranslate(x = 0, y = 0) {
+  return [1, 0, 0, 1, Number(x) || 0, Number(y) || 0];
+}
+
+function matrixScale(x = 1, y = x) {
+  const sx = Number.isFinite(Number(x)) ? Number(x) : 1;
+  const sy = Number.isFinite(Number(y)) ? Number(y) : sx;
+  return [sx, 0, 0, sy, 0, 0];
+}
+
+function matrixRotate(angle = 0, cx = 0, cy = 0) {
+  const radians = ((Number(angle) || 0) * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const rotation = [cos, sin, -sin, cos, 0, 0];
+  if (!cx && !cy) {
+    return rotation;
+  }
+  return matrixMultiply(matrixMultiply(matrixTranslate(cx, cy), rotation), matrixTranslate(-cx, -cy));
+}
+
+function matrixSkewX(angle = 0) {
+  return [1, 0, Math.tan(((Number(angle) || 0) * Math.PI) / 180), 1, 0, 0];
+}
+
+function matrixSkewY(angle = 0) {
+  return [1, Math.tan(((Number(angle) || 0) * Math.PI) / 180), 0, 1, 0, 0];
+}
+
+function matrixApplyPoint(matrix, point) {
+  const [a, b, c, d, e, f] = matrix || matrixIdentity();
+  return {
+    x: point.x * a + point.y * c + e,
+    y: point.x * b + point.y * d + f
+  };
+}
+
+function matrixInverse(matrix) {
+  const [a, b, c, d, e, f] = matrix || matrixIdentity();
+  const determinant = a * d - b * c;
+  if (Math.abs(determinant) < 0.0000001) {
+    console.warn("SVG editor: unsupported non-invertible transform matrix", matrix);
+    return matrixIdentity();
+  }
+  return [
+    d / determinant,
+    -b / determinant,
+    -c / determinant,
+    a / determinant,
+    (c * f - d * e) / determinant,
+    (b * e - a * f) / determinant
+  ];
+}
+
+function matrixIsIdentity(matrix) {
+  const m = matrix || matrixIdentity();
+  return (
+    Math.abs(m[0] - 1) < 0.000001 &&
+    Math.abs(m[1]) < 0.000001 &&
+    Math.abs(m[2]) < 0.000001 &&
+    Math.abs(m[3] - 1) < 0.000001 &&
+    Math.abs(m[4]) < 0.000001 &&
+    Math.abs(m[5]) < 0.000001
+  );
+}
+
+function matrixToString(matrix) {
+  return `matrix(${(matrix || matrixIdentity()).map((value) => round(value, 6)).join(" ")})`;
+}
+
+function gradientId(prefix = "gradient") {
+  return nextId(prefix).replace(/[^A-Za-z0-9_.:-]/g, "_");
+}
+
+function defaultGradient(kind = "linear", start = DEFAULT_STYLE.fill, end = "#7c3aed") {
+  return {
+    id: gradientId(kind === "radial" ? "radialGradient" : "linearGradient"),
+    type: kind === "radial" ? "radial" : "linear",
+    angle: 0,
+    stops: [
+      { offset: 0, color: colorToHex(start, "#90caf9"), opacity: 1 },
+      { offset: 1, color: colorToHex(end, "#7c3aed"), opacity: 1 }
+    ]
+  };
+}
+
+function normalizeGradient(gradient, fallbackStart = DEFAULT_STYLE.fill, fallbackEnd = "#7c3aed") {
+  if (!gradient || typeof gradient !== "object") {
+    return null;
+  }
+  const stops = Array.isArray(gradient.stops) && gradient.stops.length >= 2
+    ? gradient.stops.slice(0, 8)
+    : defaultGradient(gradient.type, fallbackStart, fallbackEnd).stops;
+  return {
+    id: typeof gradient.id === "string" && gradient.id ? gradient.id : gradientId(gradient.type === "radial" ? "radialGradient" : "linearGradient"),
+    type: gradient.type === "radial" ? "radial" : "linear",
+    angle: Number.isFinite(Number(gradient.angle)) ? Number(gradient.angle) : 0,
+    stops: stops.map((stop, index) => ({
+      offset: clampNumber(stop.offset, 0, 1, index / Math.max(1, stops.length - 1)),
+      color: stop.color || (index === 0 ? fallbackStart : fallbackEnd),
+      opacity: clampNumber(stop.opacity, 0, 1, 1)
+    }))
+  };
+}
+
+function transformToMatrix(transform) {
+  const t = normalizeTransform(transform);
+  if (Array.isArray(t.matrix)) {
+    return t.matrix;
+  }
+  return matrixMultiply(matrixMultiply(matrixTranslate(t.tx, t.ty), matrixRotate(t.rotation)), matrixScale(t.sx, t.sy));
 }
 
 const colorCanvas = document.createElement("canvas");
@@ -224,6 +489,15 @@ function deepClone(value) {
 }
 
 function normalizeTransform(transform) {
+  if (Array.isArray(transform?.matrix)) {
+    const matrix = transform.matrix.map(Number);
+    if (matrix.length === 6 && matrix.every(Number.isFinite)) {
+      return {
+        ...DEFAULT_TRANSFORM,
+        matrix
+      };
+    }
+  }
   return {
     ...DEFAULT_TRANSFORM,
     ...(transform || {})
@@ -231,14 +505,31 @@ function normalizeTransform(transform) {
 }
 
 function normalizeStyle(style) {
-  return {
+  const next = {
     ...DEFAULT_STYLE,
     ...(style || {})
   };
+  next.fillOpacity = clampNumber(next.fillOpacity, 0, 1, DEFAULT_STYLE.fillOpacity);
+  next.strokeOpacity = clampNumber(next.strokeOpacity, 0, 1, DEFAULT_STYLE.strokeOpacity);
+  next.opacity = clampNumber(next.opacity, 0, 1, DEFAULT_STYLE.opacity);
+  if (!["miter", "round", "bevel"].includes(next.strokeJoin)) {
+    next.strokeJoin = DEFAULT_STYLE.strokeJoin;
+  }
+  if (!["butt", "round", "square"].includes(next.strokeCap)) {
+    next.strokeCap = DEFAULT_STYLE.strokeCap;
+  }
+  next.strokeDasharray = typeof next.strokeDasharray === "string" ? next.strokeDasharray.trim() : "";
+  next.strokeMiterlimit = Math.max(1, Number(next.strokeMiterlimit) || DEFAULT_STYLE.strokeMiterlimit);
+  next.fillGradient = normalizeGradient(next.fillGradient, next.fill || DEFAULT_STYLE.fill, "#7c3aed");
+  next.strokeGradient = normalizeGradient(next.strokeGradient, next.stroke || DEFAULT_STYLE.stroke, "#ff7a18");
+  return next;
 }
 
 function transformToString(transform) {
   const t = normalizeTransform(transform);
+  if (Array.isArray(t.matrix)) {
+    return matrixIsIdentity(t.matrix) ? "" : matrixToString(t.matrix);
+  }
   const parts = [];
   if (t.tx || t.ty) {
     parts.push(`translate(${round(t.tx)} ${round(t.ty)})`);
@@ -250,6 +541,59 @@ function transformToString(transform) {
     parts.push(`scale(${round(t.sx)} ${round(t.sy)})`);
   }
   return parts.join(" ");
+}
+
+function parseTransformNumbers(value) {
+  return String(value || "")
+    .trim()
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map(Number)
+    .filter((number) => Number.isFinite(number));
+}
+
+function parseSvgTransformMatrix(transform) {
+  let matrix = matrixIdentity();
+  const text = String(transform || "").trim();
+  if (!text) {
+    return matrix;
+  }
+
+  const transformPattern = /([a-zA-Z]+)\(([^)]*)\)/g;
+  let match;
+  let consumed = false;
+
+  while ((match = transformPattern.exec(text))) {
+    consumed = true;
+    const type = match[1];
+    const values = parseTransformNumbers(match[2]);
+    let next = matrixIdentity();
+
+    if (type === "matrix" && values.length >= 6) {
+      next = values.slice(0, 6);
+    } else if (type === "translate" && values.length >= 1) {
+      next = matrixTranslate(values[0], values.length >= 2 ? values[1] : 0);
+    } else if (type === "scale" && values.length >= 1) {
+      next = matrixScale(values[0], values.length >= 2 ? values[1] : values[0]);
+    } else if (type === "rotate" && values.length >= 1) {
+      next = matrixRotate(values[0], values.length >= 3 ? values[1] : 0, values.length >= 3 ? values[2] : 0);
+    } else if (type === "skewX" && values.length >= 1) {
+      next = matrixSkewX(values[0]);
+    } else if (type === "skewY" && values.length >= 1) {
+      next = matrixSkewY(values[0]);
+    } else {
+      console.warn(`SVG editor: unsupported transform '${type}' ignored during import`);
+      continue;
+    }
+
+    matrix = matrixMultiply(matrix, next);
+  }
+
+  if (!consumed && text) {
+    console.warn("SVG editor: could not parse transform during import", text);
+  }
+
+  return matrix;
 }
 
 function buildPathD(anchors, closed) {
@@ -305,37 +649,24 @@ function parseLegacyTransform(transform) {
     return deepClone(DEFAULT_TRANSFORM);
   }
 
-  const result = deepClone(DEFAULT_TRANSFORM);
-  const translateMatch = transform.match(/translate\(([-\d.]+)[\s,]+([-\d.]+)\)/);
-  if (translateMatch) {
-    result.tx = Number(translateMatch[1]) || 0;
-    result.ty = Number(translateMatch[2]) || 0;
-  }
-
-  const rotateMatch = transform.match(/rotate\(([-\d.]+)/);
-  if (rotateMatch) {
-    result.rotation = Number(rotateMatch[1]) || 0;
-  }
-
-  const scaleMatch = transform.match(/scale\(([-\d.]+)(?:[\s,]+([-\d.]+))?\)/);
-  if (scaleMatch) {
-    const sx = Number(scaleMatch[1]);
-    const sy = Number(scaleMatch[2]);
-    result.sx = Number.isFinite(sx) ? sx : 1;
-    result.sy = Number.isFinite(sy) ? sy : result.sx;
-  }
-
-  return result;
+  const matrix = parseSvgTransformMatrix(transform);
+  return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
 }
 
 function parseLegacyPathD(pathD) {
   if (!pathD || typeof pathD !== "string") {
-    return { anchors: [], closed: false };
+    return { anchors: [], closed: false, rawD: "" };
   }
 
-  const tokens = pathD.match(/[MLCZmlcz]|-?\d*\.?\d+(?:e[-+]?\d+)?/g);
+  const commandTokens = pathD.match(/[AaCcHhLlMmQqSsTtVvZz]/g) || [];
+  if (commandTokens.some((command) => !/[MLCZmlcz]/.test(command))) {
+    console.warn("SVG editor: preserving complex path data instead of converting unsupported commands", pathD.slice(0, 120));
+    return { anchors: [], closed: /[Zz]/.test(commandTokens[commandTokens.length - 1] || ""), rawD: pathD, preserved: true };
+  }
+
+  const tokens = pathD.match(/[MLCZmlcz]|[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/g);
   if (!tokens) {
-    return { anchors: [], closed: false };
+    return { anchors: [], closed: false, rawD: pathD };
   }
 
   const anchors = [];
@@ -409,7 +740,7 @@ function parseLegacyPathD(pathD) {
     i += 1;
   }
 
-  return { anchors, closed };
+  return { anchors, closed, rawD: pathD };
 }
 
 function isCanonicalShape(raw) {
@@ -429,6 +760,7 @@ function normalizeCanonicalShape(raw, fallbackZ) {
     id: raw.id || nextId(),
     type: raw.type,
     name: raw.name || raw.type,
+    sourceId: typeof raw.sourceId === "string" ? raw.sourceId : null,
     zIndex: Number.isFinite(raw.zIndex) ? raw.zIndex : fallbackZ,
     visible: raw.visible !== false,
     locked: raw.locked === true,
@@ -460,7 +792,8 @@ function normalizeCanonicalShape(raw, fallbackZ) {
             ? { x: Number(anchor.outHandle.x), y: Number(anchor.outHandle.y) }
             : null
       })),
-      closed: geometry.closed === true
+      closed: geometry.closed === true,
+      rawD: typeof geometry.rawD === "string" ? geometry.rawD : ""
     };
   }
 
@@ -500,6 +833,7 @@ function fromLegacyShape(raw, fallbackZ) {
     id: raw?.id || nextId(),
     type,
     name: raw?.name || type,
+    sourceId: typeof raw?.sourceId === "string" ? raw.sourceId : null,
     zIndex: Number.isFinite(raw?.zIndex) ? raw.zIndex : fallbackZ,
     visible: raw?.visible !== false,
     locked: raw?.locked === true,
@@ -515,6 +849,43 @@ function fromLegacyShape(raw, fallbackZ) {
         cy: Number(raw?.cy ?? raw?.y ?? 0),
         rx: Math.max(1, Number(raw?.rx ?? raw?.width ?? 1)),
         ry: Math.max(1, Number(raw?.ry ?? raw?.height ?? 1))
+      }
+    };
+  }
+
+  if (type === "line") {
+    return {
+      ...base,
+      geometry: {
+        x1: Number(raw?.x1 ?? 0),
+        y1: Number(raw?.y1 ?? 0),
+        x2: Number(raw?.x2 ?? 1),
+        y2: Number(raw?.y2 ?? 1)
+      }
+    };
+  }
+
+  if (type === "polygon") {
+    return {
+      ...base,
+      geometry: {
+        cx: Number(raw?.cx ?? 0),
+        cy: Number(raw?.cy ?? 0),
+        radius: Math.max(1, Number(raw?.radius ?? 1)),
+        sides: clamp(Number(raw?.sides ?? 6), 3, 12)
+      }
+    };
+  }
+
+  if (type === "text") {
+    return {
+      ...base,
+      geometry: {
+        x: Number(raw?.x ?? 0),
+        y: Number(raw?.y ?? 0),
+        text: String(raw?.text ?? "Text"),
+        fontSize: Math.max(4, Number(raw?.fontSize ?? 48)),
+        fontFamily: String(raw?.fontFamily ?? "Inter, Arial, sans-serif")
       }
     };
   }
@@ -651,6 +1022,54 @@ function toLegacyShape(shape) {
     };
   }
 
+  if (shape.type === "line") {
+    return {
+      id: shape.id,
+      type: "line",
+      name: shape.name,
+      x1: shape.geometry.x1,
+      y1: shape.geometry.y1,
+      x2: shape.geometry.x2,
+      y2: shape.geometry.y2,
+      fill: { color: shape.style.fill },
+      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
+      opacity: shape.style.opacity,
+      transform: transformToString(shape.transform),
+      visible: shape.visible,
+      locked: shape.locked
+    };
+  }
+
+  if (shape.type === "polygon") {
+    return {
+      id: shape.id,
+      type: "polygon",
+      name: shape.name,
+      ...shape.geometry,
+      fill: { color: shape.style.fill },
+      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
+      opacity: shape.style.opacity,
+      transform: transformToString(shape.transform),
+      visible: shape.visible,
+      locked: shape.locked
+    };
+  }
+
+  if (shape.type === "text") {
+    return {
+      id: shape.id,
+      type: "text",
+      name: shape.name,
+      ...shape.geometry,
+      fill: { color: shape.style.fill },
+      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
+      opacity: shape.style.opacity,
+      transform: transformToString(shape.transform),
+      visible: shape.visible,
+      locked: shape.locked
+    };
+  }
+
   if (shape.type === "group") {
     return {
       id: shape.id,
@@ -661,6 +1080,39 @@ function toLegacyShape(shape) {
       visible: shape.visible,
       locked: shape.locked
     };
+  }
+
+  if (shape.type === "line") {
+    const g = shape.geometry;
+    const length = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
+    if (length < 0.1) {
+      return Math.hypot(local.x - g.x1, local.y - g.y1) <= 6;
+    }
+    const t = clamp(((local.x - g.x1) * (g.x2 - g.x1) + (local.y - g.y1) * (g.y2 - g.y1)) / (length * length), 0, 1);
+    const px = g.x1 + (g.x2 - g.x1) * t;
+    const py = g.y1 + (g.y2 - g.y1) * t;
+    return Math.hypot(local.x - px, local.y - py) <= Math.max(6, normalizeStyle(shape.style).strokeWidth + 4);
+  }
+
+  if (shape.type === "polygon") {
+    const points = polygonPoints(shape.geometry);
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
+      const pi = points[i];
+      const pj = points[j];
+      const intersect = pi.y > local.y !== pj.y > local.y && local.x < ((pj.x - pi.x) * (local.y - pi.y)) / (pj.y - pi.y) + pi.x;
+      if (intersect) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  if (shape.type === "text") {
+    const g = shape.geometry;
+    const width = Math.max(1, String(g.text || "").length * g.fontSize * 0.58);
+    const height = Math.max(1, g.fontSize);
+    return local.x >= g.x && local.x <= g.x + width && local.y >= g.y - height && local.y <= g.y + height * 0.25;
   }
 
   if (shape.type === "boolean") {
@@ -702,7 +1154,9 @@ function getSnapshot() {
     doc: state.doc,
     objects: state.objects,
     selection: state.selection,
-    activePathId: state.activePathId
+    activeLayerId: state.activeLayerId,
+    activePathId: state.activePathId,
+    directSelection: state.directSelection
   });
 }
 
@@ -710,9 +1164,21 @@ function restoreSnapshot(snapshot) {
   const parsed = JSON.parse(snapshot);
   state.doc.width = clamp(Number(parsed?.doc?.width ?? 1200), 64, 10000);
   state.doc.height = clamp(Number(parsed?.doc?.height ?? 800), 64, 10000);
+  state.doc.defs = typeof parsed?.doc?.defs === "string" ? parsed.doc.defs : "";
   state.objects = adaptShapeArray(parsed?.objects || []);
   state.selection = Array.isArray(parsed?.selection) ? parsed.selection.filter(Boolean) : [];
+  state.activeLayerId = typeof parsed?.activeLayerId === "string" ? parsed.activeLayerId : null;
   state.activePathId = typeof parsed?.activePathId === "string" ? parsed.activePathId : null;
+  state.directSelection.pathId =
+    typeof parsed?.directSelection?.pathId === "string" ? parsed.directSelection.pathId : null;
+  state.directSelection.anchorIndex = Number.isInteger(parsed?.directSelection?.anchorIndex)
+    ? parsed.directSelection.anchorIndex
+    : null;
+  if (!getObjectById(state.activeLayerId)) {
+    state.activeLayerId = state.objects.find((shape) => shape.type === "group")?.id || null;
+  }
+  resetPathDragState();
+  state.interaction.livePreviewPoint = null;
   render();
 }
 
@@ -750,6 +1216,8 @@ function redo() {
 function updateHistoryButtons() {
   dom.undoBtn.disabled = state.history.undo.length === 0;
   dom.redoBtn.disabled = state.history.redo.length === 0;
+  dom.undoToolbarBtn.disabled = state.history.undo.length === 0;
+  dom.redoToolbarBtn.disabled = state.history.redo.length === 0;
 }
 
 function getObjectById(id, objects = state.objects, parent = null) {
@@ -772,6 +1240,87 @@ function setStatus(message) {
   dom.statusLeft.textContent = message;
 }
 
+function renderSoon() {
+  if (state.interaction.rafPending) {
+    return;
+  }
+  state.interaction.rafPending = true;
+  window.requestAnimationFrame(() => {
+    state.interaction.rafPending = false;
+    render();
+  });
+}
+
+function capturePointer(event) {
+  try {
+    dom.canvas.setPointerCapture(event.pointerId);
+  } catch (error) {
+    // Pointer capture is an interaction enhancement; the global listeners still finish drags.
+  }
+}
+
+function releasePointer(event) {
+  try {
+    if (dom.canvas.hasPointerCapture(event.pointerId)) {
+      dom.canvas.releasePointerCapture(event.pointerId);
+    }
+  } catch (error) {
+    // Ignore unsupported or already-released pointer capture states.
+  }
+}
+
+function updateWorkspaceClasses() {
+  document.body.classList.toggle("is-select-tool", state.tool === TOOLS.SELECT);
+  document.body.classList.toggle("is-direct-tool", state.tool === TOOLS.DIRECT);
+  document.body.classList.toggle("is-hand-tool", state.tool === TOOLS.HAND);
+  document.body.classList.toggle("is-zoom-tool", state.tool === TOOLS.ZOOM);
+  document.body.classList.toggle("is-eyedropper-tool", state.tool === TOOLS.EYEDROPPER);
+  document.body.classList.toggle("is-pencil-tool", state.tool === TOOLS.PENCIL);
+  document.body.classList.toggle("hide-grid", !state.view.grid);
+  document.body.classList.toggle("hide-rulers", !state.view.rulers);
+  document.body.classList.toggle("is-panning", state.interaction.mode === "panning");
+}
+
+function applyViewTransform() {
+  dom.artboardWrap.style.width = `${state.doc.width}px`;
+  dom.artboardWrap.style.height = `${state.doc.height}px`;
+  dom.artboardWrap.style.transform = `translate(${round(state.view.panX, 2)}px, ${round(state.view.panY, 2)}px) scale(${round(state.view.zoom, 4)}) translate(-50%, -50%)`;
+  dom.zoomReadout.textContent = `${Math.round(state.view.zoom * 100)}%`;
+  dom.gridToggleBtn.classList.toggle("is-active", state.view.grid);
+  dom.rulersToggleBtn.classList.toggle("is-active", state.view.rulers);
+  updateWorkspaceClasses();
+}
+
+function fitArtboardToScreen() {
+  const rect = dom.pasteboard.getBoundingClientRect();
+  if (!rect.width || !rect.height) {
+    return;
+  }
+  const rulerInset = state.view.rulers ? 40 : 24;
+  const scaleX = Math.max(0.1, (rect.width - rulerInset * 2) / state.doc.width);
+  const scaleY = Math.max(0.1, (rect.height - rulerInset * 2) / state.doc.height);
+  state.view.zoom = clamp(Math.min(scaleX, scaleY), 0.08, 4);
+  state.view.panX = state.view.rulers ? 12 : 0;
+  state.view.panY = state.view.rulers ? 12 : 0;
+  state.view.fitted = true;
+  applyViewTransform();
+}
+
+function setZoom(nextZoom, anchorEvent = null) {
+  const previous = state.view.zoom;
+  state.view.zoom = clamp(nextZoom, 0.08, 8);
+  if (anchorEvent && previous !== state.view.zoom) {
+    const rect = dom.pasteboard.getBoundingClientRect();
+    const cx = anchorEvent.clientX - rect.left - rect.width / 2;
+    const cy = anchorEvent.clientY - rect.top - rect.height / 2;
+    const ratio = state.view.zoom / previous;
+    state.view.panX = cx - (cx - state.view.panX) * ratio;
+    state.view.panY = cy - (cy - state.view.panY) * ratio;
+  }
+  state.view.fitted = false;
+  applyViewTransform();
+}
+
 function svgPointFromEvent(event) {
   const point = dom.canvas.createSVGPoint();
   point.x = event.clientX;
@@ -786,6 +1335,9 @@ function svgPointFromEvent(event) {
 
 function applyInverseTransform(point, transform) {
   const t = normalizeTransform(transform);
+  if (Array.isArray(t.matrix)) {
+    return matrixApplyPoint(matrixInverse(t.matrix), point);
+  }
   let x = point.x - t.tx;
   let y = point.y - t.ty;
 
@@ -807,6 +1359,9 @@ function applyInverseTransform(point, transform) {
 
 function applyTransformToPoint(point, transform) {
   const t = normalizeTransform(transform);
+  if (Array.isArray(t.matrix)) {
+    return matrixApplyPoint(t.matrix, point);
+  }
   const sx = point.x * (t.sx || 1);
   const sy = point.y * (t.sy || 1);
   const radians = (t.rotation * Math.PI) / 180;
@@ -865,6 +1420,43 @@ function getEllipsePathCommands(shape) {
   ];
 }
 
+function getLinePathCommands(shape) {
+  const g = shape.geometry;
+  return [
+    { type: "M", x: g.x1, y: g.y1 },
+    { type: "L", x: g.x2, y: g.y2 }
+  ];
+}
+
+function polygonPoints(geometry) {
+  if (Array.isArray(geometry.points) && geometry.points.length > 0) {
+    return geometry.points;
+  }
+  const sides = clamp(Math.round(Number(geometry.sides) || 6), 3, 12);
+  const radius = Math.max(1, Number(geometry.radius) || 1);
+  const points = [];
+  for (let i = 0; i < sides; i += 1) {
+    const angle = -Math.PI / 2 + (i / sides) * Math.PI * 2;
+    points.push({
+      x: geometry.cx + Math.cos(angle) * radius,
+      y: geometry.cy + Math.sin(angle) * radius
+    });
+  }
+  return points;
+}
+
+function getPolygonPathCommands(shape) {
+  const points = polygonPoints(shape.geometry);
+  if (points.length === 0) {
+    return [];
+  }
+  return [
+    { type: "M", x: points[0].x, y: points[0].y },
+    ...points.slice(1).map((point) => ({ type: "L", x: point.x, y: point.y })),
+    { type: "Z" }
+  ];
+}
+
 function getPathShapeCommands(shape) {
   const anchors = shape.geometry.anchors || [];
   if (anchors.length === 0) {
@@ -919,6 +1511,12 @@ function shapeToPathCommands(shape) {
   }
   if (shape.type === "path") {
     return getPathShapeCommands(shape);
+  }
+  if (shape.type === "line") {
+    return getLinePathCommands(shape);
+  }
+  if (shape.type === "polygon") {
+    return getPolygonPathCommands(shape);
   }
   return null;
 }
@@ -1263,11 +1861,30 @@ function createSvgElement(tagName) {
   return document.createElementNS(SVG_NS, tagName);
 }
 
+function gradientPaintValue(style, paintKey) {
+  const gradient = paintKey === "stroke" ? style.strokeGradient : style.fillGradient;
+  return gradient ? `url(#${gradient.id})` : style[paintKey];
+}
+
 function applyPaintAttributes(node, style, fillOverride = null) {
-  const fill = fillOverride ?? style.fill ?? "none";
+  const fill = fillOverride ?? gradientPaintValue(style, "fill") ?? "none";
   node.setAttribute("fill", fill);
-  node.setAttribute("stroke", style.stroke || "none");
+  node.setAttribute("stroke", gradientPaintValue(style, "stroke") || "none");
   node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
+  node.setAttribute("stroke-linejoin", style.strokeJoin || "miter");
+  node.setAttribute("stroke-linecap", style.strokeCap || "butt");
+  if (style.strokeDasharray) {
+    node.setAttribute("stroke-dasharray", style.strokeDasharray);
+  }
+  if (style.strokeJoin === "miter") {
+    node.setAttribute("stroke-miterlimit", String(round(style.strokeMiterlimit || 4)));
+  }
+  if (style.fillOpacity !== 1) {
+    node.setAttribute("fill-opacity", String(round(style.fillOpacity)));
+  }
+  if (style.strokeOpacity !== 1) {
+    node.setAttribute("stroke-opacity", String(round(style.strokeOpacity)));
+  }
   node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
 }
 
@@ -1316,8 +1933,35 @@ function renderShape(shape, parentNode) {
     group.appendChild(node);
   } else if (shape.type === "path") {
     const node = createSvgElement("path");
-    node.setAttribute("d", buildPathD(shape.geometry.anchors, shape.geometry.closed));
-    applyPaintAttributes(node, style, shape.geometry.closed ? style.fill || "none" : "none");
+    node.setAttribute("d", shape.geometry.rawD || buildPathD(shape.geometry.anchors, shape.geometry.closed));
+    applyPaintAttributes(node, style, shape.geometry.rawD || shape.geometry.closed ? null : "none");
+    group.appendChild(node);
+  } else if (shape.type === "line") {
+    const node = createSvgElement("line");
+    node.setAttribute("x1", String(round(shape.geometry.x1)));
+    node.setAttribute("y1", String(round(shape.geometry.y1)));
+    node.setAttribute("x2", String(round(shape.geometry.x2)));
+    node.setAttribute("y2", String(round(shape.geometry.y2)));
+    applyPaintAttributes(node, style, "none");
+    group.appendChild(node);
+  } else if (shape.type === "polygon") {
+    const node = createSvgElement("polygon");
+    node.setAttribute(
+      "points",
+      polygonPoints(shape.geometry)
+        .map((point) => `${round(point.x)},${round(point.y)}`)
+        .join(" ")
+    );
+    applyPaintAttributes(node, style);
+    group.appendChild(node);
+  } else if (shape.type === "text") {
+    const node = createSvgElement("text");
+    node.setAttribute("x", String(round(shape.geometry.x)));
+    node.setAttribute("y", String(round(shape.geometry.y)));
+    node.setAttribute("font-size", String(round(shape.geometry.fontSize)));
+    node.setAttribute("font-family", shape.geometry.fontFamily || "Inter, Arial, sans-serif");
+    node.textContent = shape.geometry.text || "Text";
+    applyPaintAttributes(node, style, style.fill || "#111111");
     group.appendChild(node);
   } else if (shape.type === "boolean") {
     const op = shape.geometry?.op;
@@ -1396,6 +2040,73 @@ function renderShape(shape, parentNode) {
   }
 
   parentNode.appendChild(group);
+}
+
+function gradientToSvgNode(gradient) {
+  const normalized = normalizeGradient(gradient);
+  if (!normalized) {
+    return null;
+  }
+  const node = createSvgElement(normalized.type === "radial" ? "radialGradient" : "linearGradient");
+  node.setAttribute("id", normalized.id);
+  node.setAttribute("gradientUnits", "objectBoundingBox");
+  if (normalized.type === "linear") {
+    const radians = ((normalized.angle || 0) * Math.PI) / 180;
+    const dx = Math.cos(radians) / 2;
+    const dy = Math.sin(radians) / 2;
+    node.setAttribute("x1", String(round(0.5 - dx, 4)));
+    node.setAttribute("y1", String(round(0.5 - dy, 4)));
+    node.setAttribute("x2", String(round(0.5 + dx, 4)));
+    node.setAttribute("y2", String(round(0.5 + dy, 4)));
+  } else {
+    node.setAttribute("cx", "0.5");
+    node.setAttribute("cy", "0.5");
+    node.setAttribute("r", "0.5");
+  }
+  for (const stop of normalized.stops) {
+    const stopNode = createSvgElement("stop");
+    stopNode.setAttribute("offset", `${round(stop.offset * 100, 2)}%`);
+    stopNode.setAttribute("stop-color", stop.color);
+    if (stop.opacity !== 1) {
+      stopNode.setAttribute("stop-opacity", String(round(stop.opacity)));
+    }
+    node.appendChild(stopNode);
+  }
+  return node;
+}
+
+function collectStyleGradients(shapes = state.objects, gradients = new Map()) {
+  for (const shape of shapes) {
+    const style = normalizeStyle(shape.style);
+    for (const gradient of [style.fillGradient, style.strokeGradient]) {
+      if (gradient && !gradients.has(gradient.id)) {
+        gradients.set(gradient.id, gradient);
+      }
+    }
+    if (shape.type === "group" && Array.isArray(shape.children)) {
+      collectStyleGradients(shape.children, gradients);
+    }
+  }
+  return gradients;
+}
+
+function appendDocumentDefs(parentNode) {
+  const hasImportedDefs = Boolean(state.doc.defs);
+  const gradients = collectStyleGradients();
+  if (!hasImportedDefs && gradients.size === 0) {
+    return;
+  }
+  const defs = createSvgElement("defs");
+  if (hasImportedDefs) {
+    defs.innerHTML = state.doc.defs;
+  }
+  for (const gradient of gradients.values()) {
+    const node = gradientToSvgNode(gradient);
+    if (node) {
+      defs.appendChild(node);
+    }
+  }
+  parentNode.appendChild(defs);
 }
 
 function rectFromPoints(start, end) {
@@ -1490,7 +2201,7 @@ function drawSelectionOutline() {
     rect.setAttribute("height", String(round(bounds.height)));
     dom.overlay.appendChild(rect);
 
-    const isTransformTool = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
+    const isTransformTool = state.tool === TOOLS.SELECT;
     if (isTransformTool) {
       const centerX = bounds.x + bounds.width / 2;
 
@@ -1527,9 +2238,10 @@ function drawSelectionOutline() {
       }
     }
 
-    if (state.tool === TOOLS.DIRECT) {
-      drawDirectSelectionAnchors();
-    }
+  }
+
+  if (state.tool === TOOLS.DIRECT || (state.tool === TOOLS.PEN && state.activePathId)) {
+    drawDirectSelectionAnchors();
   }
 
   if (Array.isArray(state.interaction.snapGuides) && state.interaction.snapGuides.length > 0) {
@@ -1585,6 +2297,13 @@ function drawDirectSelectionAnchors() {
       if (state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index) {
         node.classList.add("is-active");
       }
+      if (state.interaction.hoverAnchor?.pathId === path.id && state.interaction.hoverAnchor?.anchorIndex === index) {
+        node.classList.add("is-hovered");
+      }
+      if (state.tool === TOOLS.PEN && state.activePathId === path.id && index === 0 && anchors.length >= 3) {
+        node.classList.add("is-close-target");
+        node.setAttribute("r", "6");
+      }
       dom.overlay.appendChild(node);
 
       const isActiveAnchor =
@@ -1621,8 +2340,32 @@ function drawDirectSelectionAnchors() {
         handleNode.dataset.handlePathId = path.id;
         handleNode.dataset.handleAnchorIndex = String(index);
         handleNode.dataset.handleKind = spec.kind;
+        if (
+          state.interaction.activeHandle?.pathId === path.id &&
+          state.interaction.activeHandle?.anchorIndex === index &&
+          state.interaction.activeHandle?.kind === spec.kind
+        ) {
+          handleNode.classList.add("is-active");
+        }
         dom.overlay.appendChild(handleNode);
       }
+    }
+  }
+
+  if (state.tool === TOOLS.PEN && state.activePathId && state.interaction.livePreviewPoint) {
+    const found = getObjectById(state.activePathId);
+    const anchors = found?.object?.geometry?.anchors || [];
+    const last = anchors[anchors.length - 1];
+    if (found?.object?.type === "path" && last) {
+      const start = applyTransformToPoint(last, found.object.transform);
+      const end = state.interaction.livePreviewPoint;
+      const line = createSvgElement("line");
+      line.setAttribute("class", "path-preview-line");
+      line.setAttribute("x1", String(round(start.x)));
+      line.setAttribute("y1", String(round(start.y)));
+      line.setAttribute("x2", String(round(end.x)));
+      line.setAttribute("y2", String(round(end.y)));
+      dom.overlay.appendChild(line);
     }
   }
 }
@@ -1652,6 +2395,11 @@ function updateLayersPanel() {
     if (state.selection.includes(shape.id)) {
       item.classList.add("is-selected");
     }
+    if (state.activeLayerId === shape.id || getTopLevelLayerForId(shape.id)?.id === state.activeLayerId) {
+      item.classList.add("is-active-layer");
+    }
+    item.classList.toggle("is-hidden", shape.visible === false);
+    item.classList.toggle("is-locked", shape.locked === true);
 
     const left = document.createElement("span");
     left.className = "layer-name-wrap";
@@ -1667,6 +2415,47 @@ function updateLayersPanel() {
     left.appendChild(name);
     left.appendChild(type);
     item.appendChild(left);
+
+    const visibilityBtn = document.createElement("span");
+    visibilityBtn.className = "layer-mini-button";
+    visibilityBtn.title = shape.visible === false ? "Show layer" : "Hide layer";
+    visibilityBtn.textContent = shape.visible === false ? "○" : "●";
+    visibilityBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      pushHistory();
+      shape.visible = shape.visible === false;
+      if (shape.visible === false) {
+        state.selection = state.selection.filter((id) => id !== shape.id);
+      }
+      render();
+    });
+    item.appendChild(visibilityBtn);
+
+    const lockBtn = document.createElement("span");
+    lockBtn.className = "layer-mini-button";
+    lockBtn.title = shape.locked ? "Unlock layer" : "Lock layer";
+    lockBtn.textContent = shape.locked ? "⌧" : "□";
+    lockBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      pushHistory();
+      shape.locked = !shape.locked;
+      if (shape.locked) {
+        state.selection = state.selection.filter((id) => id !== shape.id);
+      }
+      render();
+    });
+    item.appendChild(lockBtn);
+
+    item.addEventListener("dblclick", (event) => {
+      event.stopPropagation();
+      const nextName = window.prompt("Layer name", shape.name || shape.type);
+      const cleanedName = sanitizeManualName(nextName);
+      if (cleanedName) {
+        pushHistory();
+        shape.name = cleanedName;
+        render();
+      }
+    });
 
     if (depth === 0) {
       item.draggable = true;
@@ -1714,6 +2503,10 @@ function updateLayersPanel() {
       } else {
         state.selection = [shape.id];
       }
+      const layer = shape.type === "group" && depth === 0 ? shape : getTopLevelLayerForId(shape.id);
+      if (layer) {
+        state.activeLayerId = layer.id;
+      }
       state.activePathId = shape.type === "path" ? shape.id : null;
       if (state.tool === TOOLS.DIRECT && shape.type === "path") {
         state.directSelection.pathId = shape.id;
@@ -1746,10 +2539,15 @@ function render() {
   dom.canvas.setAttribute("viewBox", `0 0 ${state.doc.width} ${state.doc.height}`);
   dom.canvasBackground.setAttribute("width", String(state.doc.width));
   dom.canvasBackground.setAttribute("height", String(state.doc.height));
+  dom.gridBackground.setAttribute("width", String(state.doc.width));
+  dom.gridBackground.setAttribute("height", String(state.doc.height));
+  applyViewTransform();
 
   while (dom.scene.firstChild) {
     dom.scene.firstChild.remove();
   }
+
+  appendDocumentDefs(dom.scene);
 
   const shapes = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
   for (const shape of shapes) {
@@ -1759,36 +2557,91 @@ function render() {
   drawSelectionOutline();
   updateLayersPanel();
 
-  if (state.selection.length === 0) {
-    dom.selectionSummary.textContent = "No selection";
+  const primary = getPrimarySelectedObject();
+  const activeAnchor = getActiveAnchorSelection();
+  if (activeAnchor) {
+    dom.selectionSummary.textContent = `Anchor ${activeAnchor.anchorIndex + 1} on ${activeAnchor.path.name || "Path"}`;
+  } else if (state.selection.length === 0) {
+    const activeLayer = state.activeLayerId ? getObjectById(state.activeLayerId)?.object : null;
+    dom.selectionSummary.textContent = activeLayer ? `Active layer: ${activeLayer.name}` : "No selection";
+  } else if (state.selection.length === 1 && primary) {
+    const layer = getTopLevelLayerForId(primary.id);
+    dom.selectionSummary.textContent = layer && layer.id !== primary.id
+      ? `${primary.name || primary.type} (${primary.type}) in ${layer.name}`
+      : `${primary.name || primary.type} (${primary.type})`;
   } else {
     dom.selectionSummary.textContent = `${state.selection.length} selected`;
   }
 
-  const primary = getPrimarySelectedObject();
+  dom.objectNameInput.value = state.selection.length === 1 && primary ? primary.name || "" : "";
+  dom.objectNameInput.disabled = !(state.selection.length === 1 && primary);
+
   const style = primary ? normalizeStyle(primary.style) : deepClone(DEFAULT_STYLE);
   dom.fillInput.value = colorToHex(style.fill, "#90caf9");
   dom.strokeInput.value = colorToHex(style.stroke, "#1976d2");
+  dom.fillModeInput.value = style.fillGradient?.type || (style.fill === "none" ? "none" : "solid");
+  dom.strokeModeInput.value = style.strokeGradient?.type || (style.stroke === "none" ? "none" : "solid");
+  dom.fillOpacityInput.value = String(round(clampNumber(style.fillOpacity, 0, 1, 1), 2));
+  dom.strokeOpacityInput.value = String(round(clampNumber(style.strokeOpacity, 0, 1, 1), 2));
+  const fillGradient = style.fillGradient || defaultGradient("linear", style.fill, "#7c3aed");
+  const strokeGradient = style.strokeGradient || defaultGradient("linear", style.stroke, "#ff7a18");
+  dom.fillGradientStartInput.value = colorToHex(fillGradient.stops[0]?.color, "#90caf9");
+  dom.fillGradientEndInput.value = colorToHex(fillGradient.stops[fillGradient.stops.length - 1]?.color, "#7c3aed");
+  dom.fillGradientAngleInput.value = String(round(fillGradient.angle || 0, 1));
+  dom.strokeGradientStartInput.value = colorToHex(strokeGradient.stops[0]?.color, "#1976d2");
+  dom.strokeGradientEndInput.value = colorToHex(strokeGradient.stops[strokeGradient.stops.length - 1]?.color, "#ff7a18");
+  dom.strokeGradientAngleInput.value = String(round(strokeGradient.angle || 0, 1));
   dom.strokeWidthInput.value = String(round(clamp(Number(style.strokeWidth) || 0, 0, 64), 2));
+  dom.strokeDashInput.value = style.strokeDasharray || "";
+  dom.miterLimitInput.value = String(round(style.strokeMiterlimit || 4, 2));
+  dom.strokeJoinInput.value = style.strokeJoin || DEFAULT_STYLE.strokeJoin;
+  dom.strokeCapInput.value = style.strokeCap || DEFAULT_STYLE.strokeCap;
   dom.opacityInput.value = String(round(clamp(Number(style.opacity) || 1, 0, 1), 2));
-  dom.fillInput.disabled = state.selection.length === 0;
-  dom.strokeInput.disabled = state.selection.length === 0;
-  dom.strokeWidthInput.disabled = state.selection.length === 0;
-  dom.opacityInput.disabled = state.selection.length === 0;
+  dom.fillInput.disabled = false;
+  dom.strokeInput.disabled = false;
+  dom.fillModeInput.disabled = false;
+  dom.strokeModeInput.disabled = false;
+  dom.fillOpacityInput.disabled = false;
+  dom.strokeOpacityInput.disabled = false;
+  dom.fillGradientStartInput.disabled = dom.fillModeInput.value === "solid" || dom.fillModeInput.value === "none";
+  dom.fillGradientEndInput.disabled = dom.fillGradientStartInput.disabled;
+  dom.fillGradientAngleInput.disabled = dom.fillGradientStartInput.disabled;
+  dom.strokeGradientStartInput.disabled = dom.strokeModeInput.value === "solid" || dom.strokeModeInput.value === "none";
+  dom.strokeGradientEndInput.disabled = dom.strokeGradientStartInput.disabled;
+  dom.strokeGradientAngleInput.disabled = dom.strokeGradientStartInput.disabled;
+  dom.strokeWidthInput.disabled = false;
+  dom.strokeDashInput.disabled = false;
+  dom.miterLimitInput.disabled = false;
+  dom.strokeJoinInput.disabled = false;
+  dom.strokeCapInput.disabled = false;
+  dom.opacityInput.disabled = false;
 
   const singleSelection = state.selection.length === 1 ? primary : null;
   const singleBounds = state.selection.length === 1 ? getSelectionBounds() : null;
-  dom.transformXInput.value = String(round(singleBounds?.x ?? 0, 2));
-  dom.transformYInput.value = String(round(singleBounds?.y ?? 0, 2));
-  dom.transformWInput.value = String(round(Math.max(1, singleBounds?.width ?? 1), 2));
-  dom.transformHInput.value = String(round(Math.max(1, singleBounds?.height ?? 1), 2));
-  dom.transformRotateInput.value = String(round(singleSelection?.transform?.rotation ?? 0, 2));
-  const disableTransform = !singleSelection;
-  dom.transformXInput.disabled = disableTransform;
-  dom.transformYInput.disabled = disableTransform;
-  dom.transformWInput.disabled = disableTransform;
-  dom.transformHInput.disabled = disableTransform;
-  dom.transformRotateInput.disabled = disableTransform;
+  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
+    dom.transformXInput.value = String(round(activeAnchor.anchor.x, 2));
+    dom.transformYInput.value = String(round(activeAnchor.anchor.y, 2));
+    dom.transformWInput.value = "";
+    dom.transformHInput.value = "";
+    dom.transformRotateInput.value = "";
+    dom.transformXInput.disabled = false;
+    dom.transformYInput.disabled = false;
+    dom.transformWInput.disabled = true;
+    dom.transformHInput.disabled = true;
+    dom.transformRotateInput.disabled = true;
+  } else {
+    dom.transformXInput.value = String(round(singleBounds?.x ?? 0, 2));
+    dom.transformYInput.value = String(round(singleBounds?.y ?? 0, 2));
+    dom.transformWInput.value = String(round(Math.max(1, singleBounds?.width ?? 1), 2));
+    dom.transformHInput.value = String(round(Math.max(1, singleBounds?.height ?? 1), 2));
+    dom.transformRotateInput.value = String(round(singleSelection?.transform?.rotation ?? 0, 2));
+    const disableTransform = !singleSelection;
+    dom.transformXInput.disabled = disableTransform;
+    dom.transformYInput.disabled = disableTransform;
+    dom.transformWInput.disabled = disableTransform;
+    dom.transformHInput.disabled = disableTransform;
+    dom.transformRotateInput.disabled = disableTransform;
+  }
 
   const selectionCount = state.selection.length;
   const disableArrange = selectionCount < 2;
@@ -1806,13 +2659,15 @@ function render() {
   dom.booleanSubtractBtn.disabled = disableBoolean;
   dom.booleanIntersectBtn.disabled = disableBoolean;
   dom.snapToggleBtn.classList.toggle("is-active", state.snap.enabled);
+  dom.activeToolLabel.textContent = getToolLabel(state.tool);
 
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
 
   const legacySnapshot = state.objects.map(toLegacyShape);
   window.localStorage.setItem(STORAGE_LEGACY_KEY, JSON.stringify(legacySnapshot));
-  window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify(state.objects));
+  window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify({ doc: state.doc, objects: state.objects, activeLayerId: state.activeLayerId }));
+  refreshCodePanelIfOpen();
 }
 
 function deselectAll() {
@@ -1827,6 +2682,8 @@ function applyToolButtonState() {
     const isActive = node.dataset.tool === state.tool;
     node.classList.toggle("is-active", isActive);
   }
+  dom.activeToolLabel.textContent = getToolLabel(state.tool);
+  updateWorkspaceClasses();
 }
 
 function sortAndReindexObjects() {
@@ -1835,7 +2692,89 @@ function sortAndReindexObjects() {
     .map((shape, index) => ({ ...shape, zIndex: index }));
 }
 
-function addShape(shape) {
+function layerNameExists(name) {
+  return state.objects.some((shape) => shape.type === "group" && shape.name === name);
+}
+
+function nextLayerName() {
+  let index = 1;
+  while (layerNameExists(`Layer ${index}`)) {
+    index += 1;
+  }
+  return `Layer ${index}`;
+}
+
+function createLayerObject(name = nextLayerName()) {
+  return {
+    id: nextId("layer"),
+    type: "group",
+    name,
+    zIndex: state.objects.length,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: {
+      ...deepClone(DEFAULT_STYLE),
+      fill: "none"
+    },
+    geometry: { x: 0, y: 0, width: 0, height: 0 },
+    children: []
+  };
+}
+
+function addLayer({ recordHistory = true } = {}) {
+  if (recordHistory) {
+    pushHistory();
+  }
+  const layer = createLayerObject();
+  state.objects.push(layer);
+  sortAndReindexObjects();
+  state.activeLayerId = layer.id;
+  state.selection = [layer.id];
+  setStatus(`${layer.name} created`);
+  render();
+  return layer;
+}
+
+function getTopLevelLayerForId(id) {
+  if (!id) {
+    return null;
+  }
+  for (const top of state.objects) {
+    if (top.id === id) {
+      return top.type === "group" ? top : null;
+    }
+    if (top.type === "group" && getObjectById(id, top.children || [], top)) {
+      return top;
+    }
+  }
+  return null;
+}
+
+function getUsableActiveLayer({ createIfMissing = true } = {}) {
+  let layer = state.activeLayerId ? getObjectById(state.activeLayerId)?.object : null;
+  if (!layer || layer.type !== "group" || layer.locked || layer.visible === false) {
+    layer = state.objects.find((shape) => shape.type === "group" && shape.visible !== false && !shape.locked) || null;
+  }
+  if (!layer && createIfMissing) {
+    layer = createLayerObject();
+    state.objects.push(layer);
+    sortAndReindexObjects();
+  }
+  if (layer) {
+    state.activeLayerId = layer.id;
+  }
+  return layer;
+}
+
+function addShape(shape, { useActiveLayer = true } = {}) {
+  const layer = useActiveLayer ? getUsableActiveLayer({ createIfMissing: true }) : null;
+  if (layer && layer.type === "group" && !layer.locked && layer.visible !== false) {
+    layer.children ??= [];
+    layer.children.push({ ...shape, zIndex: layer.children.length });
+    layer.children = layer.children.map((child, index) => ({ ...child, zIndex: index }));
+    return;
+  }
   state.objects.push(shape);
   sortAndReindexObjects();
 }
@@ -1848,6 +2787,20 @@ function updateShape(id, updater) {
   updater(found.object);
 }
 
+function removeObjectsByIds(shapes, selected) {
+  return shapes
+    .filter((shape) => !selected.has(shape.id))
+    .map((shape) => {
+      if (shape.type !== "group" || !Array.isArray(shape.children)) {
+        return shape;
+      }
+      return {
+        ...shape,
+        children: removeObjectsByIds(shape.children, selected).map((child, index) => ({ ...child, zIndex: index }))
+      };
+    });
+}
+
 function getPrimarySelectedObject() {
   if (state.selection.length === 0) {
     return null;
@@ -1856,8 +2809,29 @@ function getPrimarySelectedObject() {
   return found ? found.object : null;
 }
 
+function getActiveAnchorSelection() {
+  const pathId = state.directSelection.pathId;
+  const anchorIndex = state.directSelection.anchorIndex;
+  const found = pathId ? getObjectById(pathId) : null;
+  if (!found || found.object.type !== "path" || !Number.isInteger(anchorIndex)) {
+    return null;
+  }
+  const anchor = found.object.geometry.anchors?.[anchorIndex];
+  if (!anchor) {
+    return null;
+  }
+  return {
+    path: found.object,
+    pathId,
+    anchor,
+    anchorIndex
+  };
+}
+
 function applyStyleToSelection(patch) {
   if (state.selection.length === 0) {
+    Object.assign(DEFAULT_STYLE, normalizeStyle({ ...DEFAULT_STYLE, ...patch }));
+    render();
     return;
   }
 
@@ -1873,7 +2847,78 @@ function applyStyleToSelection(patch) {
   render();
 }
 
+function applyPaintMode(paintKey, mode) {
+  const isStroke = paintKey === "stroke";
+  const gradientKey = isStroke ? "strokeGradient" : "fillGradient";
+  if (mode === "none") {
+    applyStyleToSelection({ [paintKey]: "none", [gradientKey]: null });
+    return;
+  }
+  if (mode === "solid") {
+    const input = isStroke ? dom.strokeInput : dom.fillInput;
+    applyStyleToSelection({ [paintKey]: input.value, [gradientKey]: null });
+    return;
+  }
+  const start = isStroke ? dom.strokeGradientStartInput.value : dom.fillGradientStartInput.value;
+  const end = isStroke ? dom.strokeGradientEndInput.value : dom.fillGradientEndInput.value;
+  const angle = Number(isStroke ? dom.strokeGradientAngleInput.value : dom.fillGradientAngleInput.value);
+  const gradient = defaultGradient(mode, start, end);
+  gradient.angle = Number.isFinite(angle) ? angle : 0;
+  applyStyleToSelection({ [paintKey]: `url(#${gradient.id})`, [gradientKey]: gradient });
+}
+
+function updateGradientStyle(paintKey) {
+  const isStroke = paintKey === "stroke";
+  const gradientKey = isStroke ? "strokeGradient" : "fillGradient";
+  const mode = isStroke ? dom.strokeModeInput.value : dom.fillModeInput.value;
+  if (mode !== "linear" && mode !== "radial") {
+    return;
+  }
+  const start = isStroke ? dom.strokeGradientStartInput.value : dom.fillGradientStartInput.value;
+  const end = isStroke ? dom.strokeGradientEndInput.value : dom.fillGradientEndInput.value;
+  const angle = Number(isStroke ? dom.strokeGradientAngleInput.value : dom.fillGradientAngleInput.value);
+  const current = getPrimarySelectedObject()?.style?.[gradientKey];
+  const gradient = normalizeGradient(current, start, end) || defaultGradient(mode, start, end);
+  gradient.type = mode;
+  gradient.angle = Number.isFinite(angle) ? angle : 0;
+  gradient.stops[0].color = start;
+  gradient.stops[gradient.stops.length - 1].color = end;
+  applyStyleToSelection({ [paintKey]: `url(#${gradient.id})`, [gradientKey]: gradient });
+}
+
+function commitStrokeDashEdit() {
+  const value = dom.strokeDashInput.value.trim();
+  applyStyleToSelection({ strokeDasharray: value.toLowerCase() === "none" ? "" : value });
+}
+
 function applyTransformInputsToSelection() {
+  const activeAnchor = getActiveAnchorSelection();
+  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
+    const nextX = Number(dom.transformXInput.value);
+    const nextY = Number(dom.transformYInput.value);
+    if (!Number.isFinite(nextX) && !Number.isFinite(nextY)) {
+      return;
+    }
+
+    pushHistory();
+    const anchor = activeAnchor.anchor;
+    const dx = Number.isFinite(nextX) ? nextX - anchor.x : 0;
+    const dy = Number.isFinite(nextY) ? nextY - anchor.y : 0;
+    anchor.x += dx;
+    anchor.y += dy;
+    if (anchor.inHandle) {
+      anchor.inHandle.x += dx;
+      anchor.inHandle.y += dy;
+    }
+    if (anchor.outHandle) {
+      anchor.outHandle.x += dx;
+      anchor.outHandle.y += dy;
+    }
+    setStatus(`Anchor ${activeAnchor.anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
+    render();
+    return;
+  }
+
   const primary = getPrimarySelectedObject();
   if (!primary || state.selection.length !== 1) {
     return;
@@ -2254,6 +3299,10 @@ function moveSelectionInLayer(direction) {
 function composeTransforms(parentTransform, childTransform) {
   const parent = normalizeTransform(parentTransform);
   const child = normalizeTransform(childTransform);
+  if (Array.isArray(parent.matrix) || Array.isArray(child.matrix)) {
+    const matrix = matrixMultiply(transformToMatrix(parent), transformToMatrix(child));
+    return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
+  }
   return {
     tx: parent.tx + child.tx,
     ty: parent.ty + child.ty,
@@ -2398,6 +3447,43 @@ function beginCreateShape(type, point) {
         ry: 1
       }
     });
+  } else if (type === TOOLS.LINE) {
+    addShape({
+      id,
+      type: "line",
+      name: "Line",
+      zIndex,
+      visible: true,
+      locked: false,
+      transform: deepClone(DEFAULT_TRANSFORM),
+      style: {
+        ...deepClone(DEFAULT_STYLE),
+        fill: "none"
+      },
+      geometry: {
+        x1: point.x,
+        y1: point.y,
+        x2: point.x + 1,
+        y2: point.y + 1
+      }
+    });
+  } else if (type === TOOLS.POLYGON) {
+    addShape({
+      id,
+      type: "polygon",
+      name: "Polygon",
+      zIndex,
+      visible: true,
+      locked: false,
+      transform: deepClone(DEFAULT_TRANSFORM),
+      style: deepClone(DEFAULT_STYLE),
+      geometry: {
+        cx: point.x,
+        cy: point.y,
+        radius: 1,
+        sides: 6
+      }
+    });
   }
 
   state.selection = [id];
@@ -2431,6 +3517,11 @@ function continueCreateShape(point) {
   } else if (found.object.type === "ellipse") {
     found.object.geometry.rx = Math.max(1, Math.abs(point.x - start.x));
     found.object.geometry.ry = Math.max(1, Math.abs(point.y - start.y));
+  } else if (found.object.type === "line") {
+    found.object.geometry.x2 = point.x;
+    found.object.geometry.y2 = point.y;
+  } else if (found.object.type === "polygon") {
+    found.object.geometry.radius = Math.max(1, Math.hypot(point.x - start.x, point.y - start.y));
   }
 }
 
@@ -2442,6 +3533,234 @@ function finishCreateShape() {
   state.interaction.draftId = null;
   state.interaction.start = null;
   setStatus("Ready");
+  render();
+}
+
+function createTextObject(point) {
+  const text = window.prompt("Text", "Type");
+  if (text === null) {
+    return;
+  }
+
+  pushHistory();
+  const id = nextId("text");
+  addShape({
+    id,
+    type: "text",
+    name: text.trim() ? `Text: ${text.trim().slice(0, 18)}` : "Text",
+    zIndex: state.objects.length,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: {
+      ...deepClone(DEFAULT_STYLE),
+      fill: "#111111",
+      stroke: "none",
+      strokeWidth: 0
+    },
+    geometry: {
+      x: point.x,
+      y: point.y,
+      text: text || "Text",
+      fontSize: 48,
+      fontFamily: "Inter, Arial, sans-serif"
+    }
+  });
+  state.selection = [id];
+  setStatus("Text created");
+  render();
+}
+
+function sampleStyleFromObject(id) {
+  const found = id ? getObjectById(id) : null;
+  if (!found) {
+    setStatus("Eyedropper: click an object to sample");
+    return;
+  }
+  const sampled = normalizeStyle(found.object.style);
+  if (state.selection.length > 0 && !state.selection.includes(found.object.id)) {
+    applyStyleToSelection(sampled);
+    setStatus("Sampled appearance applied to selection");
+  } else {
+    DEFAULT_STYLE.fill = sampled.fill;
+    DEFAULT_STYLE.stroke = sampled.stroke;
+    DEFAULT_STYLE.strokeWidth = sampled.strokeWidth;
+    DEFAULT_STYLE.strokeJoin = sampled.strokeJoin;
+    DEFAULT_STYLE.strokeCap = sampled.strokeCap;
+    DEFAULT_STYLE.strokeDasharray = sampled.strokeDasharray;
+    DEFAULT_STYLE.strokeMiterlimit = sampled.strokeMiterlimit;
+    DEFAULT_STYLE.fillOpacity = sampled.fillOpacity;
+    DEFAULT_STYLE.strokeOpacity = sampled.strokeOpacity;
+    DEFAULT_STYLE.fillGradient = sampled.fillGradient ? deepClone(sampled.fillGradient) : null;
+    DEFAULT_STYLE.strokeGradient = sampled.strokeGradient ? deepClone(sampled.strokeGradient) : null;
+    DEFAULT_STYLE.opacity = sampled.opacity;
+    setStatus("Default appearance sampled");
+    render();
+  }
+}
+
+function beginPan(event) {
+  state.interaction.mode = "panning";
+  state.interaction.pointerId = event.pointerId;
+  state.interaction.start = {
+    x: event.clientX,
+    y: event.clientY,
+    panX: state.view.panX,
+    panY: state.view.panY
+  };
+  updateWorkspaceClasses();
+}
+
+function continuePan(event) {
+  if (state.interaction.mode !== "panning" || !state.interaction.start) {
+    return;
+  }
+  state.view.panX = state.interaction.start.panX + event.clientX - state.interaction.start.x;
+  state.view.panY = state.interaction.start.panY + event.clientY - state.interaction.start.y;
+  state.view.fitted = false;
+  applyViewTransform();
+}
+
+function finishPan() {
+  if (state.interaction.mode !== "panning") {
+    return;
+  }
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  state.interaction.start = null;
+  updateWorkspaceClasses();
+}
+
+function getCurrentDrawingStyle({ fill = "none" } = {}) {
+  return normalizeStyle({
+    ...DEFAULT_STYLE,
+    fill,
+    fillGradient: fill === "none" ? null : DEFAULT_STYLE.fillGradient
+  });
+}
+
+function simplifyPoints(points, tolerance) {
+  if (!Array.isArray(points) || points.length <= 2 || tolerance <= 0) {
+    return points || [];
+  }
+
+  const perpendicularDistance = (point, start, end) => {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    if (dx === 0 && dy === 0) {
+      return Math.hypot(point.x - start.x, point.y - start.y);
+    }
+    return Math.abs(dy * point.x - dx * point.y + end.x * start.y - end.y * start.x) / Math.hypot(dx, dy);
+  };
+
+  const simplifyRange = (startIndex, endIndex, out) => {
+    let maxDistance = 0;
+    let maxIndex = startIndex;
+    for (let i = startIndex + 1; i < endIndex; i += 1) {
+      const distance = perpendicularDistance(points[i], points[startIndex], points[endIndex]);
+      if (distance > maxDistance) {
+        maxDistance = distance;
+        maxIndex = i;
+      }
+    }
+    if (maxDistance > tolerance) {
+      simplifyRange(startIndex, maxIndex, out);
+      out.pop();
+      simplifyRange(maxIndex, endIndex, out);
+    } else {
+      out.push(points[startIndex], points[endIndex]);
+    }
+  };
+
+  const simplified = [];
+  simplifyRange(0, points.length - 1, simplified);
+  return simplified.filter((point, index, arr) => index === 0 || point.x !== arr[index - 1].x || point.y !== arr[index - 1].y);
+}
+
+function beginPencilStroke(point, pointerId) {
+  pushHistory();
+  const id = nextId("pencil");
+  addShape({
+    id,
+    type: "path",
+    name: "Pencil Path",
+    zIndex: state.objects.length,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: getCurrentDrawingStyle({ fill: "none" }),
+    geometry: {
+      anchors: [{ x: point.x, y: point.y, inHandle: null, outHandle: null }],
+      closed: false
+    }
+  });
+  state.selection = [id];
+  state.activePathId = null;
+  state.directSelection.pathId = id;
+  state.directSelection.anchorIndex = 0;
+  state.interaction.mode = "pencil-drawing";
+  state.interaction.pointerId = pointerId;
+  state.interaction.draftId = id;
+  state.interaction.pencilPoints = [point];
+  setStatus("Drawing freehand path");
+  render();
+}
+
+function continuePencilStroke(point) {
+  if (state.interaction.mode !== "pencil-drawing" || !state.interaction.draftId) {
+    return;
+  }
+  const points = state.interaction.pencilPoints || [];
+  const previous = points[points.length - 1];
+  if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 2) {
+    return;
+  }
+  points.push(point);
+  state.interaction.pencilPoints = points;
+  const found = getObjectById(state.interaction.draftId);
+  if (!found || found.object.type !== "path") {
+    return;
+  }
+  found.object.geometry.anchors = points.map((entry) => ({
+    x: entry.x,
+    y: entry.y,
+    inHandle: null,
+    outHandle: null
+  }));
+  render();
+}
+
+function finishPencilStroke() {
+  if (state.interaction.mode !== "pencil-drawing") {
+    return;
+  }
+  const id = state.interaction.draftId;
+  const found = id ? getObjectById(id) : null;
+  if (found && found.object.type === "path") {
+    const smoothing = clamp(Number(dom.pencilSmoothingInput.value) || 0, 0, 16);
+    const simplified = simplifyPoints(state.interaction.pencilPoints || [], smoothing);
+    found.object.geometry.anchors = simplified.map((point) => ({
+      x: point.x,
+      y: point.y,
+      inHandle: null,
+      outHandle: null
+    }));
+    if (found.object.geometry.anchors.length < 2) {
+      state.objects = removeObjectsByIds(state.objects, new Set([id]));
+      state.selection = [];
+      state.history.undo.pop();
+      updateHistoryButtons();
+    } else {
+      state.selection = [id];
+      state.directSelection.pathId = id;
+      state.directSelection.anchorIndex = 0;
+    }
+  }
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  state.interaction.draftId = null;
+  state.interaction.pencilPoints = null;
+  setStatus("Pencil path created");
   render();
 }
 
@@ -2670,16 +3989,25 @@ function beginOrExtendPath(point) {
       }
     });
     state.activePathId = id;
+    state.interaction.penHistoryPathId = id;
     state.selection = [id];
+    state.directSelection.pathId = id;
+    state.directSelection.anchorIndex = 0;
     setStatus("Pen: click to add points");
     render();
-    return;
+    return { pathId: id, anchorIndex: 0, created: true };
   }
 
   const found = getObjectById(state.activePathId);
   if (!found || found.object.type !== "path") {
     state.activePathId = null;
-    return;
+    state.interaction.penHistoryPathId = null;
+    return null;
+  }
+
+  if (state.interaction.penHistoryPathId !== found.object.id) {
+    pushHistory();
+    state.interaction.penHistoryPathId = found.object.id;
   }
 
   const anchors = found.object.geometry.anchors;
@@ -2687,24 +4015,359 @@ function beginOrExtendPath(point) {
     const first = anchors[0];
     const dist = Math.hypot(first.x - point.x, first.y - point.y);
     if (dist < 10) {
-      pushHistory();
       found.object.geometry.closed = true;
       state.activePathId = null;
+      state.interaction.penHistoryPathId = null;
+      state.interaction.livePreviewPoint = null;
+      state.directSelection.pathId = found.object.id;
+      state.directSelection.anchorIndex = 0;
       setStatus("Path closed");
       render();
-      return;
+      return { pathId: found.object.id, anchorIndex: 0, closed: true };
     }
   }
 
-  pushHistory();
   anchors.push({
     x: point.x,
     y: point.y,
     inHandle: null,
     outHandle: null
   });
+  state.directSelection.pathId = found.object.id;
+  state.directSelection.anchorIndex = anchors.length - 1;
 
   render();
+  return { pathId: found.object.id, anchorIndex: anchors.length - 1, created: false };
+}
+
+function continuePenDrag(point, event) {
+  if (state.interaction.mode !== "pen-dragging") {
+    return;
+  }
+  const pathId = state.interaction.penDragPathId;
+  const anchorIndex = state.interaction.penDragAnchorIndex;
+  const found = pathId ? getObjectById(pathId) : null;
+  if (!found || found.object.type !== "path" || !Number.isInteger(anchorIndex)) {
+    return;
+  }
+
+  const anchor = found.object.geometry.anchors[anchorIndex];
+  const startAnchor = state.interaction.dragAnchorSnapshot;
+  const startLocal = state.interaction.dragStartLocal;
+  if (!anchor || !startAnchor || !startLocal) {
+    return;
+  }
+
+  const local = localPointForPath(found.object, point);
+  const dist = Math.hypot(local.x - startLocal.x, local.y - startLocal.y);
+  if (dist < 2) {
+    return;
+  }
+
+  const dx = local.x - startLocal.x;
+  const dy = local.y - startLocal.y;
+  anchor.outHandle = { x: startAnchor.x + dx, y: startAnchor.y + dy };
+  if (!event.altKey) {
+    anchor.inHandle = {
+      x: startAnchor.x - dx,
+      y: startAnchor.y - dy
+    };
+  }
+}
+
+function finishPenDrag() {
+  if (state.interaction.mode !== "pen-dragging") {
+    return;
+  }
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  state.interaction.start = null;
+  state.interaction.penDragPathId = null;
+  state.interaction.penDragAnchorIndex = null;
+  state.interaction.dragStartLocal = null;
+  state.interaction.dragAnchorSnapshot = null;
+  setStatus(state.activePathId ? "Pen: click to add points" : "Ready");
+  render();
+}
+
+function finishActivePath() {
+  if (!state.activePathId) {
+    return;
+  }
+  state.activePathId = null;
+  state.interaction.penHistoryPathId = null;
+  state.interaction.livePreviewPoint = null;
+  setStatus("Path finalized");
+  render();
+}
+
+function localPointForPath(path, point) {
+  return applyInverseTransform(point, path.transform);
+}
+
+function beginAnchorDrag(pathId, anchorIndex, point, pointerId) {
+  const foundPath = pathId ? getObjectById(pathId) : null;
+  if (
+    !foundPath ||
+    foundPath.object.type !== "path" ||
+    !Number.isInteger(anchorIndex) ||
+    anchorIndex < 0 ||
+    anchorIndex >= (foundPath.object.geometry.anchors || []).length
+  ) {
+    return false;
+  }
+
+  pushHistory();
+  const anchor = foundPath.object.geometry.anchors[anchorIndex];
+  state.selection = [pathId];
+  state.activePathId = pathId;
+  state.directSelection.pathId = pathId;
+  state.directSelection.anchorIndex = anchorIndex;
+  state.interaction.mode = "anchor-moving";
+  state.interaction.pointerId = pointerId;
+  state.interaction.start = point;
+  state.interaction.dragStartLocal = localPointForPath(foundPath.object, point);
+  state.interaction.dragAnchorSnapshot = deepClone(anchor);
+  state.interaction.dragHandleSnapshot = null;
+  state.interaction.activeHandle = null;
+  setStatus(`Anchor ${anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
+  return true;
+}
+
+function beginHandleDrag(pathId, anchorIndex, handleKind, point, pointerId) {
+  const foundPath = pathId ? getObjectById(pathId) : null;
+  if (
+    !foundPath ||
+    foundPath.object.type !== "path" ||
+    (handleKind !== "in" && handleKind !== "out") ||
+    !Number.isInteger(anchorIndex) ||
+    anchorIndex < 0 ||
+    anchorIndex >= (foundPath.object.geometry.anchors || []).length
+  ) {
+    return false;
+  }
+
+  pushHistory();
+  const anchor = foundPath.object.geometry.anchors[anchorIndex];
+  const key = handleKind === "in" ? "inHandle" : "outHandle";
+  const startHandle = anchor[key] || { x: anchor.x, y: anchor.y };
+  state.selection = [pathId];
+  state.activePathId = pathId;
+  state.directSelection.pathId = pathId;
+  state.directSelection.anchorIndex = anchorIndex;
+  state.interaction.mode = "handle-moving";
+  state.interaction.pointerId = pointerId;
+  state.interaction.start = point;
+  state.interaction.handleKind = handleKind;
+  state.interaction.dragStartLocal = localPointForPath(foundPath.object, point);
+  state.interaction.dragAnchorSnapshot = deepClone(anchor);
+  state.interaction.dragHandleSnapshot = deepClone(startHandle);
+  state.interaction.activeHandle = { pathId, anchorIndex, kind: handleKind };
+  setStatus(`Editing ${handleKind} handle`);
+  return true;
+}
+
+function continueAnchorDrag(point) {
+  const pathId = state.directSelection.pathId;
+  const anchorIndex = state.directSelection.anchorIndex;
+  const found = pathId ? getObjectById(pathId) : null;
+  const startAnchor = state.interaction.dragAnchorSnapshot;
+  const startLocal = state.interaction.dragStartLocal;
+  if (!found || found.object.type !== "path" || !startAnchor || !startLocal || !Number.isInteger(anchorIndex)) {
+    return;
+  }
+
+  const anchor = found.object.geometry.anchors[anchorIndex];
+  if (!anchor) {
+    return;
+  }
+
+  const local = localPointForPath(found.object, point);
+  const dx = local.x - startLocal.x;
+  const dy = local.y - startLocal.y;
+  anchor.x = startAnchor.x + dx;
+  anchor.y = startAnchor.y + dy;
+  anchor.inHandle = startAnchor.inHandle
+    ? { x: startAnchor.inHandle.x + dx, y: startAnchor.inHandle.y + dy }
+    : null;
+  anchor.outHandle = startAnchor.outHandle
+    ? { x: startAnchor.outHandle.x + dx, y: startAnchor.outHandle.y + dy }
+    : null;
+  setStatus(`Anchor ${anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
+}
+
+function continueHandleDrag(point, event) {
+  const pathId = state.directSelection.pathId;
+  const anchorIndex = state.directSelection.anchorIndex;
+  const found = pathId ? getObjectById(pathId) : null;
+  const startAnchor = state.interaction.dragAnchorSnapshot;
+  const startHandle = state.interaction.dragHandleSnapshot;
+  const startLocal = state.interaction.dragStartLocal;
+  if (!found || found.object.type !== "path" || !startAnchor || !startHandle || !startLocal || !Number.isInteger(anchorIndex)) {
+    return;
+  }
+
+  const anchor = found.object.geometry.anchors[anchorIndex];
+  if (!anchor) {
+    return;
+  }
+
+  const key = state.interaction.handleKind === "in" ? "inHandle" : "outHandle";
+  const oppositeKey = key === "inHandle" ? "outHandle" : "inHandle";
+  const local = localPointForPath(found.object, point);
+  const dx = local.x - startLocal.x;
+  const dy = local.y - startLocal.y;
+  const nextHandle = {
+    x: startHandle.x + dx,
+    y: startHandle.y + dy
+  };
+  anchor[key] = nextHandle;
+
+  if (!event.altKey) {
+    anchor[oppositeKey] = {
+      x: anchor.x - (nextHandle.x - anchor.x),
+      y: anchor.y - (nextHandle.y - anchor.y)
+    };
+  }
+  setStatus(`${state.interaction.handleKind} handle: ${round(nextHandle.x, 2)}, ${round(nextHandle.y, 2)}`);
+}
+
+function resetPathDragState() {
+  state.interaction.mode = null;
+  state.interaction.pointerId = null;
+  state.interaction.start = null;
+  state.interaction.handleKind = null;
+  state.interaction.dragStartLocal = null;
+  state.interaction.dragAnchorSnapshot = null;
+  state.interaction.dragHandleSnapshot = null;
+  state.interaction.activeHandle = null;
+}
+
+function toggleAnchorSmooth(pathId, anchorIndex) {
+  const found = pathId ? getObjectById(pathId) : null;
+  if (!found || found.object.type !== "path") {
+    return;
+  }
+  const anchor = found.object.geometry.anchors?.[anchorIndex];
+  if (!anchor) {
+    return;
+  }
+
+  pushHistory();
+  const hasHandles = Boolean(anchor.inHandle || anchor.outHandle);
+  if (hasHandles) {
+    anchor.inHandle = null;
+    anchor.outHandle = null;
+    setStatus("Converted anchor to corner");
+  } else {
+    const anchors = found.object.geometry.anchors;
+    const prev = anchors[anchorIndex - 1] || anchors[anchorIndex + 1] || { x: anchor.x - 32, y: anchor.y };
+    const next = anchors[anchorIndex + 1] || anchors[anchorIndex - 1] || { x: anchor.x + 32, y: anchor.y };
+    const vx = next.x - prev.x;
+    const vy = next.y - prev.y;
+    const length = Math.max(1, Math.hypot(vx, vy));
+    const handleLength = Math.min(80, Math.max(24, length / 4));
+    const ux = vx / length;
+    const uy = vy / length;
+    anchor.inHandle = {
+      x: anchor.x - ux * handleLength,
+      y: anchor.y - uy * handleLength
+    };
+    anchor.outHandle = {
+      x: anchor.x + ux * handleLength,
+      y: anchor.y + uy * handleLength
+    };
+    setStatus("Converted anchor to smooth");
+  }
+  state.selection = [pathId];
+  state.directSelection.pathId = pathId;
+  state.directSelection.anchorIndex = anchorIndex;
+  render();
+}
+
+function continueOpenPathFromEndpoint(pathId, anchorIndex) {
+  const found = pathId ? getObjectById(pathId) : null;
+  if (!found || found.object.type !== "path" || found.object.geometry.closed) {
+    return false;
+  }
+  const anchors = found.object.geometry.anchors || [];
+  if (anchors.length === 0 || (anchorIndex !== 0 && anchorIndex !== anchors.length - 1)) {
+    return false;
+  }
+
+  if (anchorIndex === 0) {
+    found.object.geometry.anchors = [...anchors].reverse().map((anchor) => ({
+      ...anchor,
+      inHandle: anchor.outHandle ? { ...anchor.outHandle } : null,
+      outHandle: anchor.inHandle ? { ...anchor.inHandle } : null
+    }));
+  }
+  state.activePathId = pathId;
+  state.interaction.penHistoryPathId = null;
+  state.selection = [pathId];
+  state.directSelection.pathId = pathId;
+  state.directSelection.anchorIndex = found.object.geometry.anchors.length - 1;
+  setStatus("Continuing open path");
+  render();
+  return true;
+}
+
+function removeLastActivePathAnchor() {
+  if (!state.activePathId) {
+    return false;
+  }
+  const found = getObjectById(state.activePathId);
+  if (!found || found.object.type !== "path") {
+    state.activePathId = null;
+    state.interaction.penHistoryPathId = null;
+    return false;
+  }
+  const anchors = found.object.geometry.anchors || [];
+  pushHistory();
+  anchors.pop();
+  if (anchors.length === 0) {
+    state.objects = removeObjectsByIds(state.objects, new Set([state.activePathId]));
+    state.selection = [];
+    state.activePathId = null;
+    state.directSelection.pathId = null;
+    state.directSelection.anchorIndex = null;
+  } else {
+    state.directSelection.pathId = found.object.id;
+    state.directSelection.anchorIndex = anchors.length - 1;
+  }
+  sortAndReindexObjects();
+  setStatus("Removed last pen anchor");
+  render();
+  return true;
+}
+
+function updatePenHoverAnchor(point) {
+  if (state.tool !== TOOLS.PEN || !state.activePathId) {
+    if (state.interaction.hoverAnchor) {
+      state.interaction.hoverAnchor = null;
+      render();
+    }
+    return;
+  }
+  const found = getObjectById(state.activePathId);
+  if (!found || found.object.type !== "path") {
+    return;
+  }
+  const anchors = found.object.geometry.anchors || [];
+  let nextHover = null;
+  anchors.forEach((anchor, index) => {
+    const world = applyTransformToPoint(anchor, found.object.transform);
+    if (Math.hypot(world.x - point.x, world.y - point.y) <= 10) {
+      nextHover = { pathId: found.object.id, anchorIndex: index };
+    }
+  });
+  const changed =
+    nextHover?.pathId !== state.interaction.hoverAnchor?.pathId ||
+    nextHover?.anchorIndex !== state.interaction.hoverAnchor?.anchorIndex;
+  if (changed) {
+    state.interaction.hoverAnchor = nextHover;
+    render();
+  }
 }
 
 function pointerDownOnCanvas(event) {
@@ -2714,58 +4377,33 @@ function pointerDownOnCanvas(event) {
 
   dom.canvas.focus();
   event.preventDefault();
+  capturePointer(event);
 
   const point = svgPointFromEvent(event);
   const bezierHandleNode = event.target.closest("[data-handle-path-id]");
-  if (state.tool === TOOLS.DIRECT && bezierHandleNode) {
+  if ((state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN) && bezierHandleNode) {
     const pathId = bezierHandleNode.dataset.handlePathId;
     const anchorIndex = Number(bezierHandleNode.dataset.handleAnchorIndex);
     const handleKind = bezierHandleNode.dataset.handleKind;
-    const foundPath = pathId ? getObjectById(pathId) : null;
-    if (
-      foundPath &&
-      foundPath.object.type === "path" &&
-      (handleKind === "in" || handleKind === "out") &&
-      Number.isInteger(anchorIndex) &&
-      anchorIndex >= 0 &&
-      anchorIndex < (foundPath.object.geometry.anchors || []).length
-    ) {
-      pushHistory();
-      state.selection = [pathId];
-      state.activePathId = pathId;
-      state.directSelection.pathId = pathId;
-      state.directSelection.anchorIndex = anchorIndex;
-      state.interaction.mode = "handle-moving";
-      state.interaction.pointerId = event.pointerId;
-      state.interaction.start = point;
-      state.interaction.handleKind = handleKind;
-      setStatus("Editing bezier handle");
+    if (beginHandleDrag(pathId, anchorIndex, handleKind, point, event.pointerId)) {
       render();
       return;
     }
   }
 
   const anchorNode = event.target.closest("[data-anchor-path-id]");
-  if (state.tool === TOOLS.DIRECT && anchorNode) {
+  if ((state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN) && anchorNode) {
     const pathId = anchorNode.dataset.anchorPathId;
     const anchorIndex = Number(anchorNode.dataset.anchorIndex);
     const foundPath = pathId ? getObjectById(pathId) : null;
-    if (
-      foundPath &&
-      foundPath.object.type === "path" &&
-      Number.isInteger(anchorIndex) &&
-      anchorIndex >= 0 &&
-      anchorIndex < (foundPath.object.geometry.anchors || []).length
-    ) {
-      pushHistory();
-      state.selection = [pathId];
-      state.activePathId = pathId;
-      state.directSelection.pathId = pathId;
-      state.directSelection.anchorIndex = anchorIndex;
-      state.interaction.mode = "anchor-moving";
-      state.interaction.pointerId = event.pointerId;
-      state.interaction.start = point;
-      setStatus("Editing path anchor");
+    if (event.altKey && foundPath?.object?.type === "path" && Number.isInteger(anchorIndex)) {
+      toggleAnchorSmooth(pathId, anchorIndex);
+      return;
+    }
+    if (state.tool === TOOLS.PEN && continueOpenPathFromEndpoint(pathId, anchorIndex)) {
+      return;
+    }
+    if (beginAnchorDrag(pathId, anchorIndex, point, event.pointerId)) {
       render();
       return;
     }
@@ -2784,14 +4422,52 @@ function pointerDownOnCanvas(event) {
   const objectId = hitTestTopObject(event, point);
   const found = objectId ? getObjectById(objectId) : null;
 
-  if (state.tool === TOOLS.RECT || state.tool === TOOLS.ELLIPSE) {
+  if (state.tool === TOOLS.HAND) {
+    beginPan(event);
+    return;
+  }
+
+  if (state.tool === TOOLS.ZOOM) {
+    setZoom(state.view.zoom * (event.altKey ? 0.8 : 1.25), event);
+    setStatus(`Zoom ${Math.round(state.view.zoom * 100)}%`);
+    return;
+  }
+
+  if (state.tool === TOOLS.EYEDROPPER) {
+    sampleStyleFromObject(objectId);
+    return;
+  }
+
+  if (state.tool === TOOLS.PENCIL) {
+    beginPencilStroke(point, event.pointerId);
+    return;
+  }
+
+  if (state.tool === TOOLS.TEXT) {
+    createTextObject(point);
+    return;
+  }
+
+  if (state.tool === TOOLS.RECT || state.tool === TOOLS.ELLIPSE || state.tool === TOOLS.LINE || state.tool === TOOLS.POLYGON) {
     beginCreateShape(state.tool, point);
     render();
     return;
   }
 
   if (state.tool === TOOLS.PEN) {
-    beginOrExtendPath(point);
+    const result = beginOrExtendPath(point);
+    if (result && !result.closed) {
+      const foundPath = getObjectById(result.pathId);
+      state.interaction.mode = "pen-dragging";
+      state.interaction.pointerId = event.pointerId;
+      state.interaction.start = point;
+      state.interaction.penDragPathId = result.pathId;
+      state.interaction.penDragAnchorIndex = result.anchorIndex;
+      state.interaction.dragStartLocal = foundPath ? localPointForPath(foundPath.object, point) : point;
+      state.interaction.dragAnchorSnapshot = foundPath
+        ? deepClone(foundPath.object.geometry.anchors[result.anchorIndex])
+        : null;
+    }
     return;
   }
 
@@ -2806,8 +4482,12 @@ function pointerDownOnCanvas(event) {
       } else {
         state.selection = [found.object.id];
       }
+      const layer = getTopLevelLayerForId(found.object.id);
+      if (layer) {
+        state.activeLayerId = layer.id;
+      }
 
-      if (!event.shiftKey) {
+      if (!event.shiftKey && state.tool === TOOLS.SELECT) {
         beginMoveSelection(point, event.pointerId);
       }
 
@@ -2820,6 +4500,9 @@ function pointerDownOnCanvas(event) {
       } else {
         state.directSelection.pathId = null;
         state.directSelection.anchorIndex = null;
+      }
+      if (state.tool === TOOLS.DIRECT) {
+        setStatus(found.object.type === "path" ? "Direct selection: edit anchors" : "Direct selection");
       }
     } else {
       const canMarquee = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
@@ -2839,7 +4522,32 @@ function pointerDownOnCanvas(event) {
 }
 
 function pointerMoveOnCanvas(event) {
+  if (
+    state.interaction.pointerId !== null &&
+    state.interaction.pointerId !== undefined &&
+    event.pointerId !== state.interaction.pointerId
+  ) {
+    return;
+  }
+
   const point = svgPointFromEvent(event);
+  state.interaction.lastCursorPoint = point;
+
+  if (state.interaction.mode === "panning") {
+    continuePan(event);
+    return;
+  }
+
+  if (state.interaction.mode === "pencil-drawing") {
+    continuePencilStroke(point);
+    return;
+  }
+
+  if (state.interaction.mode === "pen-dragging") {
+    continuePenDrag(point, event);
+    renderSoon();
+    return;
+  }
 
   if (state.interaction.mode === "marquee-select") {
     state.interaction.marqueeCurrent = point;
@@ -2848,51 +4556,14 @@ function pointerMoveOnCanvas(event) {
   }
 
   if (state.interaction.mode === "handle-moving") {
-    const pathId = state.directSelection.pathId;
-    const anchorIndex = state.directSelection.anchorIndex;
-    const found = pathId ? getObjectById(pathId) : null;
-    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
-      const local = applyInverseTransform(point, found.object.transform);
-      const anchor = found.object.geometry.anchors[anchorIndex];
-      if (anchor) {
-        const kind = state.interaction.handleKind === "in" ? "inHandle" : "outHandle";
-        const oppositeKind = kind === "inHandle" ? "outHandle" : "inHandle";
-        anchor[kind] = { x: local.x, y: local.y };
-        if (!event.altKey) {
-          anchor[oppositeKind] = {
-            x: anchor.x - (local.x - anchor.x),
-            y: anchor.y - (local.y - anchor.y)
-          };
-        }
-      }
-    }
-    render();
+    continueHandleDrag(point, event);
+    renderSoon();
     return;
   }
 
   if (state.interaction.mode === "anchor-moving") {
-    const pathId = state.directSelection.pathId;
-    const anchorIndex = state.directSelection.anchorIndex;
-    const found = pathId ? getObjectById(pathId) : null;
-    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
-      const local = applyInverseTransform(point, found.object.transform);
-      const anchor = found.object.geometry.anchors[anchorIndex];
-      if (anchor) {
-        const dx = local.x - anchor.x;
-        const dy = local.y - anchor.y;
-        anchor.x = local.x;
-        anchor.y = local.y;
-        if (anchor.inHandle) {
-          anchor.inHandle.x += dx;
-          anchor.inHandle.y += dy;
-        }
-        if (anchor.outHandle) {
-          anchor.outHandle.x += dx;
-          anchor.outHandle.y += dy;
-        }
-      }
-    }
-    render();
+    continueAnchorDrag(point);
+    renderSoon();
     return;
   }
 
@@ -2911,29 +4582,56 @@ function pointerMoveOnCanvas(event) {
   if (state.interaction.mode === "scaling" || state.interaction.mode === "rotating") {
     continueHandleTransform(point, event.shiftKey);
     render();
+    return;
+  }
+
+  if (state.tool === TOOLS.PEN && state.activePathId && state.interaction.mode === null) {
+    state.interaction.livePreviewPoint = point;
+  } else if (state.interaction.livePreviewPoint) {
+    state.interaction.livePreviewPoint = null;
+  }
+
+  updatePenHoverAnchor(point);
+  if (state.tool === TOOLS.PEN && state.activePathId) {
+    renderSoon();
+  } else if (state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT) {
+    setStatus(`Cursor: ${round(point.x, 1)}, ${round(point.y, 1)}`);
   }
 }
 
-function pointerUpOnCanvas() {
+function pointerUpOnCanvas(event = {}) {
+  if (event.pointerId !== undefined) {
+    releasePointer(event);
+  }
+
+  if (state.interaction.mode === "panning") {
+    finishPan();
+    return;
+  }
+
+  if (state.interaction.mode === "pencil-drawing") {
+    finishPencilStroke();
+    return;
+  }
+
+  if (state.interaction.mode === "pen-dragging") {
+    finishPenDrag();
+    return;
+  }
   if (state.interaction.mode === "marquee-select") {
     finishMarqueeSelection();
     return;
   }
 
   if (state.interaction.mode === "handle-moving") {
-    state.interaction.mode = null;
-    state.interaction.pointerId = null;
-    state.interaction.start = null;
-    state.interaction.handleKind = null;
+    resetPathDragState();
     setStatus("Ready");
     render();
     return;
   }
 
   if (state.interaction.mode === "anchor-moving") {
-    state.interaction.mode = null;
-    state.interaction.pointerId = null;
-    state.interaction.start = null;
+    resetPathDragState();
     setStatus("Ready");
     render();
     return;
@@ -2954,27 +4652,67 @@ function pointerUpOnCanvas() {
   }
 }
 
-function shapeToSvgString(shape, indent = "  ") {
+function escapeAttribute(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function safeExportId(value, usedIds) {
+  const candidate = String(value || "").trim();
+  if (!candidate || !/^[A-Za-z_][\w:.-]*$/.test(candidate) || usedIds.has(candidate)) {
+    return "";
+  }
+  usedIds.add(candidate);
+  return candidate;
+}
+
+function exportIdentityAttributes(shape, context) {
+  const attrs = [];
+  const name = sanitizeManualName(shape.name);
+  const id = safeExportId(shape.sourceId, context.usedIds);
+  if (id) {
+    attrs.push(`id="${escapeAttribute(id)}"`);
+  }
+  if (name) {
+    attrs.push(`data-name="${escapeAttribute(name)}"`);
+  }
+  return attrs.length ? ` ${attrs.join(" ")}` : "";
+}
+
+function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }) {
   if (shape.visible === false) {
     return "";
   }
 
   const style = normalizeStyle(shape.style);
   const styleAttributes = [];
-  const computedFill = shape.type === "path" && !shape.geometry.closed ? "none" : style.fill || "none";
-  const computedStroke = style.stroke || "none";
-  const computedStrokeWidth = round(clamp(Number(style.strokeWidth) || 0, 0, 999), 3);
-  const computedOpacity = round(clamp(Number(style.opacity) || 1, 0, 1), 3);
+  const computedFill = shape.type === "path" && !shape.geometry.rawD && !shape.geometry.closed ? "none" : gradientPaintValue(style, "fill") || "none";
+  const computedStroke = gradientPaintValue(style, "stroke") || "none";
+  const computedStrokeWidth = round(clampNumber(style.strokeWidth, 0, 999, 0), 3);
+  const computedOpacity = round(clampNumber(style.opacity, 0, 1, 1), 3);
+  const computedFillOpacity = round(clampNumber(style.fillOpacity, 0, 1, 1), 3);
+  const computedStrokeOpacity = round(clampNumber(style.strokeOpacity, 0, 1, 1), 3);
 
   if (computedFill === "none") {
     styleAttributes.push(`fill="none"`);
   } else {
-    styleAttributes.push(`fill="${computedFill}"`);
+    styleAttributes.push(`fill="${escapeAttribute(computedFill)}"`);
   }
 
   if (computedStroke && computedStroke !== "none" && computedStrokeWidth > 0) {
-    styleAttributes.push(`stroke="${computedStroke}"`);
+    styleAttributes.push(`stroke="${escapeAttribute(computedStroke)}"`);
     styleAttributes.push(`stroke-width="${computedStrokeWidth}"`);
+    styleAttributes.push(`stroke-linejoin="${style.strokeJoin || "miter"}"`);
+    styleAttributes.push(`stroke-linecap="${style.strokeCap || "butt"}"`);
+    if (style.strokeDasharray) {
+      styleAttributes.push(`stroke-dasharray="${escapeAttribute(style.strokeDasharray)}"`);
+    }
+    if ((style.strokeJoin || "miter") === "miter") {
+      styleAttributes.push(`stroke-miterlimit="${round(style.strokeMiterlimit || 4)}"`);
+    }
   } else {
     styleAttributes.push(`stroke="none"`);
   }
@@ -2982,28 +4720,56 @@ function shapeToSvgString(shape, indent = "  ") {
   if (computedOpacity !== 1) {
     styleAttributes.push(`opacity="${computedOpacity}"`);
   }
+  if (computedFillOpacity !== 1 && computedFill !== "none") {
+    styleAttributes.push(`fill-opacity="${computedFillOpacity}"`);
+  }
+  if (computedStrokeOpacity !== 1 && computedStroke && computedStroke !== "none") {
+    styleAttributes.push(`stroke-opacity="${computedStrokeOpacity}"`);
+  }
 
   const transform = transformToString(shape.transform);
   const transformAttribute = transform ? ` transform="${transform}"` : "";
+  const identityAttributes = exportIdentityAttributes(shape, context);
 
   if (shape.type === "rect") {
     const g = shape.geometry;
     const rx = g.rx ? ` rx="${round(g.rx)}"` : "";
     const ry = g.ry ? ` ry="${round(g.ry)}"` : "";
-    return `${indent}<rect x="${round(g.x)}" y="${round(g.y)}" width="${round(g.width)}" height="${round(g.height)}"${rx}${ry} ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<rect${identityAttributes} x="${round(g.x)}" y="${round(g.y)}" width="${round(g.width)}" height="${round(g.height)}"${rx}${ry} ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
 
   if (shape.type === "ellipse") {
     const g = shape.geometry;
-    return `${indent}<ellipse cx="${round(g.cx)}" cy="${round(g.cy)}" rx="${round(g.rx)}" ry="${round(g.ry)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<ellipse${identityAttributes} cx="${round(g.cx)}" cy="${round(g.cy)}" rx="${round(g.rx)}" ry="${round(g.ry)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
 
   if (shape.type === "path") {
-    const d = buildPathD(shape.geometry.anchors, shape.geometry.closed);
+    const d = shape.geometry.rawD || buildPathD(shape.geometry.anchors, shape.geometry.closed);
     if (!d) {
       return "";
     }
-    return `${indent}<path d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<path${identityAttributes} d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+  }
+
+  if (shape.type === "line") {
+    const g = shape.geometry;
+    return `${indent}<line${identityAttributes} x1="${round(g.x1)}" y1="${round(g.y1)}" x2="${round(g.x2)}" y2="${round(g.y2)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+  }
+
+  if (shape.type === "polygon") {
+    const points = polygonPoints(shape.geometry)
+      .map((point) => `${round(point.x)},${round(point.y)}`)
+      .join(" ");
+    return `${indent}<polygon${identityAttributes} points="${points}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+  }
+
+  if (shape.type === "text") {
+    const g = shape.geometry;
+    const escaped = String(g.text || "Text")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return `${indent}<text${identityAttributes} x="${round(g.x)}" y="${round(g.y)}" font-size="${round(g.fontSize)}" font-family="${escapeAttribute(g.fontFamily || "Inter, Arial, sans-serif")}" ${styleAttributes.join(" ")}${transformAttribute}>${escaped}</text>`;
   }
 
   if (shape.type === "boolean") {
@@ -3015,12 +4781,12 @@ function shapeToSvgString(shape, indent = "  ") {
     }
 
     if (op === "unite") {
-      return `${indent}<path d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+      return `${indent}<path${identityAttributes} d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
     }
 
     if (op === "intersect") {
       const clipId = `clip-${shape.id}`;
-      return `${indent}<g${transformAttribute}>
+      return `${indent}<g${identityAttributes}${transformAttribute}>
 ${indent}  <defs>
 ${indent}    <clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">
 ${indent}      <path d="${bPath}" />
@@ -3038,7 +4804,7 @@ ${indent}</g>`;
         height: state.doc.height
       };
       const maskId = `mask-${shape.id}`;
-      return `${indent}<g${transformAttribute}>
+      return `${indent}<g${identityAttributes}${transformAttribute}>
 ${indent}  <defs>
 ${indent}    <mask id="${maskId}" maskUnits="userSpaceOnUse" x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}">
 ${indent}      <rect x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}" fill="#fff" />
@@ -3053,13 +4819,13 @@ ${indent}</g>`;
   if (shape.type === "group") {
     const childLines = [...(shape.children || [])]
       .sort((a, b) => a.zIndex - b.zIndex)
-      .map((child) => shapeToSvgString(child, `${indent}  `))
+      .map((child) => shapeToSvgString(child, `${indent}  `, context))
       .filter(Boolean)
       .join("\n");
     if (!childLines) {
       return "";
     }
-    return `${indent}<g${transformAttribute}>\n${childLines}\n${indent}</g>`;
+    return `${indent}<g${identityAttributes}${transformAttribute}>\n${childLines}\n${indent}</g>`;
   }
 
   return "";
@@ -3067,13 +4833,798 @@ ${indent}</g>`;
 
 function exportSvgString() {
   const ordered = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
-  const lines = ordered.map((shape) => shapeToSvgString(shape, "  ")).filter(Boolean);
+  const context = { usedIds: new Set() };
+  const lines = ordered.map((shape) => shapeToSvgString(shape, "  ", context)).filter(Boolean);
+  const gradientLines = [];
+  const serializer = new XMLSerializer();
+  for (const gradient of collectStyleGradients().values()) {
+    const node = gradientToSvgNode(gradient);
+    if (node) {
+      gradientLines.push(`    ${serializer.serializeToString(node)}`);
+    }
+  }
+  const defsContent = [state.doc.defs, ...gradientLines].filter(Boolean).join("\n");
   return [
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
     `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${round(state.doc.width)}\" height=\"${round(state.doc.height)}\" viewBox=\"0 0 ${round(state.doc.width)} ${round(state.doc.height)}\">`,
+    defsContent ? `  <defs>\n${defsContent}\n  </defs>` : "",
     ...lines,
     "</svg>"
-  ].join("\n");
+  ].filter(Boolean).join("\n");
+}
+
+function getToolLabel(tool) {
+  const labels = {
+    [TOOLS.SELECT]: "Selection Tool",
+    [TOOLS.DIRECT]: "Direct Selection Tool",
+    [TOOLS.PEN]: "Pen Tool",
+    [TOOLS.PENCIL]: "Pencil Tool",
+    [TOOLS.RECT]: "Rectangle Tool",
+    [TOOLS.ELLIPSE]: "Ellipse Tool",
+    [TOOLS.POLYGON]: "Polygon Tool",
+    [TOOLS.LINE]: "Line Tool",
+    [TOOLS.TEXT]: "Type Tool",
+    [TOOLS.EYEDROPPER]: "Eyedropper Tool",
+    [TOOLS.HAND]: "Hand Tool",
+    [TOOLS.ZOOM]: "Zoom Tool"
+  };
+  return labels[tool] || "Tool";
+}
+
+function refreshCodePanelIfOpen() {
+  if (!dom.codeDrawer.classList.contains("is-open")) {
+    return;
+  }
+  dom.svgCodeInput.value = exportSvgString();
+  dom.svgValidationMessage.textContent = "Valid SVG";
+  dom.svgValidationMessage.classList.remove("is-error");
+}
+
+function validateSvgSource(source) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(source, "image/svg+xml");
+  const parseError = doc.querySelector("parsererror");
+  const svg = doc.documentElement?.tagName?.toLowerCase() === "svg" ? doc.documentElement : null;
+  if (parseError || !svg) {
+    return {
+      ok: false,
+      message: parseError?.textContent?.trim().split("\n")[0] || "Input must be a valid SVG element"
+    };
+  }
+  return { ok: true, svg };
+}
+
+function numberAttr(node, name, fallback = 0) {
+  const value = Number(node.getAttribute(name));
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function numberLengthAttr(node, name, fallback = 0) {
+  const raw = String(node.getAttribute(name) || "").trim();
+  const match = raw.match(/^[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/i);
+  const value = match ? Number(match[0]) : NaN;
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function parseSvgViewBox(svg) {
+  const values = String(svg.getAttribute("viewBox") || "")
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  if (values.length === 4 && values.every(Number.isFinite) && values[2] > 0 && values[3] > 0) {
+    return { x: values[0], y: values[1], width: values[2], height: values[3] };
+  }
+  return null;
+}
+
+function svgViewportInfo(svg) {
+  const viewBox = parseSvgViewBox(svg);
+  const fallbackWidth = viewBox?.width || state.doc.width;
+  const fallbackHeight = viewBox?.height || state.doc.height;
+  const width = clamp(numberLengthAttr(svg, "width", fallbackWidth), 64, 10000);
+  const height = clamp(numberLengthAttr(svg, "height", fallbackHeight), 64, 10000);
+  return { width, height, viewBox };
+}
+
+function viewBoxToViewportMatrix(svg, viewport) {
+  const viewBox = viewport.viewBox;
+  if (!viewBox) {
+    return matrixIdentity();
+  }
+
+  const preserve = String(svg.getAttribute("preserveAspectRatio") || "xMidYMid meet").trim();
+  if (preserve === "none") {
+    return matrixMultiply(
+      matrixScale(viewport.width / viewBox.width, viewport.height / viewBox.height),
+      matrixTranslate(-viewBox.x, -viewBox.y)
+    );
+  }
+
+  const [align = "xMidYMid", meetOrSlice = "meet"] = preserve.split(/\s+/);
+  const scaleX = viewport.width / viewBox.width;
+  const scaleY = viewport.height / viewBox.height;
+  const scale = meetOrSlice === "slice" ? Math.max(scaleX, scaleY) : Math.min(scaleX, scaleY);
+  let translateX = 0;
+  let translateY = 0;
+
+  if (/xMid/.test(align)) {
+    translateX = (viewport.width - viewBox.width * scale) / 2;
+  } else if (/xMax/.test(align)) {
+    translateX = viewport.width - viewBox.width * scale;
+  }
+  if (/YMid/.test(align)) {
+    translateY = (viewport.height - viewBox.height * scale) / 2;
+  } else if (/YMax/.test(align)) {
+    translateY = viewport.height - viewBox.height * scale;
+  }
+
+  return matrixMultiply(matrixTranslate(translateX, translateY), matrixMultiply(matrixScale(scale), matrixTranslate(-viewBox.x, -viewBox.y)));
+}
+
+function svgStyleMap(node) {
+  const styleText = node.getAttribute("style") || "";
+  return new Map(
+    styleText
+      .split(";")
+      .map((entry) => entry.split(":").map((part) => part.trim()))
+      .filter((entry) => entry.length === 2 && entry[0])
+  );
+}
+
+function styleObjectFromMap(map) {
+  const result = {};
+  for (const [key, value] of map.entries()) {
+    result[key] = value;
+  }
+  return result;
+}
+
+function styleMapFromText(text) {
+  return new Map(
+    String(text || "")
+      .split(";")
+      .map((entry) => entry.split(":").map((part) => part.trim()))
+      .filter((entry) => entry.length === 2 && entry[0])
+  );
+}
+
+function svgPresentationValue(node, name, fallback = "") {
+  const styleMap = svgStyleMap(node);
+  return node.getAttribute(name) || styleMap.get(name) || fallback;
+}
+
+function isSvgNodeHidden(node) {
+  const display = svgPresentationValue(node, "display", "").toLowerCase();
+  const visibility = svgPresentationValue(node, "visibility", "").toLowerCase();
+  const opacity = Number(svgPresentationValue(node, "opacity", "1"));
+  return display === "none" || visibility === "hidden" || opacity === 0;
+}
+
+function isSvgNodeLocked(node) {
+  const lockValues = [
+    node.getAttribute("data-locked"),
+    node.getAttribute("data-lock"),
+    node.getAttribute("locked"),
+    node.getAttribute("inkscape:locked"),
+    node.getAttribute("sodipodi:insensitive")
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+  const className = node.getAttribute("class") || "";
+  return lockValues.some((value) => value === "true" || value === "1" || value === "locked") || /\blocked\b/i.test(className);
+}
+
+function decodeNameValue(value) {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+  try {
+    return decodeURIComponent(raw);
+  } catch (error) {
+    return raw;
+  }
+}
+
+function cleanImportedName(value, { allowGeneratedId = false } = {}) {
+  let name = decodeNameValue(value)
+    .replace(/[_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!name || name === "." || name === "-") {
+    return "";
+  }
+
+  const generatedIdPattern = /^(?:path|rect|rectangle|ellipse|circle|g|group|layer|text|line|poly|polygon|polyline|shape|object)[\s_-]*\d+$/i;
+  if (!allowGeneratedId && generatedIdPattern.test(name)) {
+    return "";
+  }
+
+  return name;
+}
+
+function sanitizeManualName(value) {
+  return cleanImportedName(value, { allowGeneratedId: true });
+}
+
+function commitObjectNameEdit() {
+  const primary = getPrimarySelectedObject();
+  const nextName = sanitizeManualName(dom.objectNameInput.value);
+  if (!primary || !nextName || primary.name === nextName) {
+    render();
+    return;
+  }
+  pushHistory();
+  primary.name = nextName;
+  setStatus(`Renamed ${nextName}`);
+  render();
+}
+
+function childText(node, tagName) {
+  const child = [...node.children].find((candidate) => candidate.tagName?.toLowerCase() === tagName);
+  return child?.textContent || "";
+}
+
+function fallbackImportedName(tag, counters, { layer = false } = {}) {
+  const labels = {
+    g: layer ? "Layer" : "Group",
+    path: "Path",
+    rect: "Rectangle",
+    ellipse: "Ellipse",
+    circle: "Ellipse",
+    line: "Line",
+    polygon: "Polygon",
+    text: "Text"
+  };
+  const label = labels[tag] || "Object";
+  counters[label] = (counters[label] || 0) + 1;
+  return `${label} ${counters[label]}`;
+}
+
+function isLayerLikeGroup(node) {
+  const groupMode = node.getAttribute("inkscape:groupmode") || "";
+  const id = cleanImportedName(node.getAttribute("id"), { allowGeneratedId: true });
+  const dataName = cleanImportedName(node.getAttribute("data-name"), { allowGeneratedId: true });
+  const label = cleanImportedName(node.getAttribute("inkscape:label"), { allowGeneratedId: true });
+  return (
+    groupMode.toLowerCase() === "layer" ||
+    /^(?:layer|Layer)\s*\d*$/i.test(id) ||
+    /^(?:layer|Layer)\s*\d*$/i.test(dataName) ||
+    /^(?:layer|Layer)\s*\d*$/i.test(label)
+  );
+}
+
+function makeUniqueImportedName(name, counters) {
+  const base = sanitizeManualName(name);
+  if (!base) {
+    return "";
+  }
+  const key = base.toLowerCase();
+  counters.__names ??= {};
+  counters.__names[key] = (counters.__names[key] || 0) + 1;
+  return counters.__names[key] === 1 ? base : `${base} ${counters.__names[key]}`;
+}
+
+function getSvgNodeName(node, fallbackName, counters, kind = "object") {
+  const layerLike = kind === "group" && isLayerLikeGroup(node);
+  const groupCandidates = [
+    { value: node.getAttribute("inkscape:label"), allowGeneratedId: true },
+    { value: node.getAttribute("data-name"), allowGeneratedId: true },
+    { value: node.getAttribute("aria-label"), allowGeneratedId: true },
+    { value: childText(node, "title"), allowGeneratedId: true },
+    { value: childText(node, "desc"), allowGeneratedId: true },
+    { value: node.getAttribute("id"), allowGeneratedId: layerLike }
+  ];
+  const objectCandidates = [
+    { value: node.getAttribute("data-name"), allowGeneratedId: true },
+    { value: node.getAttribute("aria-label"), allowGeneratedId: true },
+    { value: childText(node, "title"), allowGeneratedId: true },
+    { value: childText(node, "desc"), allowGeneratedId: true },
+    { value: node.getAttribute("id"), allowGeneratedId: false }
+  ];
+  const candidates = kind === "group" ? groupCandidates : objectCandidates;
+
+  for (const candidate of candidates) {
+    const name = cleanImportedName(candidate.value, { allowGeneratedId: candidate.allowGeneratedId });
+    if (name) {
+      return makeUniqueImportedName(name, counters);
+    }
+  }
+
+  return makeUniqueImportedName(fallbackName, counters) || fallbackName;
+}
+
+function sourceIdFromNode(node) {
+  const raw = decodeNameValue(node.getAttribute("id")).trim();
+  if (!raw || !/^[A-Za-z_][\w:.-]*$/.test(raw)) {
+    return null;
+  }
+  return raw;
+}
+
+function cssUnescapeIdentifier(value) {
+  try {
+    return CSS?.escape ? value : value;
+  } catch (error) {
+    return value;
+  }
+}
+
+function parseCssDeclarations(text) {
+  return styleObjectFromMap(styleMapFromText(text));
+}
+
+function cssSpecificity(selector) {
+  if (selector.startsWith("#")) {
+    return 100;
+  }
+  if (selector.startsWith(".")) {
+    return 10;
+  }
+  return 1;
+}
+
+function parseEmbeddedSvgCss(svg) {
+  const rules = [];
+  let order = 0;
+  for (const styleNode of [...svg.querySelectorAll("style")]) {
+    const css = String(styleNode.textContent || "").replace(/\/\*[\s\S]*?\*\//g, "");
+    const rulePattern = /([^{}@]+)\{([^{}]+)\}/g;
+    let match;
+    while ((match = rulePattern.exec(css))) {
+      const declarations = parseCssDeclarations(match[2]);
+      for (const selector of match[1].split(",").map((part) => part.trim()).filter(Boolean)) {
+        if (/[\s>+~:[\]*]/.test(selector)) {
+          continue;
+        }
+        if (!selector.startsWith(".") && !selector.startsWith("#") && !/^[a-zA-Z][\w-]*$/.test(selector)) {
+          continue;
+        }
+        rules.push({
+          selector,
+          declarations,
+          specificity: cssSpecificity(selector),
+          order: order++
+        });
+      }
+    }
+  }
+  return rules;
+}
+
+function extractImportDefs(svg) {
+  const defsNodes = [...svg.children].filter((node) => (node.localName || node.tagName || "").toLowerCase() === "defs");
+  if (defsNodes.length === 0) {
+    return "";
+  }
+  const serializer = new XMLSerializer();
+  return defsNodes.map((defs) => [...defs.children].map((child) => serializer.serializeToString(child)).join("\n")).join("\n");
+}
+
+function cssRuleMatchesNode(rule, node) {
+  const selector = rule.selector;
+  if (selector.startsWith(".")) {
+    return [...node.classList].includes(cssUnescapeIdentifier(selector.slice(1)));
+  }
+  if (selector.startsWith("#")) {
+    return node.getAttribute("id") === cssUnescapeIdentifier(selector.slice(1));
+  }
+  return (node.localName || node.tagName || "").toLowerCase() === selector.toLowerCase();
+}
+
+function cssStyleForNode(node, context) {
+  const result = {};
+  const matches = (context?.cssRules || [])
+    .filter((rule) => cssRuleMatchesNode(rule, node))
+    .sort((a, b) => a.specificity - b.specificity || a.order - b.order);
+  for (const rule of matches) {
+    Object.assign(result, rule.declarations);
+  }
+  return result;
+}
+
+function svgStyleFromDeclarations(declarations) {
+  const read = (name) => declarations[name];
+  const readNumber = (name) => {
+    const match = String(read(name) || "").match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/i);
+    return match ? Number(match[0]) : NaN;
+  };
+  const style = {};
+  if (read("color")) {
+    style.color = read("color");
+  }
+  if (read("fill")) {
+    style.fill = read("fill");
+  }
+  if (read("stroke")) {
+    style.stroke = read("stroke");
+  }
+  if (read("stroke-width")) {
+    style.strokeWidth = readNumber("stroke-width");
+  }
+  if (read("stroke-linejoin")) {
+    style.strokeJoin = read("stroke-linejoin");
+  }
+  if (read("stroke-linecap")) {
+    style.strokeCap = read("stroke-linecap");
+  }
+  if (read("stroke-dasharray")) {
+    style.strokeDasharray = read("stroke-dasharray") === "none" ? "" : read("stroke-dasharray");
+  }
+  if (read("stroke-miterlimit")) {
+    style.strokeMiterlimit = readNumber("stroke-miterlimit");
+  }
+  if (read("fill-opacity")) {
+    style.fillOpacity = readNumber("fill-opacity");
+  }
+  if (read("stroke-opacity")) {
+    style.strokeOpacity = readNumber("stroke-opacity");
+  }
+  if (read("opacity")) {
+    style.opacity = readNumber("opacity");
+  }
+  return style;
+}
+
+function presentationStyleForNode(node) {
+  const declarations = {};
+  for (const name of [
+    "color",
+    "fill",
+    "stroke",
+    "stroke-width",
+    "stroke-linejoin",
+    "stroke-linecap",
+    "stroke-dasharray",
+    "stroke-miterlimit",
+    "fill-opacity",
+    "stroke-opacity",
+    "opacity"
+  ]) {
+    const value = node.getAttribute(name);
+    if (value !== null && value !== "") {
+      declarations[name] = value;
+    }
+  }
+  return svgStyleFromDeclarations(declarations);
+}
+
+function resolveCurrentColor(value, style) {
+  if (typeof value === "string" && value.trim().toLowerCase() === "currentcolor") {
+    return style.color || SVG_IMPORT_DEFAULT_STYLE.color;
+  }
+  return value;
+}
+
+function warnUnsupportedPaint(style, node) {
+  const tag = (node.localName || node.tagName || "element").toLowerCase();
+  for (const key of ["fill", "stroke"]) {
+    const value = style[key];
+    if (typeof value === "string" && /^url\(/i.test(value.trim())) {
+      console.warn(`SVG editor: preserving ${key} paint server '${value}' on imported ${tag}`);
+    }
+  }
+}
+
+function mergeInheritedStyle(parentStyle, node, context = null) {
+  const inlineStyle = styleObjectFromMap(svgStyleMap(node));
+  const next = normalizeStyle({
+    ...(parentStyle || SVG_IMPORT_DEFAULT_STYLE),
+    ...svgStyleFromDeclarations(cssStyleForNode(node, context)),
+    ...presentationStyleForNode(node),
+    ...svgStyleFromDeclarations(inlineStyle)
+  });
+  next.color = inlineStyle.color || node.getAttribute("color") || next.color || parentStyle?.color || SVG_IMPORT_DEFAULT_STYLE.color;
+  next.fill = resolveCurrentColor(next.fill, next);
+  next.stroke = resolveCurrentColor(next.stroke, next);
+  warnUnsupportedPaint(next, node);
+  return next;
+}
+
+function parseSvgPoints(value) {
+  const numbers = String(value || "").match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/gi)?.map(Number) || [];
+  const points = [];
+  for (let index = 0; index + 1 < numbers.length; index += 2) {
+    const x = numbers[index];
+    const y = numbers[index + 1];
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      points.push({ x, y });
+    }
+  }
+  return points;
+}
+
+function transformAnchor(anchor, matrix) {
+  const point = matrixApplyPoint(matrix, anchor);
+  return {
+    x: point.x,
+    y: point.y,
+    inHandle: anchor.inHandle ? matrixApplyPoint(matrix, anchor.inHandle) : null,
+    outHandle: anchor.outHandle ? matrixApplyPoint(matrix, anchor.outHandle) : null
+  };
+}
+
+function transformForImport(parentMatrix, node) {
+  const localMatrix = parseSvgTransformMatrix(node.getAttribute("transform"));
+  const matrix = matrixMultiply(parentMatrix || matrixIdentity(), localMatrix);
+  return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
+}
+
+function transformObjectGeometryForImport(shape, matrix) {
+  if (matrixIsIdentity(matrix)) {
+    return shape;
+  }
+  if (shape.type === "path" && !shape.geometry.rawD) {
+    shape.geometry.anchors = (shape.geometry.anchors || []).map((anchor) => transformAnchor(anchor, matrix));
+    shape.transform = deepClone(DEFAULT_TRANSFORM);
+    return shape;
+  }
+  if (shape.type === "polygon" && Array.isArray(shape.geometry.points)) {
+    shape.geometry.points = shape.geometry.points.map((point) => matrixApplyPoint(matrix, point));
+    shape.transform = deepClone(DEFAULT_TRANSFORM);
+    return shape;
+  }
+  if (shape.type === "line") {
+    const p1 = matrixApplyPoint(matrix, { x: shape.geometry.x1, y: shape.geometry.y1 });
+    const p2 = matrixApplyPoint(matrix, { x: shape.geometry.x2, y: shape.geometry.y2 });
+    shape.geometry.x1 = p1.x;
+    shape.geometry.y1 = p1.y;
+    shape.geometry.x2 = p2.x;
+    shape.geometry.y2 = p2.y;
+    shape.transform = deepClone(DEFAULT_TRANSFORM);
+    return shape;
+  }
+  shape.transform = matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
+  return shape;
+}
+
+function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdentity(), parentStyle = SVG_IMPORT_DEFAULT_STYLE, context = null) {
+  const tag = (node.localName || node.tagName).toLowerCase();
+  const fallbackName = fallbackImportedName(tag, counters);
+  const importMatrix = matrixMultiply(parentMatrix, parseSvgTransformMatrix(node.getAttribute("transform")));
+  const base = {
+    id: nextId(tag),
+    sourceId: sourceIdFromNode(node),
+    name: getSvgNodeName(node, fallbackName, counters, "object"),
+    zIndex,
+    visible: !isSvgNodeHidden(node),
+    locked: isSvgNodeLocked(node),
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: mergeInheritedStyle(parentStyle, node, context)
+  };
+
+  if (tag === "rect") {
+    return transformObjectGeometryForImport({
+      ...base,
+      type: "rect",
+      geometry: {
+        x: numberAttr(node, "x"),
+        y: numberAttr(node, "y"),
+        width: Math.max(1, numberAttr(node, "width", 1)),
+        height: Math.max(1, numberAttr(node, "height", 1)),
+        rx: numberAttr(node, "rx"),
+        ry: numberAttr(node, "ry")
+      }
+    }, importMatrix);
+  }
+  if (tag === "ellipse" || tag === "circle") {
+    const r = numberAttr(node, "r", 1);
+    return transformObjectGeometryForImport({
+      ...base,
+      type: "ellipse",
+      geometry: {
+        cx: numberAttr(node, "cx"),
+        cy: numberAttr(node, "cy"),
+        rx: tag === "circle" ? r : Math.max(1, numberAttr(node, "rx", 1)),
+        ry: tag === "circle" ? r : Math.max(1, numberAttr(node, "ry", 1))
+      }
+    }, importMatrix);
+  }
+  if (tag === "line") {
+    return transformObjectGeometryForImport({
+      ...base,
+      type: "line",
+      style: normalizeStyle({ ...base.style, fill: "none" }),
+      geometry: {
+        x1: numberAttr(node, "x1"),
+        y1: numberAttr(node, "y1"),
+        x2: numberAttr(node, "x2", 1),
+        y2: numberAttr(node, "y2", 1)
+      }
+    }, importMatrix);
+  }
+  if (tag === "polygon") {
+    const points = parseSvgPoints(node.getAttribute("points"));
+    if (points.length >= 3) {
+      const cx = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+      const cy = points.reduce((sum, point) => sum + point.y, 0) / points.length;
+      const radius = Math.max(...points.map((point) => Math.hypot(point.x - cx, point.y - cy)));
+      return transformObjectGeometryForImport({
+        ...base,
+        type: "polygon",
+        geometry: { cx, cy, radius, sides: clamp(points.length, 3, 12), points }
+      }, importMatrix);
+    }
+  }
+  if (tag === "polyline") {
+    const points = parseSvgPoints(node.getAttribute("points"));
+    if (points.length >= 2) {
+      return transformObjectGeometryForImport({
+        ...base,
+        type: "path",
+        style: normalizeStyle({ ...base.style, fill: "none" }),
+        geometry: {
+          anchors: points.map((point) => ({ x: point.x, y: point.y, inHandle: null, outHandle: null })),
+          closed: false
+        }
+      }, importMatrix);
+    }
+  }
+  if (tag === "path") {
+    const parsed = parseLegacyPathD(node.getAttribute("d") || "");
+    return transformObjectGeometryForImport({
+      ...base,
+      type: "path",
+      geometry: {
+        anchors: parsed.anchors,
+        closed: parsed.closed,
+        rawD: parsed.preserved ? parsed.rawD : ""
+      }
+    }, importMatrix);
+  }
+  if (tag === "text") {
+    return transformObjectGeometryForImport({
+      ...base,
+      type: "text",
+      geometry: {
+        x: numberAttr(node, "x"),
+        y: numberAttr(node, "y"),
+        text: node.textContent || "Text",
+        fontSize: Math.max(4, numberAttr(node, "font-size", 48)),
+        fontFamily: node.getAttribute("font-family") || "Inter, Arial, sans-serif"
+      }
+    }, importMatrix);
+  }
+  return null;
+}
+
+function importChildrenFromSvgNode(node, counters, parentMatrix = matrixIdentity(), parentStyle = SVG_IMPORT_DEFAULT_STYLE, context = null) {
+  const ignoredTags = new Set(["defs", "style", "metadata", "script", "title", "desc", "clipPath", "mask", "pattern", "linearGradient", "radialGradient"]);
+  const children = [];
+  const inheritedStyle = mergeInheritedStyle(parentStyle, node, context);
+
+  for (const child of [...node.children]) {
+    const tag = (child.localName || child.tagName)?.toLowerCase();
+    if (!tag || ignoredTags.has(tag)) {
+      continue;
+    }
+
+    if (tag === "g" || tag === "svg") {
+      const childMatrix = matrixMultiply(parentMatrix, parseSvgTransformMatrix(child.getAttribute("transform")));
+      const childStyle = mergeInheritedStyle(inheritedStyle, child, context);
+      const nestedChildren = importChildrenFromSvgNode(child, counters, childMatrix, childStyle, context);
+      if (nestedChildren.length === 0) {
+        continue;
+      }
+      const layerLike = isLayerLikeGroup(child);
+      const fallbackName = fallbackImportedName("g", counters, { layer: layerLike });
+      children.push({
+        id: nextId("group"),
+        type: "group",
+        sourceId: sourceIdFromNode(child),
+        name: getSvgNodeName(child, fallbackName, counters, "group"),
+        zIndex: children.length,
+        visible: !isSvgNodeHidden(child),
+        locked: isSvgNodeLocked(child),
+        transform: deepClone(DEFAULT_TRANSFORM),
+        style: {
+          ...childStyle,
+          fill: "none"
+        },
+        geometry: {
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0
+        },
+        children: nestedChildren.map((shape, index) => ({ ...shape, zIndex: index }))
+      });
+      continue;
+    }
+
+    const shape = shapeFromSvgElement(child, children.length, counters, parentMatrix, inheritedStyle, context);
+    if (shape) {
+      children.push(shape);
+    }
+  }
+
+  return children.map((shape, index) => ({ ...shape, zIndex: index }));
+}
+
+function parseSvgSourceToDocument(source) {
+  const result = validateSvgSource(source);
+  if (!result.ok) {
+    return result;
+  }
+
+  const svg = result.svg;
+  const counters = {};
+  const viewport = svgViewportInfo(svg);
+  const rootMatrix = viewBoxToViewportMatrix(svg, viewport);
+  const importContext = {
+    cssRules: parseEmbeddedSvgCss(svg),
+    defs: extractImportDefs(svg)
+  };
+  const nextObjects = importChildrenFromSvgNode(svg, counters, rootMatrix, SVG_IMPORT_DEFAULT_STYLE, importContext);
+  const nextDoc = {
+    width: viewport.width,
+    height: viewport.height,
+    defs: importContext.defs
+  };
+
+  return { ok: true, svg, objects: nextObjects, doc: nextDoc };
+}
+
+function applyImportedSvgDocument(parsed, sourceLabel) {
+  if (!parsed.ok) {
+    dom.svgValidationMessage.textContent = parsed.message;
+    dom.svgValidationMessage.classList.add("is-error");
+    setStatus(parsed.message);
+    return;
+  }
+
+  if (parsed.objects.length === 0) {
+    const message = "No supported SVG objects found";
+    dom.svgValidationMessage.textContent = message;
+    dom.svgValidationMessage.classList.add("is-error");
+    setStatus(message);
+    return;
+  }
+
+  pushHistory();
+  state.doc.width = parsed.doc.width;
+  state.doc.height = parsed.doc.height;
+  state.doc.defs = parsed.doc.defs || "";
+  state.objects = parsed.objects;
+  state.selection = [];
+  state.activeLayerId = state.objects.find((shape) => shape.type === "group" && shape.visible !== false && !shape.locked)?.id || null;
+  state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
+  dom.svgValidationMessage.textContent = `Imported ${parsed.objects.length} top-level layer(s)`;
+  dom.svgValidationMessage.classList.remove("is-error");
+  setStatus(`${sourceLabel} imported`);
+  render();
+}
+
+function applySvgCode() {
+  applyImportedSvgDocument(parseSvgSourceToDocument(dom.svgCodeInput.value), "SVG code");
+}
+
+function importSvgFile(file) {
+  if (!file) {
+    return;
+  }
+  if (file.type && file.type !== "image/svg+xml" && !file.name.toLowerCase().endsWith(".svg")) {
+    const message = "Choose a valid .svg file";
+    dom.svgValidationMessage.textContent = message;
+    dom.svgValidationMessage.classList.add("is-error");
+    setStatus(message);
+    return;
+  }
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    const source = String(reader.result || "");
+    applyImportedSvgDocument(parseSvgSourceToDocument(source), file.name || "SVG file");
+  });
+  reader.addEventListener("error", () => {
+    const message = "Unable to read SVG file";
+    dom.svgValidationMessage.textContent = message;
+    dom.svgValidationMessage.classList.add("is-error");
+    setStatus(message);
+  });
+  reader.readAsText(file);
 }
 
 function downloadSvg() {
@@ -3109,7 +5660,16 @@ function loadInitialDocument() {
   if (canonicalRaw) {
     try {
       const parsed = JSON.parse(canonicalRaw);
-      state.objects = adaptShapeArray(parsed);
+      state.objects = adaptShapeArray(Array.isArray(parsed) ? parsed : parsed.objects);
+      if (!Array.isArray(parsed) && parsed.doc) {
+        state.doc.width = clamp(Number(parsed.doc.width ?? state.doc.width), 64, 10000);
+        state.doc.height = clamp(Number(parsed.doc.height ?? state.doc.height), 64, 10000);
+        state.doc.defs = typeof parsed.doc.defs === "string" ? parsed.doc.defs : "";
+        state.activeLayerId = typeof parsed.activeLayerId === "string" ? parsed.activeLayerId : null;
+      }
+      if (!getObjectById(state.activeLayerId)) {
+        state.activeLayerId = state.objects.find((shape) => shape.type === "group")?.id || null;
+      }
       return;
     } catch (error) {
       console.warn("[svg-editor] Failed to parse canonical snapshot", error);
@@ -3131,20 +5691,98 @@ function loadInitialDocument() {
 }
 
 function deleteSelection() {
+  if (deleteActiveAnchor()) {
+    return;
+  }
+
   if (state.selection.length === 0) {
     return;
   }
 
   pushHistory();
   const selected = new Set(state.selection);
-  state.objects = state.objects.filter((shape) => !selected.has(shape.id));
+  state.objects = removeObjectsByIds(state.objects, selected);
   sortAndReindexObjects();
+  if (selected.has(state.activeLayerId)) {
+    state.activeLayerId = null;
+  }
   deselectAll();
   setStatus("Selection deleted");
   render();
 }
 
+function deleteActiveAnchor() {
+  const activeAnchor = getActiveAnchorSelection();
+  if (!activeAnchor || (state.tool !== TOOLS.DIRECT && state.tool !== TOOLS.PEN)) {
+    return false;
+  }
+
+  const anchors = activeAnchor.path.geometry.anchors || [];
+  if (anchors.length <= 2) {
+    setStatus("Path needs at least two anchors");
+    return true;
+  }
+
+  pushHistory();
+  anchors.splice(activeAnchor.anchorIndex, 1);
+  if (activeAnchor.path.geometry.closed && anchors.length < 3) {
+    activeAnchor.path.geometry.closed = false;
+  }
+  state.directSelection.anchorIndex = clamp(activeAnchor.anchorIndex, 0, anchors.length - 1);
+  setStatus("Anchor deleted");
+  render();
+  return true;
+}
+
+function duplicateSelection() {
+  if (state.selection.length === 0) {
+    return;
+  }
+
+  pushHistory();
+  const selected = new Set(state.selection);
+  const clones = state.objects
+    .filter((shape) => selected.has(shape.id))
+    .map((shape) => {
+      const clone = deepClone(shape);
+      clone.id = nextId(shape.type);
+      clone.name = `${shape.name || shape.type} copy`;
+      clone.transform = normalizeTransform(clone.transform);
+      clone.transform.tx += 18;
+      clone.transform.ty += 18;
+      clone.zIndex = state.objects.length;
+      return clone;
+    });
+
+  for (const clone of clones) {
+    state.objects.push(clone);
+  }
+  sortAndReindexObjects();
+  state.selection = clones.map((shape) => shape.id);
+  setStatus(`Duplicated ${clones.length} object(s)`);
+  render();
+}
+
 function moveSelectionBy(dx, dy) {
+  const activeAnchor = getActiveAnchorSelection();
+  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
+    pushHistory();
+    const anchor = activeAnchor.anchor;
+    anchor.x += dx;
+    anchor.y += dy;
+    if (anchor.inHandle) {
+      anchor.inHandle.x += dx;
+      anchor.inHandle.y += dy;
+    }
+    if (anchor.outHandle) {
+      anchor.outHandle.x += dx;
+      anchor.outHandle.y += dy;
+    }
+    setStatus(`Anchor ${activeAnchor.anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
+    render();
+    return;
+  }
+
   if (state.selection.length === 0) {
     return;
   }
@@ -3170,11 +5808,12 @@ function finishActivePathIfAny(cancel = false) {
   const found = getObjectById(state.activePathId);
   if (!found || found.object.type !== "path") {
     state.activePathId = null;
+    state.interaction.penHistoryPathId = null;
     return;
   }
 
   if (cancel || found.object.geometry.anchors.length <= 1) {
-    state.objects = state.objects.filter((shape) => shape.id !== state.activePathId);
+    state.objects = removeObjectsByIds(state.objects, new Set([state.activePathId]));
     sortAndReindexObjects();
     state.selection = [];
     setStatus("Path creation cancelled");
@@ -3183,6 +5822,7 @@ function finishActivePathIfAny(cancel = false) {
   }
 
   state.activePathId = null;
+  state.interaction.penHistoryPathId = null;
   render();
 }
 
@@ -3220,7 +5860,8 @@ function bindEvents() {
   dom.canvas.addEventListener("pointerdown", pointerDownOnCanvas);
   dom.canvas.addEventListener("pointermove", pointerMoveOnCanvas);
   dom.canvas.addEventListener("pointerup", pointerUpOnCanvas);
-  dom.canvas.addEventListener("pointerleave", pointerUpOnCanvas);
+  dom.canvas.addEventListener("pointercancel", pointerUpOnCanvas);
+  window.addEventListener("pointerup", pointerUpOnCanvas);
 
   dom.docWidth.addEventListener("change", () => {
     pushHistory();
@@ -3234,17 +5875,66 @@ function bindEvents() {
     render();
   });
 
+  dom.objectNameInput.addEventListener("change", commitObjectNameEdit);
+  dom.objectNameInput.addEventListener("blur", commitObjectNameEdit);
+  dom.objectNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitObjectNameEdit();
+    }
+  });
+
   dom.fillInput.addEventListener("change", () => {
-    applyStyleToSelection({ fill: dom.fillInput.value });
+    applyStyleToSelection({ fill: dom.fillInput.value, fillGradient: null });
+    dom.fillModeInput.value = "solid";
   });
 
   dom.strokeInput.addEventListener("change", () => {
-    applyStyleToSelection({ stroke: dom.strokeInput.value });
+    applyStyleToSelection({ stroke: dom.strokeInput.value, strokeGradient: null });
+    dom.strokeModeInput.value = "solid";
+  });
+
+  dom.fillModeInput.addEventListener("change", () => applyPaintMode("fill", dom.fillModeInput.value));
+  dom.strokeModeInput.addEventListener("change", () => applyPaintMode("stroke", dom.strokeModeInput.value));
+  for (const input of [dom.fillGradientStartInput, dom.fillGradientEndInput, dom.fillGradientAngleInput]) {
+    input.addEventListener("change", () => updateGradientStyle("fill"));
+  }
+  for (const input of [dom.strokeGradientStartInput, dom.strokeGradientEndInput, dom.strokeGradientAngleInput]) {
+    input.addEventListener("change", () => updateGradientStyle("stroke"));
+  }
+
+  dom.fillOpacityInput.addEventListener("change", () => {
+    applyStyleToSelection({ fillOpacity: clampNumber(dom.fillOpacityInput.value, 0, 1, 1) });
+  });
+
+  dom.strokeOpacityInput.addEventListener("change", () => {
+    applyStyleToSelection({ strokeOpacity: clampNumber(dom.strokeOpacityInput.value, 0, 1, 1) });
   });
 
   dom.strokeWidthInput.addEventListener("change", () => {
     const next = clamp(Number(dom.strokeWidthInput.value), 0, 64);
     applyStyleToSelection({ strokeWidth: Number.isFinite(next) ? next : 0 });
+  });
+
+  dom.strokeDashInput.addEventListener("change", commitStrokeDashEdit);
+  dom.strokeDashInput.addEventListener("blur", commitStrokeDashEdit);
+  dom.strokeDashInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitStrokeDashEdit();
+    }
+  });
+
+  dom.miterLimitInput.addEventListener("change", () => {
+    applyStyleToSelection({ strokeMiterlimit: Math.max(1, Number(dom.miterLimitInput.value) || 4) });
+  });
+
+  dom.strokeJoinInput.addEventListener("change", () => {
+    applyStyleToSelection({ strokeJoin: dom.strokeJoinInput.value });
+  });
+
+  dom.strokeCapInput.addEventListener("change", () => {
+    applyStyleToSelection({ strokeCap: dom.strokeCapInput.value });
   });
 
   dom.opacityInput.addEventListener("change", () => {
@@ -3264,8 +5954,34 @@ function bindEvents() {
 
   dom.undoBtn.addEventListener("click", undo);
   dom.redoBtn.addEventListener("click", redo);
+  dom.undoToolbarBtn.addEventListener("click", undo);
+  dom.redoToolbarBtn.addEventListener("click", redo);
+  dom.addLayerBtn.addEventListener("click", () => addLayer());
+  dom.duplicateBtn.addEventListener("click", duplicateSelection);
+  dom.deleteBtn.addEventListener("click", deleteSelection);
+  dom.importSvgBtn.addEventListener("click", () => dom.importSvgInput.click());
+  dom.importSvgToolbarBtn.addEventListener("click", () => dom.importSvgInput.click());
+  dom.importSvgInput.addEventListener("change", () => {
+    const [file] = dom.importSvgInput.files || [];
+    importSvgFile(file);
+    dom.importSvgInput.value = "";
+  });
   dom.downloadSvgBtn.addEventListener("click", downloadSvg);
   dom.copySvgBtn.addEventListener("click", copySvg);
+  dom.toggleCodeBtn.addEventListener("click", () => {
+    dom.codeDrawer.classList.toggle("is-open");
+    refreshCodePanelIfOpen();
+  });
+  dom.toggleCodeToolbarBtn.addEventListener("click", () => {
+    dom.codeDrawer.classList.toggle("is-open");
+    refreshCodePanelIfOpen();
+  });
+  dom.refreshSvgCodeBtn.addEventListener("click", () => {
+    dom.svgCodeInput.value = exportSvgString();
+    dom.svgValidationMessage.textContent = "Valid SVG";
+    dom.svgValidationMessage.classList.remove("is-error");
+  });
+  dom.applySvgCodeBtn.addEventListener("click", applySvgCode);
   dom.layerForwardBtn.addEventListener("click", () => moveSelectionInLayer(1));
   dom.layerBackwardBtn.addEventListener("click", () => moveSelectionInLayer(-1));
   dom.groupBtn.addEventListener("click", groupSelection);
@@ -3290,7 +6006,43 @@ function bindEvents() {
     setStatus(state.snap.enabled ? "Snapping enabled" : "Snapping disabled");
   });
 
+  dom.gridToggleBtn.addEventListener("click", () => {
+    state.view.grid = !state.view.grid;
+    render();
+    setStatus(state.view.grid ? "Grid visible" : "Grid hidden");
+  });
+
+  dom.rulersToggleBtn.addEventListener("click", () => {
+    state.view.rulers = !state.view.rulers;
+    render();
+    setStatus(state.view.rulers ? "Rulers visible" : "Rulers hidden");
+  });
+
+  dom.zoomInBtn.addEventListener("click", () => setZoom(state.view.zoom * 1.25));
+  dom.zoomOutBtn.addEventListener("click", () => setZoom(state.view.zoom * 0.8));
+  dom.fitScreenBtn.addEventListener("click", fitArtboardToScreen);
+  dom.resetViewBtn.addEventListener("click", () => {
+    state.view.zoom = 1;
+    state.view.panX = 0;
+    state.view.panY = 0;
+    state.view.fitted = false;
+    applyViewTransform();
+  });
+
+  dom.pasteboard.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      const direction = event.deltaY > 0 ? 0.9 : 1.1;
+      setZoom(state.view.zoom * direction, event);
+    },
+    { passive: false }
+  );
+
   window.addEventListener("keydown", (event) => {
+    const activeTag = document.activeElement?.tagName;
+    const isEditingField = activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT";
+
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
       if (event.shiftKey) {
         redo();
@@ -3307,14 +6059,60 @@ function bindEvents() {
       return;
     }
 
-    if (event.key === "Delete" || event.key === "Backspace") {
+    if (!isEditingField && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "d") {
+      duplicateSelection();
+      event.preventDefault();
+      return;
+    }
+
+    if (!isEditingField && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "g") {
+      if (event.shiftKey) {
+        ungroupSelection();
+      } else {
+        groupSelection();
+      }
+      event.preventDefault();
+      return;
+    }
+
+    if (!isEditingField && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      const toolKey = event.key.toLowerCase();
+      const keyMap = {
+        v: TOOLS.SELECT,
+        a: TOOLS.DIRECT,
+        p: TOOLS.PEN,
+        n: TOOLS.PENCIL,
+        m: TOOLS.RECT,
+        l: TOOLS.ELLIPSE,
+        t: TOOLS.TEXT,
+        h: TOOLS.HAND,
+        z: TOOLS.ZOOM,
+        i: TOOLS.EYEDROPPER
+      };
+      if (keyMap[toolKey]) {
+        if (state.tool === TOOLS.PEN && keyMap[toolKey] !== TOOLS.PEN) {
+          finishActivePathIfAny(false);
+        }
+        state.tool = keyMap[toolKey];
+        applyToolButtonState();
+        setStatus(`Tool: ${getToolLabel(state.tool)}`);
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (!isEditingField && (event.key === "Delete" || event.key === "Backspace")) {
+      if (removeLastActivePathAnchor()) {
+        event.preventDefault();
+        return;
+      }
       deleteSelection();
       event.preventDefault();
       return;
     }
 
-    if (event.key === "Escape") {
-      finishActivePathIfAny(true);
+    if (!isEditingField && event.key === "Escape") {
+      finishActivePath();
       state.interaction.mode = null;
       state.interaction.handleKind = null;
       resetMarqueeInteractionState();
@@ -3325,26 +6123,32 @@ function bindEvents() {
       return;
     }
 
-    const nudge = event.shiftKey ? 10 : 1;
-    if (event.key === "ArrowLeft") {
+    if (!isEditingField && event.key === "Enter") {
+      finishActivePath();
+      event.preventDefault();
+      return;
+    }
+
+    const nudge = event.altKey ? 0.1 : event.shiftKey ? 10 : 1;
+    if (!isEditingField && event.key === "ArrowLeft") {
       moveSelectionBy(-nudge, 0);
       event.preventDefault();
       return;
     }
 
-    if (event.key === "ArrowRight") {
+    if (!isEditingField && event.key === "ArrowRight") {
       moveSelectionBy(nudge, 0);
       event.preventDefault();
       return;
     }
 
-    if (event.key === "ArrowUp") {
+    if (!isEditingField && event.key === "ArrowUp") {
       moveSelectionBy(0, -nudge);
       event.preventDefault();
       return;
     }
 
-    if (event.key === "ArrowDown") {
+    if (!isEditingField && event.key === "ArrowDown") {
       moveSelectionBy(0, nudge);
       event.preventDefault();
       return;
@@ -3358,6 +6162,7 @@ function init() {
   bindEvents();
   updateHistoryButtons();
   render();
+  requestAnimationFrame(fitArtboardToScreen);
   setStatus("Ready");
 }
 

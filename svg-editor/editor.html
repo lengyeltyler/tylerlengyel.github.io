@@ -4,127 +4,301 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SVG Editor Local Runtime</title>
-  <link rel="stylesheet" href="./illustrator-lite.css?v=20260225-reset" />
+  <link rel="stylesheet" href="./illustrator-lite.css?v=20260507-names2" />
 </head>
 <body>
   <div class="editor-shell">
-    <header class="toolbar" role="toolbar" aria-label="Editor toolbar">
-      <div class="tool-group" id="tool-group">
-        <button type="button" class="tool-button is-active" data-tool="select">Select</button>
-        <button type="button" class="tool-button" data-tool="rect">Rect</button>
-        <button type="button" class="tool-button" data-tool="ellipse">Ellipse</button>
-        <button type="button" class="tool-button" data-tool="pen">Pen</button>
-        <button type="button" class="tool-button" data-tool="direct">Direct</button>
+    <header class="topbar" role="toolbar" aria-label="Editor options">
+      <div class="app-mark">
+        <span class="app-icon">Ai</span>
+        <span class="app-title">SVG Systems Lab</span>
       </div>
+
+      <div class="control-strip" id="tool-options">
+        <span class="option-label" id="active-tool-label">Selection Tool</span>
+        <label class="compact-field">
+          X
+          <input id="transform-x-input" type="number" step="0.5" value="0" />
+        </label>
+        <label class="compact-field">
+          Y
+          <input id="transform-y-input" type="number" step="0.5" value="0" />
+        </label>
+        <label class="compact-field">
+          W
+          <input id="transform-w-input" type="number" min="1" step="0.5" value="1" />
+        </label>
+        <label class="compact-field">
+          H
+          <input id="transform-h-input" type="number" min="1" step="0.5" value="1" />
+        </label>
+        <label class="compact-field">
+          R
+          <input id="transform-rotate-input" type="number" step="0.5" value="0" />
+        </label>
+      </div>
+
       <div class="toolbar-actions">
-        <button type="button" id="snap-toggle-btn" class="text-button is-active">Snap</button>
-        <button type="button" id="undo-btn" class="text-button">Undo</button>
-        <button type="button" id="redo-btn" class="text-button">Redo</button>
-        <button type="button" id="download-svg-btn" class="text-button">Download SVG</button>
-        <button type="button" id="copy-svg-btn" class="text-button">Copy SVG</button>
+        <button type="button" id="undo-btn" class="text-button" title="Undo">↶ Undo</button>
+        <button type="button" id="redo-btn" class="text-button" title="Redo">↷ Redo</button>
+        <button type="button" id="duplicate-btn" class="text-button">Duplicate</button>
+        <button type="button" id="delete-btn" class="text-button">Delete</button>
       </div>
     </header>
 
-    <div class="editor-body">
-      <aside class="panel" aria-label="Inspector panel">
-        <h2>Document</h2>
-        <div class="field-row">
-          <label for="doc-width-input">Width</label>
-          <input id="doc-width-input" type="number" min="64" max="10000" step="1" value="1200" />
+    <div class="workspace">
+      <aside class="tool-rail" aria-label="Tools">
+        <div class="tool-group" id="tool-group">
+          <button type="button" class="tool-button is-active" data-tool="select" title="Selection (V)">↖</button>
+          <button type="button" class="tool-button" data-tool="direct" title="Direct Selection (A)">⇱</button>
+          <button type="button" class="tool-button" data-tool="pen" title="Pen (P)">⌁</button>
+          <button type="button" class="tool-button" data-tool="pencil" title="Pencil (N)">✎</button>
+          <button type="button" class="tool-button" data-tool="rect" title="Rectangle (M)">□</button>
+          <button type="button" class="tool-button" data-tool="ellipse" title="Ellipse (L)">○</button>
+          <button type="button" class="tool-button" data-tool="polygon" title="Polygon">⬡</button>
+          <button type="button" class="tool-button" data-tool="line" title="Line">╱</button>
+          <button type="button" class="tool-button" data-tool="text" title="Text (T)">T</button>
+          <button type="button" class="tool-button" data-tool="eyedropper" title="Eyedropper (I)">◉</button>
+          <button type="button" class="tool-button" data-tool="hand" title="Hand (H)">✋</button>
+          <button type="button" class="tool-button" data-tool="zoom" title="Zoom (Z)">⌕</button>
         </div>
-        <div class="field-row">
-          <label for="doc-height-input">Height</label>
-          <input id="doc-height-input" type="number" min="64" max="10000" step="1" value="800" />
+
+        <div class="paint-stack" aria-label="Paint controls">
+          <label title="Fill">
+            <span>Fill</span>
+            <input id="fill-input" type="color" value="#90caf9" />
+          </label>
+          <label title="Stroke">
+            <span>Stroke</span>
+            <input id="stroke-input" type="color" value="#1976d2" />
+          </label>
         </div>
-        <h2>Style</h2>
-        <div class="field-row">
-          <label for="fill-input">Fill</label>
-          <input id="fill-input" type="color" value="#90caf9" />
-        </div>
-        <div class="field-row">
-          <label for="stroke-input">Stroke</label>
-          <input id="stroke-input" type="color" value="#1976d2" />
-        </div>
-        <div class="field-row">
-          <label for="stroke-width-input">Stroke width</label>
-          <input id="stroke-width-input" type="number" min="0" max="64" step="0.5" value="2" />
-        </div>
-        <div class="field-row">
-          <label for="opacity-input">Opacity</label>
-          <input id="opacity-input" type="range" min="0" max="1" step="0.01" value="1" />
-        </div>
-        <h2>Transform</h2>
-        <div class="field-row">
-          <label for="transform-x-input">X</label>
-          <input id="transform-x-input" type="number" step="0.5" value="0" />
-        </div>
-        <div class="field-row">
-          <label for="transform-y-input">Y</label>
-          <input id="transform-y-input" type="number" step="0.5" value="0" />
-        </div>
-        <div class="field-row">
-          <label for="transform-w-input">W</label>
-          <input id="transform-w-input" type="number" min="1" step="0.5" value="1" />
-        </div>
-        <div class="field-row">
-          <label for="transform-h-input">H</label>
-          <input id="transform-h-input" type="number" min="1" step="0.5" value="1" />
-        </div>
-        <div class="field-row">
-          <label for="transform-rotate-input">Rotate</label>
-          <input id="transform-rotate-input" type="number" step="0.5" value="0" />
-        </div>
-        <h2>Arrange</h2>
-        <div class="action-grid action-grid-three">
-          <button type="button" id="align-left-btn" class="text-button">Left</button>
-          <button type="button" id="align-hcenter-btn" class="text-button">H-Center</button>
-          <button type="button" id="align-right-btn" class="text-button">Right</button>
-        </div>
-        <div class="action-grid action-grid-three">
-          <button type="button" id="align-top-btn" class="text-button">Top</button>
-          <button type="button" id="align-vcenter-btn" class="text-button">V-Center</button>
-          <button type="button" id="align-bottom-btn" class="text-button">Bottom</button>
-        </div>
-        <div class="action-grid action-grid-two">
-          <button type="button" id="distribute-h-btn" class="text-button">Distribute H</button>
-          <button type="button" id="distribute-v-btn" class="text-button">Distribute V</button>
-        </div>
-        <h2>Boolean</h2>
-        <div class="action-grid action-grid-three">
-          <button type="button" id="boolean-unite-btn" class="text-button">Unite</button>
-          <button type="button" id="boolean-subtract-btn" class="text-button">Subtract</button>
-          <button type="button" id="boolean-intersect-btn" class="text-button">Intersect</button>
-        </div>
-        <p class="panel-note" id="selection-summary">No selection</p>
       </aside>
 
-      <main class="canvas-shell" aria-label="Drawing area">
-        <svg id="editor-canvas" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" tabindex="0">
-          <rect id="canvas-bg" x="0" y="0" width="1200" height="800" fill="#ffffff" />
-          <g id="scene-root"></g>
-          <g id="overlay-root"></g>
-        </svg>
+      <main class="canvas-zone" aria-label="Drawing area">
+        <div class="canvas-utility-bar">
+          <div class="utility-group">
+            <button type="button" id="grid-toggle-btn" class="chip-button is-active">Grid</button>
+            <button type="button" id="rulers-toggle-btn" class="chip-button is-active">Rulers</button>
+            <button type="button" id="snap-toggle-btn" class="chip-button is-active">Snap</button>
+            <button type="button" id="undo-toolbar-btn" class="chip-button">↶ Undo</button>
+            <button type="button" id="redo-toolbar-btn" class="chip-button">↷ Redo</button>
+            <button type="button" id="import-svg-toolbar-btn" class="chip-button">Import SVG</button>
+            <button type="button" id="toggle-code-toolbar-btn" class="chip-button">SVG Code</button>
+          </div>
+          <div class="utility-group">
+            <button type="button" id="zoom-out-btn" class="icon-button" title="Zoom out">−</button>
+            <span id="zoom-readout" class="zoom-readout">100%</span>
+            <button type="button" id="zoom-in-btn" class="icon-button" title="Zoom in">+</button>
+            <button type="button" id="fit-screen-btn" class="text-button">Fit</button>
+            <button type="button" id="reset-view-btn" class="text-button">100%</button>
+          </div>
+        </div>
+
+        <div class="pasteboard" id="pasteboard">
+          <div class="ruler ruler-top" id="ruler-top"></div>
+          <div class="ruler ruler-left" id="ruler-left"></div>
+          <div class="artboard-wrap" id="artboard-wrap">
+            <svg id="editor-canvas" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" tabindex="0">
+              <defs>
+                <pattern id="minor-grid-pattern" width="16" height="16" patternUnits="userSpaceOnUse">
+                  <path d="M 16 0 L 0 0 0 16" class="grid-minor" />
+                </pattern>
+                <pattern id="major-grid-pattern" width="80" height="80" patternUnits="userSpaceOnUse">
+                  <rect width="80" height="80" fill="url(#minor-grid-pattern)" />
+                  <path d="M 80 0 L 0 0 0 80" class="grid-major" />
+                </pattern>
+              </defs>
+              <rect id="canvas-bg" x="0" y="0" width="1200" height="800" fill="#ffffff" />
+              <rect id="grid-bg" x="0" y="0" width="1200" height="800" fill="url(#major-grid-pattern)" />
+              <g id="scene-root"></g>
+              <g id="overlay-root"></g>
+            </svg>
+          </div>
+        </div>
       </main>
 
-      <aside class="panel" aria-label="Layers panel">
-        <h2>Layers</h2>
-        <div class="layer-actions">
-          <button type="button" id="layer-forward-btn" class="text-button">Bring forward</button>
-          <button type="button" id="layer-backward-btn" class="text-button">Send backward</button>
-        </div>
-        <div class="layer-actions">
-          <button type="button" id="group-btn" class="text-button">Group</button>
-          <button type="button" id="ungroup-btn" class="text-button">Ungroup</button>
-        </div>
-        <div id="layers-list" class="layers-list"></div>
+      <aside class="inspector" aria-label="Inspector panel">
+        <details class="panel-section" open>
+          <summary>Properties</summary>
+          <div class="field-row">
+            <label for="object-name-input">Name</label>
+            <input id="object-name-input" type="text" value="" />
+          </div>
+          <div class="field-row">
+            <label for="doc-width-input">Document W</label>
+            <input id="doc-width-input" type="number" min="64" max="10000" step="1" value="1200" />
+          </div>
+          <div class="field-row">
+            <label for="doc-height-input">Document H</label>
+            <input id="doc-height-input" type="number" min="64" max="10000" step="1" value="800" />
+          </div>
+          <p class="panel-note" id="selection-summary">No selection</p>
+        </details>
+
+        <details class="panel-section" open>
+          <summary>Appearance</summary>
+          <div class="field-row">
+            <label for="pencil-smoothing-input">Pencil smooth</label>
+            <input id="pencil-smoothing-input" type="range" min="0" max="16" step="1" value="6" />
+          </div>
+          <div class="field-row">
+            <label for="fill-mode-input">Fill</label>
+            <select id="fill-mode-input">
+              <option value="solid">Solid</option>
+              <option value="none">None</option>
+              <option value="linear">Linear gradient</option>
+              <option value="radial">Radial gradient</option>
+            </select>
+          </div>
+          <div class="field-row gradient-field">
+            <label for="fill-gradient-start-input">Fill A</label>
+            <input id="fill-gradient-start-input" type="color" value="#90caf9" />
+          </div>
+          <div class="field-row gradient-field">
+            <label for="fill-gradient-end-input">Fill B</label>
+            <input id="fill-gradient-end-input" type="color" value="#7c3aed" />
+          </div>
+          <div class="field-row gradient-field">
+            <label for="fill-gradient-angle-input">Fill angle</label>
+            <input id="fill-gradient-angle-input" type="number" min="0" max="360" step="1" value="0" />
+          </div>
+          <div class="field-row">
+            <label for="fill-opacity-input">Fill opacity</label>
+            <input id="fill-opacity-input" type="range" min="0" max="1" step="0.01" value="1" />
+          </div>
+          <div class="field-row">
+            <label for="stroke-mode-input">Stroke</label>
+            <select id="stroke-mode-input">
+              <option value="solid">Solid</option>
+              <option value="none">None</option>
+              <option value="linear">Linear gradient</option>
+              <option value="radial">Radial gradient</option>
+            </select>
+          </div>
+          <div class="field-row gradient-field">
+            <label for="stroke-gradient-start-input">Stroke A</label>
+            <input id="stroke-gradient-start-input" type="color" value="#1976d2" />
+          </div>
+          <div class="field-row gradient-field">
+            <label for="stroke-gradient-end-input">Stroke B</label>
+            <input id="stroke-gradient-end-input" type="color" value="#ff7a18" />
+          </div>
+          <div class="field-row gradient-field">
+            <label for="stroke-gradient-angle-input">Stroke angle</label>
+            <input id="stroke-gradient-angle-input" type="number" min="0" max="360" step="1" value="0" />
+          </div>
+          <div class="field-row">
+            <label for="stroke-opacity-input">Stroke opacity</label>
+            <input id="stroke-opacity-input" type="range" min="0" max="1" step="0.01" value="1" />
+          </div>
+          <div class="field-row">
+            <label for="stroke-width-input">Stroke</label>
+            <input id="stroke-width-input" type="number" min="0" max="64" step="0.5" value="2" />
+          </div>
+          <div class="field-row">
+            <label for="stroke-dash-input">Dash</label>
+            <input id="stroke-dash-input" type="text" placeholder="none or 8 4" />
+          </div>
+          <div class="field-row">
+            <label for="miter-limit-input">Miter</label>
+            <input id="miter-limit-input" type="number" min="1" max="64" step="0.5" value="4" />
+          </div>
+          <div class="field-row">
+            <label for="stroke-cap-input">Cap</label>
+            <select id="stroke-cap-input">
+              <option value="butt">Butt</option>
+              <option value="round">Round</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label for="stroke-join-input">Join</label>
+            <select id="stroke-join-input">
+              <option value="miter">Miter</option>
+              <option value="round">Round</option>
+              <option value="bevel">Bevel</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label for="opacity-input">Opacity</label>
+            <input id="opacity-input" type="range" min="0" max="1" step="0.01" value="1" />
+          </div>
+        </details>
+
+        <details class="panel-section" open>
+          <summary>Align</summary>
+          <div class="action-grid action-grid-three">
+            <button type="button" id="align-left-btn" class="icon-button" title="Align left">⫷</button>
+            <button type="button" id="align-hcenter-btn" class="icon-button" title="Align horizontal center">↔</button>
+            <button type="button" id="align-right-btn" class="icon-button" title="Align right">⫸</button>
+          </div>
+          <div class="action-grid action-grid-three">
+            <button type="button" id="align-top-btn" class="icon-button" title="Align top">⫶</button>
+            <button type="button" id="align-vcenter-btn" class="icon-button" title="Align vertical center">↕</button>
+            <button type="button" id="align-bottom-btn" class="icon-button" title="Align bottom">⫴</button>
+          </div>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="distribute-h-btn" class="text-button">Distribute H</button>
+            <button type="button" id="distribute-v-btn" class="text-button">Distribute V</button>
+          </div>
+        </details>
+
+        <details class="panel-section" open>
+          <summary>Layers</summary>
+          <div class="layer-actions">
+            <button type="button" id="add-layer-btn" class="text-button full-width">Add Layer</button>
+          </div>
+          <div class="layer-actions">
+            <button type="button" id="layer-forward-btn" class="text-button">Forward</button>
+            <button type="button" id="layer-backward-btn" class="text-button">Backward</button>
+          </div>
+          <div class="layer-actions">
+            <button type="button" id="group-btn" class="text-button">Group</button>
+            <button type="button" id="ungroup-btn" class="text-button">Ungroup</button>
+          </div>
+          <div id="layers-list" class="layers-list"></div>
+        </details>
+
+        <details class="panel-section">
+          <summary>Pathfinder</summary>
+          <div class="action-grid action-grid-three">
+            <button type="button" id="boolean-unite-btn" class="text-button">Unite</button>
+            <button type="button" id="boolean-subtract-btn" class="text-button">Minus</button>
+            <button type="button" id="boolean-intersect-btn" class="text-button">Intersect</button>
+          </div>
+        </details>
+
+        <details class="panel-section" open>
+          <summary>Export</summary>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="copy-svg-btn" class="text-button">Copy SVG</button>
+            <button type="button" id="download-svg-btn" class="text-button">Download</button>
+          </div>
+          <input id="import-svg-input" class="import-input" type="file" accept=".svg,image/svg+xml" />
+          <button type="button" id="import-svg-btn" class="text-button full-width">Import SVG</button>
+          <button type="button" id="toggle-code-btn" class="text-button full-width">SVG Code</button>
+        </details>
       </aside>
     </div>
 
+    <section class="code-drawer" id="code-drawer" aria-label="SVG code panel">
+      <div class="code-header">
+        <span>SVG Markup</span>
+        <span id="svg-validation-message" class="validation-message">Valid SVG</span>
+      </div>
+      <textarea id="svg-code-input" spellcheck="false" aria-label="SVG markup"></textarea>
+      <div class="code-actions">
+        <button type="button" id="apply-svg-code-btn" class="text-button">Apply SVG</button>
+        <button type="button" id="refresh-svg-code-btn" class="text-button">Refresh</button>
+      </div>
+    </section>
+
     <footer class="statusbar">
       <span id="status-left">Ready</span>
-      <span id="status-right">Object model: canonical v1</span>
+      <span id="status-right">Canonical object model · Illustrator-style workspace</span>
     </footer>
   </div>
-  <script type="module" src="./illustrator-lite.js?v=20260225-reset"></script>
+  <script type="module" src="./illustrator-lite.js?v=20260507-names2"></script>
 </body>
 </html>
