@@ -172,8 +172,16 @@ const pepeImages = [
     "title": "Pepe42"
   },
   {
+    "file": "pepes-in-the-outfield.jpeg",
+    "title": "Pepes In The Outfield"
+  },
+  {
     "file": "planet-of-the-pepes.png",
     "title": "Planet Of The Pepes"
+  },
+  {
+    "file": "project-hail-pepe.jpeg",
+    "title": "Project Hail Pepe"
   },
   {
     "file": "pulp-pepe.jpeg",
@@ -301,55 +309,71 @@ const pepeImages = [
   }
 ];
 
-const gallery = document.querySelector('[data-pepe-gallery]');
-const lightbox = document.querySelector('[data-lightbox]');
-const lightboxImage = document.querySelector('[data-lightbox-image]');
-const lightboxTitle = document.querySelector('[data-lightbox-title]');
-const closeButton = document.querySelector('[data-lightbox-close]');
+const gallery = document.querySelector("[data-pepe-gallery]");
+const lightbox = document.querySelector("[data-lightbox]");
+const lightboxImage = document.querySelector("[data-lightbox-image]");
+const lightboxTitle = document.querySelector("[data-lightbox-title]");
+const lightboxClose = document.querySelector("[data-lightbox-close]");
 
 function openLightbox(item) {
-  lightboxImage.src = '/art/pepe/' + item.file;
+  if (!lightbox || !lightboxImage || !lightboxTitle) {
+    return;
+  }
+
+  lightboxImage.src = "/art/pepe/" + item.file;
   lightboxImage.alt = item.title;
   lightboxTitle.textContent = item.title;
   lightbox.hidden = false;
-  document.body.classList.add('lightbox-open');
-  closeButton.focus();
+  document.body.classList.add("lightbox-open");
+  lightboxClose?.focus();
 }
 
 function closeLightbox() {
+  if (!lightbox || !lightboxImage) {
+    return;
+  }
+
   lightbox.hidden = true;
-  lightboxImage.removeAttribute('src');
-  document.body.classList.remove('lightbox-open');
+  lightboxImage.removeAttribute("src");
+  document.body.classList.remove("lightbox-open");
 }
 
-for (const item of pepeImages) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'pepe-card';
-  button.setAttribute('aria-label', 'View ' + item.title);
+if (gallery) {
+  const fragment = document.createDocumentFragment();
 
-  const image = document.createElement('img');
-  image.src = '/art/pepe/' + item.file;
-  image.alt = item.title;
-  image.loading = 'lazy';
-  image.decoding = 'async';
+  for (const item of pepeImages) {
+    const button = document.createElement("button");
+    button.className = "pepe-card";
+    button.type = "button";
+    button.setAttribute("aria-label", "View " + item.title);
 
-  const caption = document.createElement('span');
-  caption.textContent = item.title;
+    const image = document.createElement("img");
+    image.src = "/art/pepe/" + item.file;
+    image.alt = item.title;
+    image.loading = "lazy";
+    image.decoding = "async";
 
-  button.append(image, caption);
-  button.addEventListener('click', () => openLightbox(item));
-  gallery.appendChild(button);
+    const caption = document.createElement("span");
+    caption.textContent = item.title;
+
+    button.append(image, caption);
+    button.addEventListener("click", () => openLightbox(item));
+    fragment.appendChild(button);
+  }
+
+  gallery.appendChild(fragment);
 }
 
-closeButton.addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', (event) => {
+lightboxClose?.addEventListener("click", closeLightbox);
+
+lightbox?.addEventListener("click", (event) => {
   if (event.target === lightbox) {
     closeLightbox();
   }
 });
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !lightbox.hidden) {
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && lightbox && !lightbox.hidden) {
     closeLightbox();
   }
 });

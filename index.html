@@ -347,22 +347,6 @@
 
     </section>
 
-    <section class="section-stack">
-
-      <div class="section-heading">
-
-        <h2>Projects</h2>
-
-        <p class="section-note">
-          Current labs and long-horizon systems work.
-        </p>
-
-      </div>
-
-      <div class="card-grid" id="project-cards"></div>
-
-    </section>
-
   </main>
 
   <script defer src="/assets/site-theme.js"></script>
@@ -405,14 +389,20 @@
           path: "/nakes/",
           description:
             "Retro snake game with levels, leaderboard, and prize mode."
+        },
+
+        {
+          id: "5",
+          name: "Art",
+          href: "/art/",
+          path: "/art/",
+          description:
+            "A visual gallery of experiments, characters, and image work."
         }
       ];
 
       const projectIndex =
         document.getElementById("project-index");
-
-      const projectCards =
-        document.getElementById("project-cards");
 
       function createProjectIndexItem(project) {
 
@@ -453,44 +443,10 @@
         return item;
       }
 
-      function createProjectCard(project) {
-
-        const card =
-          document.createElement("a");
-
-        card.className = "card-link";
-        card.href = project.href;
-
-        const title =
-          document.createElement("h3");
-
-        title.textContent = project.name;
-
-        const path =
-          document.createElement("p");
-
-        path.className = "card-path";
-        path.textContent = project.path;
-
-        const description =
-          document.createElement("p");
-
-        description.className = "card-description";
-        description.textContent = project.description;
-
-        card.append(title, path, description);
-
-        return card;
-      }
-
       projects.forEach((project) => {
 
         projectIndex.appendChild(
           createProjectIndexItem(project)
-        );
-
-        projectCards.appendChild(
-          createProjectCard(project)
         );
 
       });
