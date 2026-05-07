@@ -1,3 +1,5 @@
+import { SvgGeometryEngine } from "./geometry-engine.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const TOOLS = {
@@ -25,7 +27,8 @@ const DEFAULT_STYLE = {
   strokeMiterlimit: 4,
   fillOpacity: 1,
   strokeOpacity: 1,
-  opacity: 1
+  opacity: 1,
+  fillRule: "nonzero"
 };
 
 const SVG_IMPORT_DEFAULT_STYLE = {
@@ -49,6 +52,8 @@ const DEFAULT_TRANSFORM = {
 
 const STORAGE_LEGACY_KEY = "svg-editor:legacy-shapes:v2";
 const STORAGE_CANONICAL_KEY = "svg-editor:canonical-shapes:v2";
+const STORAGE_DRAFTS_KEY = "svg-editor:drafts:v1";
+const STORAGE_SETTINGS_KEY = "svg-editor:settings:v1";
 
 const dom = {
   toolGroup: document.getElementById("tool-group"),
@@ -77,6 +82,27 @@ const dom = {
   booleanUniteBtn: document.getElementById("boolean-unite-btn"),
   booleanSubtractBtn: document.getElementById("boolean-subtract-btn"),
   booleanIntersectBtn: document.getElementById("boolean-intersect-btn"),
+  booleanExcludeBtn: document.getElementById("boolean-exclude-btn"),
+  dividePathBtn: document.getElementById("divide-path-btn"),
+  reversePathBtn: document.getElementById("reverse-path-btn"),
+  simplifyPathBtn: document.getElementById("simplify-path-btn"),
+  outlineStrokeBtn: document.getElementById("outline-stroke-btn"),
+  expandAppearanceBtn: document.getElementById("expand-appearance-btn"),
+  joinPathsBtn: document.getElementById("join-paths-btn"),
+  convertAnchorBtn: document.getElementById("convert-anchor-btn"),
+  offsetPathInput: document.getElementById("offset-path-input"),
+  offsetPathBtn: document.getElementById("offset-path-btn"),
+  pathfinderNote: document.getElementById("pathfinder-note"),
+  addArtboardBtn: document.getElementById("add-artboard-btn"),
+  duplicateArtboardBtn: document.getElementById("duplicate-artboard-btn"),
+  renameArtboardBtn: document.getElementById("rename-artboard-btn"),
+  deleteArtboardBtn: document.getElementById("delete-artboard-btn"),
+  fitArtboardBtn: document.getElementById("fit-artboard-btn"),
+  artboardsList: document.getElementById("artboards-list"),
+  artboardsNote: document.getElementById("artboards-note"),
+  duplicateSymbolBtn: document.getElementById("duplicate-symbol-btn"),
+  breakSymbolBtn: document.getElementById("break-symbol-btn"),
+  symbolNote: document.getElementById("symbol-note"),
   snapToggleBtn: document.getElementById("snap-toggle-btn"),
   gridToggleBtn: document.getElementById("grid-toggle-btn"),
   rulersToggleBtn: document.getElementById("rulers-toggle-btn"),
@@ -88,6 +114,8 @@ const dom = {
   fitScreenBtn: document.getElementById("fit-screen-btn"),
   resetViewBtn: document.getElementById("reset-view-btn"),
   statusLeft: document.getElementById("status-left"),
+  documentNameInput: document.getElementById("document-name-input"),
+  artboardNameInput: document.getElementById("artboard-name-input"),
   objectNameInput: document.getElementById("object-name-input"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
@@ -125,7 +153,17 @@ const dom = {
   importSvgInput: document.getElementById("import-svg-input"),
   downloadSvgBtn: document.getElementById("download-svg-btn"),
   copySvgBtn: document.getElementById("copy-svg-btn"),
+  exportPresetInput: document.getElementById("export-preset-input"),
   pencilSmoothingInput: document.getElementById("pencil-smoothing-input"),
+  newProjectBtn: document.getElementById("new-project-btn"),
+  clearCanvasBtn: document.getElementById("clear-canvas-btn"),
+  saveDraftBtn: document.getElementById("save-draft-btn"),
+  resetEditorBtn: document.getElementById("reset-editor-btn"),
+  draftsSelect: document.getElementById("drafts-select"),
+  autosaveToggle: document.getElementById("autosave-toggle"),
+  addFillSwatchBtn: document.getElementById("add-fill-swatch-btn"),
+  addGradientSwatchBtn: document.getElementById("add-gradient-swatch-btn"),
+  swatchesList: document.getElementById("swatches-list"),
   toggleCodeBtn: document.getElementById("toggle-code-btn"),
   codeDrawer: document.getElementById("code-drawer"),
   svgCodeInput: document.getElementById("svg-code-input"),
@@ -161,6 +199,27 @@ const requiredDomKeys = [
   "booleanUniteBtn",
   "booleanSubtractBtn",
   "booleanIntersectBtn",
+  "booleanExcludeBtn",
+  "dividePathBtn",
+  "reversePathBtn",
+  "simplifyPathBtn",
+  "outlineStrokeBtn",
+  "expandAppearanceBtn",
+  "joinPathsBtn",
+  "convertAnchorBtn",
+  "offsetPathInput",
+  "offsetPathBtn",
+  "pathfinderNote",
+  "addArtboardBtn",
+  "duplicateArtboardBtn",
+  "renameArtboardBtn",
+  "deleteArtboardBtn",
+  "fitArtboardBtn",
+  "artboardsList",
+  "artboardsNote",
+  "duplicateSymbolBtn",
+  "breakSymbolBtn",
+  "symbolNote",
   "snapToggleBtn",
   "gridToggleBtn",
   "rulersToggleBtn",
@@ -172,6 +231,8 @@ const requiredDomKeys = [
   "fitScreenBtn",
   "resetViewBtn",
   "statusLeft",
+  "documentNameInput",
+  "artboardNameInput",
   "objectNameInput",
   "docWidth",
   "docHeight",
@@ -209,7 +270,17 @@ const requiredDomKeys = [
   "importSvgInput",
   "downloadSvgBtn",
   "copySvgBtn",
+  "exportPresetInput",
   "pencilSmoothingInput",
+  "newProjectBtn",
+  "clearCanvasBtn",
+  "saveDraftBtn",
+  "resetEditorBtn",
+  "draftsSelect",
+  "autosaveToggle",
+  "addFillSwatchBtn",
+  "addGradientSwatchBtn",
+  "swatchesList",
   "toggleCodeBtn",
   "codeDrawer",
   "svgCodeInput",
@@ -226,15 +297,34 @@ for (const key of requiredDomKeys) {
 
 const state = {
   doc: {
+    name: "Untitled SVG",
+    artboardName: "Artboard 1",
     width: 1200,
     height: 800,
-    defs: ""
+    defs: "",
+    activeArtboardId: "artboard-1",
+    artboards: [
+      {
+        id: "artboard-1",
+        name: "Artboard 1",
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 800
+      }
+    ]
   },
   tool: TOOLS.SELECT,
   objects: [],
   selection: [],
   activeLayerId: null,
   activePathId: null,
+  autosave: true,
+  swatches: [
+    { type: "solid", name: "Phil Blue", color: "#2f6fec" },
+    { type: "solid", name: "Warm Gold", color: "#ffd166" },
+    { type: "solid", name: "Ink", color: "#111111" }
+  ],
   directSelection: {
     pathId: null,
     anchorIndex: null
@@ -294,6 +384,17 @@ const SCALE_HANDLE_CONFIG = {
 function nextId(prefix = "obj") {
   idCounter += 1;
   return `${prefix}_${Date.now().toString(36)}_${idCounter.toString(36)}`;
+}
+
+function defaultArtboard(width = 1200, height = 800, name = "Artboard 1") {
+  return {
+    id: nextId("artboard"),
+    name,
+    x: 0,
+    y: 0,
+    width: clamp(Number(width) || 1200, 64, 10000),
+    height: clamp(Number(height) || 800, 64, 10000)
+  };
 }
 
 function clamp(value, min, max) {
@@ -520,6 +621,7 @@ function normalizeStyle(style) {
   }
   next.strokeDasharray = typeof next.strokeDasharray === "string" ? next.strokeDasharray.trim() : "";
   next.strokeMiterlimit = Math.max(1, Number(next.strokeMiterlimit) || DEFAULT_STYLE.strokeMiterlimit);
+  next.fillRule = next.fillRule === "evenodd" ? "evenodd" : "nonzero";
   next.fillGradient = normalizeGradient(next.fillGradient, next.fill || DEFAULT_STYLE.fill, "#7c3aed");
   next.strokeGradient = normalizeGradient(next.strokeGradient, next.stroke || DEFAULT_STYLE.stroke, "#ff7a18");
   return next;
@@ -801,11 +903,27 @@ function normalizeCanonicalShape(raw, fallbackZ) {
     const geometry = normalized.geometry || {};
     normalized.geometry = {
       op:
-        geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
+        geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite" || geometry.op === "exclude"
           ? geometry.op
           : "unite",
       aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
       bPath: typeof geometry.bPath === "string" ? geometry.bPath : "",
+      bounds: geometry.bounds
+        ? {
+            x: Number(geometry.bounds.x) || 0,
+            y: Number(geometry.bounds.y) || 0,
+            width: Math.max(1, Number(geometry.bounds.width) || 1),
+            height: Math.max(1, Number(geometry.bounds.height) || 1)
+          }
+        : { x: 0, y: 0, width: 1, height: 1 }
+    };
+  }
+
+  if (normalized.type === "raw") {
+    const geometry = normalized.geometry || {};
+    normalized.geometry = {
+      markup: typeof geometry.markup === "string" ? geometry.markup : "",
+      symbolHref: typeof geometry.symbolHref === "string" ? geometry.symbolHref : "",
       bounds: geometry.bounds
         ? {
             x: Number(geometry.bounds.x) || 0,
@@ -931,7 +1049,7 @@ function fromLegacyShape(raw, fallbackZ) {
       type: "boolean",
       geometry: {
         op:
-          geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
+          geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite" || geometry.op === "exclude"
             ? geometry.op
             : "unite",
         aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
@@ -1162,9 +1280,16 @@ function getSnapshot() {
 
 function restoreSnapshot(snapshot) {
   const parsed = JSON.parse(snapshot);
-  state.doc.width = clamp(Number(parsed?.doc?.width ?? 1200), 64, 10000);
-  state.doc.height = clamp(Number(parsed?.doc?.height ?? 800), 64, 10000);
-  state.doc.defs = typeof parsed?.doc?.defs === "string" ? parsed.doc.defs : "";
+  state.doc = {
+    ...state.doc,
+    ...deepClone(parsed?.doc || {}),
+    name: sanitizeManualName(parsed?.doc?.name) || "Untitled SVG",
+    artboardName: sanitizeManualName(parsed?.doc?.artboardName) || "Artboard 1",
+    width: clamp(Number(parsed?.doc?.width ?? 1200), 64, 10000),
+    height: clamp(Number(parsed?.doc?.height ?? 800), 64, 10000),
+    defs: typeof parsed?.doc?.defs === "string" ? parsed.doc.defs : ""
+  };
+  normalizeArtboards(state.doc);
   state.objects = adaptShapeArray(parsed?.objects || []);
   state.selection = Array.isArray(parsed?.selection) ? parsed.selection.filter(Boolean) : [];
   state.activeLayerId = typeof parsed?.activeLayerId === "string" ? parsed.activeLayerId : null;
@@ -1189,6 +1314,105 @@ function pushHistory() {
   }
   state.history.redo = [];
   updateHistoryButtons();
+}
+
+function currentDocumentPayload() {
+  return {
+    doc: deepClone(state.doc),
+    objects: deepClone(state.objects),
+    activeLayerId: state.activeLayerId,
+    savedAt: new Date().toISOString()
+  };
+}
+
+function readDrafts() {
+  try {
+    const drafts = JSON.parse(window.localStorage.getItem(STORAGE_DRAFTS_KEY) || "[]");
+    return Array.isArray(drafts) ? drafts : [];
+  } catch (error) {
+    console.warn("[svg-editor] Failed to read drafts", error);
+    return [];
+  }
+}
+
+function writeDrafts(drafts) {
+  window.localStorage.setItem(STORAGE_DRAFTS_KEY, JSON.stringify(drafts.slice(0, 12)));
+}
+
+function updateDraftsSelect() {
+  const drafts = readDrafts();
+  dom.draftsSelect.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = drafts.length ? "Choose draft..." : "No saved drafts";
+  dom.draftsSelect.appendChild(placeholder);
+  for (const draft of drafts) {
+    const option = document.createElement("option");
+    option.value = draft.id;
+    const savedAt = draft.savedAt ? new Date(draft.savedAt).toLocaleString() : "saved";
+    option.textContent = `${draft.name || "Untitled SVG"} · ${savedAt}`;
+    dom.draftsSelect.appendChild(option);
+  }
+}
+
+function saveDraft({ quiet = false } = {}) {
+  const payload = currentDocumentPayload();
+  const id = payload.doc.id || nextId("draft");
+  payload.doc.id = id;
+  state.doc.id = id;
+  const drafts = readDrafts().filter((draft) => draft.id !== id);
+  drafts.unshift({
+    id,
+    name: state.doc.name || "Untitled SVG",
+    savedAt: payload.savedAt,
+    payload
+  });
+  writeDrafts(drafts);
+  updateDraftsSelect();
+  if (!quiet) {
+    setStatus(`Saved draft: ${state.doc.name || "Untitled SVG"}`);
+  }
+}
+
+function openDraft(id) {
+  const draft = readDrafts().find((entry) => entry.id === id);
+  if (!draft?.payload) {
+    setStatus("Draft not found");
+    return;
+  }
+  pushHistory();
+  const payload = draft.payload;
+  state.doc = { ...state.doc, ...deepClone(payload.doc || {}) };
+  state.objects = adaptShapeArray(payload.objects || []);
+  state.activeLayerId = typeof payload.activeLayerId === "string" ? payload.activeLayerId : null;
+  state.selection = [];
+  state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
+  setStatus(`Opened draft: ${state.doc.name || "Untitled SVG"}`);
+  render();
+}
+
+function saveSettings() {
+  window.localStorage.setItem(
+    STORAGE_SETTINGS_KEY,
+    JSON.stringify({
+      autosave: state.autosave,
+      swatches: state.swatches
+    })
+  );
+}
+
+function loadSettings() {
+  try {
+    const settings = JSON.parse(window.localStorage.getItem(STORAGE_SETTINGS_KEY) || "{}");
+    state.autosave = settings.autosave !== false;
+    if (Array.isArray(settings.swatches)) {
+      state.swatches = settings.swatches;
+    }
+  } catch (error) {
+    console.warn("[svg-editor] Failed to read settings", error);
+  }
 }
 
 function undo() {
@@ -1238,6 +1462,39 @@ function getObjectById(id, objects = state.objects, parent = null) {
 
 function setStatus(message) {
   dom.statusLeft.textContent = message;
+}
+
+function normalizeArtboards(doc = state.doc) {
+  let artboards = Array.isArray(doc.artboards)
+    ? doc.artboards
+        .map((artboard, index) => ({
+          id: typeof artboard.id === "string" && artboard.id ? artboard.id : nextId("artboard"),
+          name: sanitizeManualName(artboard.name) || `Artboard ${index + 1}`,
+          x: Number(artboard.x) || 0,
+          y: Number(artboard.y) || 0,
+          width: clamp(Number(artboard.width) || Number(doc.width) || 1200, 64, 10000),
+          height: clamp(Number(artboard.height) || Number(doc.height) || 800, 64, 10000)
+        }))
+    : [];
+
+  if (artboards.length === 0) {
+    artboards = [defaultArtboard(doc.width, doc.height, sanitizeManualName(doc.artboardName) || "Artboard 1")];
+  }
+
+  const activeId = artboards.some((artboard) => artboard.id === doc.activeArtboardId)
+    ? doc.activeArtboardId
+    : artboards[0].id;
+  const active = artboards.find((artboard) => artboard.id === activeId) || artboards[0];
+  doc.artboards = artboards;
+  doc.activeArtboardId = active.id;
+  doc.artboardName = active.name;
+  doc.width = active.width;
+  doc.height = active.height;
+  return active;
+}
+
+function getActiveArtboard() {
+  return normalizeArtboards(state.doc);
 }
 
 function renderSoon() {
@@ -1570,6 +1827,222 @@ function getCommandsBounds(commands) {
   };
 }
 
+function cubicPoint(p0, p1, p2, p3, t) {
+  const mt = 1 - t;
+  const mt2 = mt * mt;
+  const t2 = t * t;
+  return {
+    x: mt2 * mt * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t2 * t * p3.x,
+    y: mt2 * mt * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t2 * t * p3.y
+  };
+}
+
+function distancePointToLine(point, a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const length = Math.hypot(dx, dy);
+  if (length < 0.000001) {
+    return Math.hypot(point.x - a.x, point.y - a.y);
+  }
+  return Math.abs(dy * point.x - dx * point.y + b.x * a.y - b.y * a.x) / length;
+}
+
+function flattenCubicAdaptive(p0, p1, p2, p3, tolerance = 0.75, depth = 0) {
+  const flatness = Math.max(distancePointToLine(p1, p0, p3), distancePointToLine(p2, p0, p3));
+  if (flatness <= tolerance || depth >= 10) {
+    return [p3];
+  }
+  const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const p01 = mid(p0, p1);
+  const p12 = mid(p1, p2);
+  const p23 = mid(p2, p3);
+  const p012 = mid(p01, p12);
+  const p123 = mid(p12, p23);
+  const p0123 = mid(p012, p123);
+  return [
+    ...flattenCubicAdaptive(p0, p01, p012, p0123, tolerance, depth + 1),
+    ...flattenCubicAdaptive(p0123, p123, p23, p3, tolerance, depth + 1)
+  ];
+}
+
+function cleanPolygonPoints(points, epsilon = 0.01) {
+  return SvgGeometryEngine.cleanPolygonPoints(points, epsilon);
+}
+
+function polygonArea(points) {
+  return SvgGeometryEngine.polygonArea(points);
+}
+
+function normalizePolygonWinding(points, clockwise = false) {
+  return SvgGeometryEngine.normalizeWinding(points, clockwise);
+}
+
+function commandsToPolyline(commands, tolerance = 0.75) {
+  const points = [];
+  let current = null;
+  let start = null;
+  for (const command of commands || []) {
+    if (command.type === "M") {
+      current = { x: command.x, y: command.y };
+      start = current;
+      points.push(current);
+    } else if (command.type === "L") {
+      current = { x: command.x, y: command.y };
+      points.push(current);
+    } else if (command.type === "C" && current) {
+      const end = { x: command.x, y: command.y };
+      points.push(...flattenCubicAdaptive(
+        current,
+        { x: command.x1, y: command.y1 },
+        { x: command.x2, y: command.y2 },
+        end,
+        tolerance
+      ));
+      current = end;
+    } else if (command.type === "Z" && start) {
+      current = start;
+    }
+  }
+  return cleanPolygonPoints(points);
+}
+
+function shapeToWorldPolygon(shape, tolerance = 0.75) {
+  const commands = shapeToPathCommands(shape);
+  if (!commands || commands.length === 0) {
+    return null;
+  }
+  const world = transformPathCommands(commands, shape.transform);
+  const points = commandsToPolyline(world, tolerance);
+  if (points.length < 3) {
+    return null;
+  }
+  return normalizePolygonWinding(points);
+}
+
+function polygonToPathShape(points, style, name = "Path") {
+  const cleaned = cleanPolygonPoints(points);
+  if (cleaned.length < 3 || Math.abs(polygonArea(cleaned)) < 0.01) {
+    return null;
+  }
+  return {
+    id: nextId("path"),
+    type: "path",
+    name,
+    zIndex: 0,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: normalizeStyle(style),
+    geometry: {
+      anchors: cleaned.map((point) => ({ x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null })),
+      closed: true
+    }
+  };
+}
+
+function smoothPolylineToPathShape(points, style, name = "Path", { closed = true, smoothing = 0.18 } = {}) {
+  const cleaned = SvgGeometryEngine.simplifyPolyline(points, closed ? 0.32 : 0.2, closed);
+  if (cleaned.length < (closed ? 3 : 2)) {
+    return null;
+  }
+  if (closed && Math.abs(polygonArea(cleaned)) < 0.01) {
+    return null;
+  }
+  const anchors = cleaned.map((point, index) => {
+    const previous = cleaned[(index - 1 + cleaned.length) % cleaned.length];
+    const next = cleaned[(index + 1) % cleaned.length];
+    const inVector = {
+      x: next.x - previous.x,
+      y: next.y - previous.y
+    };
+    if (!closed && (index === 0 || index === cleaned.length - 1)) {
+      return { x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null };
+    }
+    return {
+      x: round(point.x, 4),
+      y: round(point.y, 4),
+      inHandle: {
+        x: round(point.x - inVector.x * smoothing, 4),
+        y: round(point.y - inVector.y * smoothing, 4)
+      },
+      outHandle: {
+        x: round(point.x + inVector.x * smoothing, 4),
+        y: round(point.y + inVector.y * smoothing, 4)
+      }
+    };
+  });
+  return {
+    id: nextId("path"),
+    type: "path",
+    name,
+    zIndex: 0,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: normalizeStyle(style),
+    geometry: {
+      anchors,
+      closed
+    }
+  };
+}
+
+function isInsideClipEdge(point, edgeA, edgeB, clipClockwise) {
+  const cross = (edgeB.x - edgeA.x) * (point.y - edgeA.y) - (edgeB.y - edgeA.y) * (point.x - edgeA.x);
+  return clipClockwise ? cross <= 0.000001 : cross >= -0.000001;
+}
+
+function lineIntersection(a1, a2, b1, b2) {
+  const dax = a2.x - a1.x;
+  const day = a2.y - a1.y;
+  const dbx = b2.x - b1.x;
+  const dby = b2.y - b1.y;
+  const denominator = dax * dby - day * dbx;
+  if (Math.abs(denominator) < 0.000001) {
+    return a2;
+  }
+  const t = ((b1.x - a1.x) * dby - (b1.y - a1.y) * dbx) / denominator;
+  return { x: a1.x + t * dax, y: a1.y + t * day };
+}
+
+function clipPolygon(subjectPolygon, clipPolygonPoints) {
+  return SvgGeometryEngine.clipPolygon(subjectPolygon, clipPolygonPoints);
+}
+
+function hasSelfIntersections(points) {
+  return SvgGeometryEngine.hasSelfIntersections(points);
+}
+
+function isConvexPolygon(points) {
+  return SvgGeometryEngine.isConvexPolygon(points);
+}
+
+function pointInTriangle(point, a, b, c) {
+  const area = (p1, p2, p3) => (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+  const s1 = area(point, a, b);
+  const s2 = area(point, b, c);
+  const s3 = area(point, c, a);
+  const hasNegative = s1 < -0.000001 || s2 < -0.000001 || s3 < -0.000001;
+  const hasPositive = s1 > 0.000001 || s2 > 0.000001 || s3 > 0.000001;
+  return !(hasNegative && hasPositive);
+}
+
+function triangulatePolygon(points) {
+  return SvgGeometryEngine.triangulatePolygon(points);
+}
+
+function intersectPolygonsToPieces(polygonA, polygonB) {
+  return SvgGeometryEngine.intersectPolygonsToPieces(polygonA, polygonB);
+}
+
+function booleanPolygonsToPieces(polygonA, polygonB, operation) {
+  return SvgGeometryEngine.booleanPolygonsToPieces(polygonA, polygonB, operation);
+}
+
+function dividePolygonsToRegions(polygonA, polygonB) {
+  return SvgGeometryEngine.dividePolygonsToRegions(polygonA, polygonB);
+}
+
 function shapeToWorldPathData(shape) {
   if (shape.type === "boolean") {
     if (shape.geometry?.op === "unite") {
@@ -1600,6 +2073,182 @@ function shapeToWorldPathData(shape) {
   };
 }
 
+function pathCommandsToAnchors(commands) {
+  const anchors = [];
+  let closed = false;
+  for (const command of commands) {
+    if (command.type === "M") {
+      anchors.push({ x: command.x, y: command.y, inHandle: null, outHandle: null });
+    } else if (command.type === "L") {
+      anchors.push({ x: command.x, y: command.y, inHandle: null, outHandle: null });
+    } else if (command.type === "C") {
+      const previous = anchors[anchors.length - 1];
+      if (previous) {
+        previous.outHandle = { x: command.x1, y: command.y1 };
+      }
+      anchors.push({
+        x: command.x,
+        y: command.y,
+        inHandle: { x: command.x2, y: command.y2 },
+        outHandle: null
+      });
+    } else if (command.type === "Z") {
+      closed = true;
+    }
+  }
+  return { anchors, closed };
+}
+
+function shapeToEditablePathShape(shape, name = shape.name || "Path") {
+  if (shape.type === "path" && !shape.geometry?.rawD) {
+    return {
+      ...deepClone(shape),
+      type: "path",
+      name,
+      transform: deepClone(DEFAULT_TRANSFORM),
+      geometry: {
+        anchors: (shape.geometry.anchors || []).map((anchor) => transformAnchor(anchor, transformToMatrix(shape.transform))),
+        closed: shape.geometry.closed === true
+      }
+    };
+  }
+
+  const commands = shapeToPathCommands(shape);
+  if (!commands || commands.length === 0) {
+    return null;
+  }
+  const world = transformPathCommands(commands, shape.transform);
+  const geometry = pathCommandsToAnchors(world);
+  return {
+    ...deepClone(shape),
+    type: "path",
+    name,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    geometry
+  };
+}
+
+function replaceShapeWithMany(id, replacements) {
+  const found = getObjectById(id);
+  if (!found) {
+    return false;
+  }
+  const target = found.parent?.children || state.objects;
+  target.splice(found.index, 1, ...replacements);
+  target.forEach((shape, index) => {
+    shape.zIndex = index;
+  });
+  return true;
+}
+
+function selectedTopLevelOrNestedObjects() {
+  return state.selection
+    .map((id) => getObjectById(id)?.object)
+    .filter(Boolean);
+}
+
+function getSameContainerSelectionRecords(limit = 2) {
+  const records = state.selection
+    .map((id) => {
+      const found = getObjectById(id);
+      return found ? { ...found, id } : null;
+    })
+    .filter(Boolean);
+  if (records.length !== limit) {
+    return null;
+  }
+  const firstContainer = records[0].parent?.id || "__root__";
+  if (!records.every((record) => (record.parent?.id || "__root__") === firstContainer)) {
+    return null;
+  }
+  return records;
+}
+
+function rectFromBounds(bounds, name, style) {
+  return {
+    id: nextId("rect"),
+    type: "rect",
+    name,
+    zIndex: 0,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: normalizeStyle(style),
+    geometry: {
+      x: round(bounds.x, 4),
+      y: round(bounds.y, 4),
+      width: Math.max(0.1, round(bounds.width, 4)),
+      height: Math.max(0.1, round(bounds.height, 4)),
+      rx: 0,
+      ry: 0
+    }
+  };
+}
+
+function boundsIntersection(a, b) {
+  const x1 = Math.max(a.x, b.x);
+  const y1 = Math.max(a.y, b.y);
+  const x2 = Math.min(a.x + a.width, b.x + b.width);
+  const y2 = Math.min(a.y + a.height, b.y + b.height);
+  if (x2 <= x1 || y2 <= y1) {
+    return null;
+  }
+  return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+}
+
+function subtractRectBounds(source, cutter) {
+  const intersection = boundsIntersection(source, cutter);
+  if (!intersection) {
+    return [source];
+  }
+  const pieces = [];
+  const sx2 = source.x + source.width;
+  const sy2 = source.y + source.height;
+  const ix2 = intersection.x + intersection.width;
+  const iy2 = intersection.y + intersection.height;
+  if (intersection.y > source.y) {
+    pieces.push({ x: source.x, y: source.y, width: source.width, height: intersection.y - source.y });
+  }
+  if (iy2 < sy2) {
+    pieces.push({ x: source.x, y: iy2, width: source.width, height: sy2 - iy2 });
+  }
+  if (intersection.x > source.x) {
+    pieces.push({ x: source.x, y: intersection.y, width: intersection.x - source.x, height: intersection.height });
+  }
+  if (ix2 < sx2) {
+    pieces.push({ x: ix2, y: intersection.y, width: sx2 - ix2, height: intersection.height });
+  }
+  return pieces.filter((piece) => piece.width > 0.1 && piece.height > 0.1);
+}
+
+function offsetPolygon(points, amount, join = "miter", miterLimit = 4) {
+  return SvgGeometryEngine.offsetPolygon(points, amount, join, miterLimit);
+}
+
+function outlinePolyline(points, width, closed = false, style = DEFAULT_STYLE) {
+  return SvgGeometryEngine.outlinePolyline(points, width, closed, style);
+}
+
+function offsetOpenPolyline(points, amount) {
+  return SvgGeometryEngine.offsetOpenPolyline(points, amount);
+}
+
+function parseDashArray(value) {
+  const numbers = String(value || "")
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number)
+    .filter((number) => Number.isFinite(number) && number > 0);
+  if (numbers.length === 0) {
+    return [];
+  }
+  return numbers.length % 2 === 0 ? numbers : [...numbers, ...numbers];
+}
+
+function dashedPolylineSegments(points, dashArray) {
+  return SvgGeometryEngine.dashedPolylineSegments(points, dashArray);
+}
+
 function collectObjectIds(shapes = state.objects, out = []) {
   for (const shape of shapes) {
     out.push(shape.id);
@@ -1608,6 +2257,24 @@ function collectObjectIds(shapes = state.objects, out = []) {
     }
   }
   return out;
+}
+
+function collectSelectedObjects() {
+  const selected = new Set(state.selection);
+  const out = [];
+  const walk = (shapes) => {
+    for (const shape of shapes) {
+      if (selected.has(shape.id)) {
+        out.push(deepClone(shape));
+        continue;
+      }
+      if (shape.type === "group" && Array.isArray(shape.children)) {
+        walk(shape.children);
+      }
+    }
+  };
+  walk(state.objects);
+  return out.length ? out : state.objects;
 }
 
 function collectSnapCandidates(excludedIds) {
@@ -1801,6 +2468,19 @@ function pointHitsShapeGeometry(shape, point) {
     );
   }
 
+  if (shape.type === "raw") {
+    const b = shape.geometry?.bounds;
+    if (!b) {
+      return false;
+    }
+    return (
+      local.x >= b.x &&
+      local.x <= b.x + b.width &&
+      local.y >= b.y &&
+      local.y <= b.y + b.height
+    );
+  }
+
   return false;
 }
 
@@ -1879,11 +2559,26 @@ function applyPaintAttributes(node, style, fillOverride = null) {
   if (style.strokeJoin === "miter") {
     node.setAttribute("stroke-miterlimit", String(round(style.strokeMiterlimit || 4)));
   }
+  if (style.fillRule === "evenodd") {
+    node.setAttribute("fill-rule", "evenodd");
+  }
   if (style.fillOpacity !== 1) {
     node.setAttribute("fill-opacity", String(round(style.fillOpacity)));
   }
   if (style.strokeOpacity !== 1) {
     node.setAttribute("stroke-opacity", String(round(style.strokeOpacity)));
+  }
+  if (style.clipPath) {
+    node.setAttribute("clip-path", style.clipPath);
+  }
+  if (style.mask) {
+    node.setAttribute("mask", style.mask);
+  }
+  if (style.filter) {
+    node.setAttribute("filter", style.filter);
+  }
+  if (style.mixBlendMode) {
+    node.style.mixBlendMode = style.mixBlendMode;
   }
   node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
 }
@@ -1977,6 +2672,12 @@ function renderShape(shape, parentNode) {
       node.setAttribute("d", `${aPath} ${bPath}`);
       applyPaintAttributes(node, style, style.fill || "none");
       group.appendChild(node);
+    } else if (op === "exclude") {
+      const node = createSvgElement("path");
+      node.setAttribute("d", `${aPath} ${bPath}`);
+      node.setAttribute("fill-rule", "evenodd");
+      applyPaintAttributes(node, style, style.fill || "none");
+      group.appendChild(node);
     } else if (op === "intersect") {
       const clipId = `clip-${shape.id}`;
       const defs = createSvgElement("defs");
@@ -2033,6 +2734,10 @@ function renderShape(shape, parentNode) {
       applyPaintAttributes(node, style, style.fill || "none");
       group.appendChild(node);
     }
+  } else if (shape.type === "raw") {
+    const rawNode = createSvgElement("g");
+    rawNode.innerHTML = shape.geometry?.markup || "";
+    group.appendChild(rawNode);
   } else if (shape.type === "group") {
     for (const child of shape.children || []) {
       renderShape(child, group);
@@ -2535,7 +3240,63 @@ function updateLayersPanel() {
   dom.layerBackwardBtn.disabled = topLevelSelection.length === 0;
 }
 
+function updateSwatchesPanel() {
+  dom.swatchesList.innerHTML = "";
+  for (const swatch of state.swatches) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "swatch-button";
+    button.title = swatch.name || "Swatch";
+    if (swatch.type === "gradient") {
+      button.classList.add("is-gradient");
+      const stops = swatch.gradient?.stops || [];
+      button.style.setProperty("--swatch-a", stops[0]?.color || "#90caf9");
+      button.style.setProperty("--swatch-b", stops[stops.length - 1]?.color || "#7c3aed");
+    } else {
+      button.style.background = swatch.color || "#000000";
+    }
+    button.addEventListener("click", () => {
+      if (swatch.type === "gradient" && swatch.gradient) {
+        const gradient = normalizeGradient(deepClone(swatch.gradient));
+        applyStyleToSelection({ fill: `url(#${gradient.id})`, fillGradient: gradient });
+      } else {
+        applyStyleToSelection({ fill: swatch.color || "#000000", fillGradient: null });
+      }
+      setStatus(`Applied swatch: ${swatch.name || "Swatch"}`);
+    });
+    dom.swatchesList.appendChild(button);
+  }
+}
+
+function updateArtboardsPanel() {
+  const active = getActiveArtboard();
+  dom.artboardsList.innerHTML = "";
+  for (const artboard of state.doc.artboards) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "artboard-item";
+    if (artboard.id === active.id) {
+      button.classList.add("is-active");
+    }
+    button.textContent = artboard.name;
+    const meta = document.createElement("span");
+    meta.className = "artboard-meta";
+    meta.textContent = `${round(artboard.width)} x ${round(artboard.height)}`;
+    button.appendChild(meta);
+    button.addEventListener("click", () => switchArtboard(artboard.id));
+    button.addEventListener("dblclick", (event) => {
+      event.stopPropagation();
+      switchArtboard(artboard.id);
+      renameActiveArtboard();
+    });
+    dom.artboardsList.appendChild(button);
+  }
+  dom.deleteArtboardBtn.disabled = state.doc.artboards.length <= 1;
+  dom.artboardsNote.textContent = `${active.name} exports at ${round(active.width)} x ${round(active.height)}. Objects are shared across artboards in this foundational pass.`;
+}
+
 function render() {
+  normalizeArtboards(state.doc);
   dom.canvas.setAttribute("viewBox", `0 0 ${state.doc.width} ${state.doc.height}`);
   dom.canvasBackground.setAttribute("width", String(state.doc.width));
   dom.canvasBackground.setAttribute("height", String(state.doc.height));
@@ -2556,6 +3317,8 @@ function render() {
 
   drawSelectionOutline();
   updateLayersPanel();
+  updateSwatchesPanel();
+  updateArtboardsPanel();
 
   const primary = getPrimarySelectedObject();
   const activeAnchor = getActiveAnchorSelection();
@@ -2653,20 +3416,44 @@ function render() {
   dom.alignBottomBtn.disabled = disableArrange;
   dom.distributeHBtn.disabled = selectionCount < 3;
   dom.distributeVBtn.disabled = selectionCount < 3;
-  const topLevelCount = getTopLevelSelectionIds().length;
-  const disableBoolean = topLevelCount !== 2;
+  const disableBoolean = !getSameContainerSelectionRecords(2);
   dom.booleanUniteBtn.disabled = disableBoolean;
   dom.booleanSubtractBtn.disabled = disableBoolean;
   dom.booleanIntersectBtn.disabled = disableBoolean;
+  dom.booleanExcludeBtn.disabled = disableBoolean;
+  dom.dividePathBtn.disabled = disableBoolean;
+  const selectedEditablePaths = getSelectedPathObjects();
+  const hasSelection = selectionCount > 0;
+  dom.reversePathBtn.disabled = selectedEditablePaths.length === 0;
+  dom.simplifyPathBtn.disabled = selectedEditablePaths.length === 0;
+  dom.offsetPathBtn.disabled = !hasSelection;
+  dom.outlineStrokeBtn.disabled = !hasSelection;
+  dom.expandAppearanceBtn.disabled = !hasSelection;
+  dom.joinPathsBtn.disabled = selectedEditablePaths.filter((path) => !path.geometry.closed).length !== 2;
+  dom.convertAnchorBtn.disabled = selectedEditablePaths.length === 0 && !getActiveAnchorSelection();
+  const symbol = selectedSymbolInstance();
+  dom.duplicateSymbolBtn.disabled = !symbol;
+  dom.breakSymbolBtn.disabled = !symbol;
+  dom.symbolNote.textContent = symbol
+    ? `${symbol.name || "Symbol instance"} remains linked to ${symbol.geometry.symbolHref}; transform it like any object or break it into editable contents.`
+    : "Select an imported symbol instance to edit or expand it.";
+  dom.pathfinderNote.textContent = disableBoolean
+    ? "Boolean and Divide need two top-level shapes. Offset/Outline/Expand work on supported selected vectors."
+    : "Rectangle Divide creates editable pieces; complex booleans use safe SVG fallbacks instead of corrupting paths.";
   dom.snapToggleBtn.classList.toggle("is-active", state.snap.enabled);
   dom.activeToolLabel.textContent = getToolLabel(state.tool);
 
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
+  dom.documentNameInput.value = state.doc.name || "Untitled SVG";
+  dom.artboardNameInput.value = state.doc.artboardName || "Artboard 1";
+  dom.autosaveToggle.checked = state.autosave;
 
-  const legacySnapshot = state.objects.map(toLegacyShape);
-  window.localStorage.setItem(STORAGE_LEGACY_KEY, JSON.stringify(legacySnapshot));
-  window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify({ doc: state.doc, objects: state.objects, activeLayerId: state.activeLayerId }));
+  if (state.autosave) {
+    const legacySnapshot = state.objects.map(toLegacyShape);
+    window.localStorage.setItem(STORAGE_LEGACY_KEY, JSON.stringify(legacySnapshot));
+    window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify({ doc: state.doc, objects: state.objects, activeLayerId: state.activeLayerId }));
+  }
   refreshCodePanelIfOpen();
 }
 
@@ -2734,6 +3521,154 @@ function addLayer({ recordHistory = true } = {}) {
   setStatus(`${layer.name} created`);
   render();
   return layer;
+}
+
+function resetDocumentState({ keepSettings = true, resetHistory = true } = {}) {
+  state.doc = {
+    name: "Untitled SVG",
+    artboardName: "Artboard 1",
+    width: 1200,
+    height: 800,
+    defs: "",
+    activeArtboardId: "artboard-1",
+    artboards: [
+      {
+        id: "artboard-1",
+        name: "Artboard 1",
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 800
+      }
+    ]
+  };
+  state.objects = [];
+  state.selection = [];
+  state.activeLayerId = null;
+  state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
+  if (resetHistory) {
+    state.history.undo = [];
+    state.history.redo = [];
+  }
+  if (!keepSettings) {
+    state.swatches = [
+      { type: "solid", name: "Phil Blue", color: "#2f6fec" },
+      { type: "solid", name: "Warm Gold", color: "#ffd166" },
+      { type: "solid", name: "Ink", color: "#111111" }
+    ];
+    state.autosave = true;
+  }
+  updateHistoryButtons();
+}
+
+function newProject() {
+  if (!window.confirm("Create a new blank project? Unsaved changes stay only if you saved a draft.")) {
+    return;
+  }
+  pushHistory();
+  resetDocumentState({ keepSettings: true, resetHistory: false });
+  addLayer({ recordHistory: false });
+  setStatus("New project created");
+  render();
+}
+
+function clearCanvas() {
+  if (!window.confirm("Clear all artwork from the current artboard?")) {
+    return;
+  }
+  pushHistory();
+  state.objects = [];
+  state.selection = [];
+  state.activeLayerId = null;
+  state.activePathId = null;
+  state.directSelection.pathId = null;
+  state.directSelection.anchorIndex = null;
+  setStatus("Canvas cleared");
+  render();
+}
+
+function resetEditorState() {
+  if (!window.confirm("Reset the SVG editor and remove local autosave/drafts?")) {
+    return;
+  }
+  for (const key of [STORAGE_CANONICAL_KEY, STORAGE_LEGACY_KEY, STORAGE_DRAFTS_KEY, STORAGE_SETTINGS_KEY]) {
+    window.localStorage.removeItem(key);
+  }
+  resetDocumentState({ keepSettings: false, resetHistory: true });
+  updateDraftsSelect();
+  saveSettings();
+  setStatus("Editor state reset");
+  render();
+}
+
+function switchArtboard(id) {
+  const artboard = state.doc.artboards.find((candidate) => candidate.id === id);
+  if (!artboard) {
+    return;
+  }
+  state.doc.activeArtboardId = artboard.id;
+  state.doc.artboardName = artboard.name;
+  state.doc.width = artboard.width;
+  state.doc.height = artboard.height;
+  setStatus(`Active artboard: ${artboard.name}`);
+  render();
+}
+
+function addArtboard() {
+  pushHistory();
+  const index = state.doc.artboards.length + 1;
+  const artboard = defaultArtboard(state.doc.width, state.doc.height, `Artboard ${index}`);
+  state.doc.artboards.push(artboard);
+  switchArtboard(artboard.id);
+}
+
+function duplicateArtboard() {
+  const active = getActiveArtboard();
+  pushHistory();
+  const copy = {
+    ...deepClone(active),
+    id: nextId("artboard"),
+    name: `${active.name} Copy`
+  };
+  state.doc.artboards.push(copy);
+  switchArtboard(copy.id);
+}
+
+function renameActiveArtboard() {
+  const active = getActiveArtboard();
+  const nextName = sanitizeManualName(window.prompt("Artboard name", active.name));
+  if (!nextName) {
+    return;
+  }
+  pushHistory();
+  active.name = nextName;
+  state.doc.artboardName = nextName;
+  setStatus(`Renamed artboard: ${nextName}`);
+  render();
+}
+
+function deleteArtboard() {
+  if (state.doc.artboards.length <= 1) {
+    setStatus("Keep at least one artboard");
+    return;
+  }
+  const active = getActiveArtboard();
+  pushHistory();
+  state.doc.artboards = state.doc.artboards.filter((artboard) => artboard.id !== active.id);
+  state.doc.activeArtboardId = state.doc.artboards[0]?.id || null;
+  normalizeArtboards(state.doc);
+  setStatus(`Deleted ${active.name}`);
+  render();
+}
+
+function resizeActiveArtboard(width = state.doc.width, height = state.doc.height) {
+  const active = getActiveArtboard();
+  active.width = clamp(Number(width), 64, 10000);
+  active.height = clamp(Number(height), 64, 10000);
+  state.doc.width = active.width;
+  state.doc.height = active.height;
 }
 
 function getTopLevelLayerForId(id) {
@@ -3079,14 +4014,15 @@ function distributeSelection(axis) {
 }
 
 function applyBooleanOperation(operation) {
-  const selectedIds = getTopLevelSelectionIds();
-  if (selectedIds.length !== 2) {
-    setStatus("Select exactly two top-level objects for boolean operations");
+  const records = getSameContainerSelectionRecords(2);
+  if (!records) {
+    setStatus("Select exactly two objects in the same layer for boolean operations");
     return;
   }
+  const selectedIds = records.map((record) => record.id);
 
-  const sourceA = getObjectById(selectedIds[0])?.object;
-  const sourceB = getObjectById(selectedIds[1])?.object;
+  const sourceA = records[0].object;
+  const sourceB = records[1].object;
   if (!sourceA || !sourceB) {
     return;
   }
@@ -3116,51 +4052,535 @@ function applyBooleanOperation(operation) {
   }
 
   const newId = nextId("bool");
-  const minIndex = Math.min(
-    state.objects.findIndex((shape) => shape.id === selectedIds[0]),
-    state.objects.findIndex((shape) => shape.id === selectedIds[1])
-  );
-
-  pushHistory();
-
-  state.objects = state.objects.filter((shape) => !selectedIds.includes(shape.id));
-  state.objects.splice(
-    clamp(minIndex, 0, state.objects.length),
-    0,
-    {
+  const target = records[0].parent?.children || state.objects;
+  const minIndex = Math.min(records[0].index, records[1].index);
+  const polygonA = shapeToWorldPolygon(sourceA, 0.65);
+  const polygonB = shapeToWorldPolygon(sourceB, 0.65);
+  const intersectionPieces = polygonA && polygonB ? intersectPolygonsToPieces(polygonA, polygonB) : [];
+  const topologyPieces = polygonA && polygonB ? booleanPolygonsToPieces(polygonA, polygonB, operation) : [];
+  let result = null;
+  let statusSuffix = "safe SVG fallback";
+  if (topologyPieces.length > 0 && topologyPieces.length <= 96) {
+    const children = topologyPieces
+      .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `${operation === "subtract" ? "Minus" : operation === "exclude" ? "Exclude" : operation === "unite" ? "Unite" : "Intersect"} Region ${index + 1}`, { smoothing: operation === "intersect" ? 0.08 : 0.04 }))
+      .filter(Boolean)
+      .map((shape, index) => ({ ...shape, zIndex: index }));
+    if (children.length === 1) {
+      result = {
+        ...children[0],
+        id: nextId("path"),
+        name: operation === "subtract" ? "Minus Front" : operation === "exclude" ? "Exclude" : operation === "unite" ? "Unite" : "Intersect"
+      };
+    } else if (children.length > 1) {
+      result = {
+        id: nextId("group"),
+        type: "group",
+        name: operation === "subtract" ? "Minus Regions" : operation === "exclude" ? "Exclude Regions" : operation === "unite" ? "Unite Regions" : "Intersect Regions",
+        zIndex: minIndex,
+        visible: true,
+        locked: false,
+        transform: deepClone(DEFAULT_TRANSFORM),
+        style: normalizeStyle({ ...sourceA.style, fill: "none" }),
+        geometry: { x: 0, y: 0, width: 0, height: 0 },
+        children
+      };
+    }
+    statusSuffix = operation === "intersect" ? "editable triangulated regions" : "editable topology decomposition";
+  }
+  if (!result && intersectionPieces.length > 0) {
+    if (operation === "intersect") {
+      const children = intersectionPieces
+        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Intersect Region ${index + 1}`, { smoothing: 0.08 }))
+        .filter(Boolean)
+        .map((shape, index) => ({ ...shape, zIndex: index }));
+      if (children.length === 1) {
+        result = { ...children[0], id: nextId("path"), name: "Intersect" };
+      } else if (children.length > 1) {
+        result = {
+          id: nextId("group"),
+          type: "group",
+          name: "Intersect Regions",
+          zIndex: minIndex,
+          visible: true,
+          locked: false,
+          transform: deepClone(DEFAULT_TRANSFORM),
+          style: normalizeStyle({ ...sourceA.style, fill: "none" }),
+          geometry: { x: 0, y: 0, width: 0, height: 0 },
+          children
+        };
+      }
+      statusSuffix = "editable triangulated regions";
+    } else if (operation === "unite") {
+      if (intersectionPieces.length === 0) {
+        result = {
+          id: newId,
+          type: "boolean",
+          name: "Unite",
+          zIndex: minIndex,
+          visible: true,
+          locked: false,
+          transform: deepClone(DEFAULT_TRANSFORM),
+          style: normalizeStyle({ ...sourceA.style, fillRule: "evenodd" }),
+          geometry: {
+            op: "unite",
+            aPath: aData.d,
+            bPath: bData.d,
+            bounds: unionBounds
+          }
+        };
+        statusSuffix = "compound non-overlap";
+      }
+    }
+  } else if (polygonA && polygonB && operation === "unite") {
+    result = {
       id: newId,
       type: "boolean",
-      name:
-        operation === "unite"
-          ? "Unite"
-          : operation === "subtract"
-            ? "Subtract"
-            : "Intersect",
+      name: "Unite",
       zIndex: minIndex,
       visible: true,
       locked: false,
       transform: deepClone(DEFAULT_TRANSFORM),
-      style: normalizeStyle(sourceA.style),
+      style: normalizeStyle({ ...sourceA.style, fillRule: "evenodd" }),
       geometry: {
-        op: operation,
+        op: "unite",
         aPath: aData.d,
         bPath: bData.d,
-        bounds: {
-          x: unionBounds.x,
-          y: unionBounds.y,
-          width: Math.max(1, unionBounds.width),
-          height: Math.max(1, unionBounds.height)
-        }
+        bounds: unionBounds
+      }
+    };
+    statusSuffix = "compound non-overlap";
+  }
+
+  pushHistory();
+
+  result ??= {
+    id: newId,
+    type: "boolean",
+    name:
+      operation === "unite"
+        ? "Unite"
+        : operation === "subtract"
+          ? "Subtract"
+          : operation === "exclude"
+            ? "Exclude"
+            : "Intersect",
+    zIndex: minIndex,
+    visible: true,
+    locked: false,
+    transform: deepClone(DEFAULT_TRANSFORM),
+    style: normalizeStyle(operation === "exclude" ? { ...sourceA.style, fillRule: "evenodd" } : sourceA.style),
+    geometry: {
+      op: operation,
+      aPath: aData.d,
+      bPath: bData.d,
+      bounds: {
+        x: unionBounds.x,
+        y: unionBounds.y,
+        width: Math.max(1, unionBounds.width),
+        height: Math.max(1, unionBounds.height)
       }
     }
+  };
+  result.id = result.id || newId;
+  result.zIndex = minIndex;
+  for (const record of [...records].sort((a, b) => b.index - a.index)) {
+    target.splice(record.index, 1);
+  }
+  target.splice(
+    clamp(minIndex, 0, target.length),
+    0,
+    result
   );
+  target.forEach((shape, index) => {
+    shape.zIndex = index;
+  });
 
   sortAndReindexObjects();
-  state.selection = [newId];
+  state.selection = [result.id];
   state.activePathId = null;
   state.directSelection.pathId = null;
   state.directSelection.anchorIndex = null;
-  setStatus(`Boolean ${operation} applied`);
+  setStatus(`Boolean ${operation} applied (${statusSuffix})`);
+  render();
+}
+
+function divideSelection() {
+  const records = getSameContainerSelectionRecords(2);
+  if (!records) {
+    setStatus("Divide currently needs exactly two objects in the same layer");
+    return;
+  }
+  const selectedIds = records.map((record) => record.id);
+  const sourceA = records[0].object;
+  const sourceB = records[1].object;
+  const boundsA = getObjectWorldBoundsById(selectedIds[0]);
+  const boundsB = getObjectWorldBoundsById(selectedIds[1]);
+  if (!sourceA || !sourceB || !boundsA || !boundsB) {
+    setStatus("Divide could not read selected geometry");
+    return;
+  }
+  const intersection = boundsIntersection(boundsA, boundsB);
+  if (!intersection) {
+    setStatus("Divide needs overlapping shapes");
+    return;
+  }
+
+  pushHistory();
+  const target = records[0].parent?.children || state.objects;
+  const minIndex = Math.min(records[0].index, records[1].index);
+  const polygonA = shapeToWorldPolygon(sourceA, 0.65);
+  const polygonB = shapeToWorldPolygon(sourceB, 0.65);
+  const regions = polygonA && polygonB ? dividePolygonsToRegions(polygonA, polygonB) : { aOnly: [], bOnly: [], overlap: [] };
+  const intersectionShapes = regions.overlap.length > 0
+    ? regions.overlap
+        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Divide Piece Intersection ${index + 1}`, { smoothing: 0.08 }))
+        .filter(Boolean)
+    : [rectFromBounds(intersection, "Divide Piece Intersection", sourceA.style)];
+  const aOnlyShapes = regions.aOnly.length > 0
+    ? regions.aOnly
+        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Divide Piece ${index + 1}`, { smoothing: 0.04 }))
+        .filter(Boolean)
+    : subtractRectBounds(boundsA, boundsB).map((bounds, index) => rectFromBounds(bounds, `Divide Piece ${index + 1}`, sourceA.style));
+  const bOnlyShapes = regions.bOnly.length > 0
+    ? regions.bOnly
+        .map((piece, index) => smoothPolylineToPathShape(piece, sourceB.style, `Divide Piece ${aOnlyShapes.length + index + 1}`, { smoothing: 0.04 }))
+        .filter(Boolean)
+    : subtractRectBounds(boundsB, boundsA).map((bounds, index) => rectFromBounds(bounds, `Divide Piece ${aOnlyShapes.length + index + 1}`, sourceB.style));
+  const pieces = [
+    ...aOnlyShapes,
+    ...intersectionShapes,
+    ...bOnlyShapes
+  ].filter(Boolean).map((piece, index) => ({ ...piece, id: nextId("divide"), zIndex: index }));
+
+  for (const record of [...records].sort((a, b) => b.index - a.index)) {
+    target.splice(record.index, 1);
+  }
+  target.splice(clamp(minIndex, 0, target.length), 0, ...pieces);
+  target.forEach((shape, index) => {
+    shape.zIndex = index;
+  });
+  sortAndReindexObjects();
+  state.selection = pieces.map((piece) => piece.id);
+  setStatus(regions.overlap.length > 0 ? "Divide created editable topology regions with overlap pieces" : "Divide created editable rectangular pieces; complex curved divide is protected");
+  render();
+}
+
+function offsetShape(shape, amount) {
+  if (shape.type === "rect") {
+    const copy = deepClone(shape);
+    copy.id = nextId("offset");
+    copy.name = `${shape.name || "Rectangle"} Offset`;
+    copy.geometry.x -= amount;
+    copy.geometry.y -= amount;
+    copy.geometry.width = Math.max(1, copy.geometry.width + amount * 2);
+    copy.geometry.height = Math.max(1, copy.geometry.height + amount * 2);
+    copy.geometry.rx = Math.max(0, (copy.geometry.rx || 0) + amount);
+    copy.geometry.ry = Math.max(0, (copy.geometry.ry || 0) + amount);
+    return copy;
+  }
+  if (shape.type === "ellipse") {
+    const copy = deepClone(shape);
+    copy.id = nextId("offset");
+    copy.name = `${shape.name || "Ellipse"} Offset`;
+    copy.geometry.rx = Math.max(1, copy.geometry.rx + amount);
+    copy.geometry.ry = Math.max(1, copy.geometry.ry + amount);
+    return copy;
+  }
+  if (shape.type === "polygon" || (shape.type === "path" && !shape.geometry?.rawD)) {
+    if (shape.type === "path" && shape.geometry?.closed !== true) {
+      const commands = transformPathCommands(getPathShapeCommands(shape), shape.transform);
+      const polyline = commandsToPolyline(commands, 0.5);
+      const offsetLine = offsetOpenPolyline(polyline, amount);
+      if (!offsetLine || offsetLine.length < 2) {
+        return null;
+      }
+      return {
+        id: nextId("offset"),
+        type: "path",
+        name: `${shape.name || "Path"} Offset`,
+        zIndex: shape.zIndex,
+        visible: true,
+        locked: false,
+        transform: deepClone(DEFAULT_TRANSFORM),
+        style: normalizeStyle({ ...shape.style, fill: "none" }),
+        geometry: {
+          anchors: offsetLine.map((point) => ({ x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null })),
+          closed: false
+        }
+      };
+    }
+    const polygon = shapeToWorldPolygon(shape, 0.5);
+    if (!polygon) {
+      return null;
+    }
+    const offsetPaths = SvgGeometryEngine.offsetPolygonPaths(
+      polygon,
+      amount,
+      normalizeStyle(shape.style).strokeJoin,
+      normalizeStyle(shape.style).strokeMiterlimit
+    );
+    if (offsetPaths?.length > 1) {
+      const children = offsetPaths
+        .map((path, index) => smoothPolylineToPathShape(path, shape.style, `${shape.name || "Path"} Offset ${index + 1}`, { smoothing: 0.04 }))
+        .filter(Boolean)
+        .map((path, index) => ({ ...path, zIndex: index }));
+      if (children.length > 0) {
+        return {
+          id: nextId("offset"),
+          type: "group",
+          name: `${shape.name || "Path"} Offset`,
+          zIndex: shape.zIndex,
+          visible: true,
+          locked: false,
+          transform: deepClone(DEFAULT_TRANSFORM),
+          style: normalizeStyle({ ...shape.style, fill: "none" }),
+          geometry: { x: 0, y: 0, width: 0, height: 0 },
+          children
+        };
+      }
+    }
+    if (offsetPaths?.length === 1) {
+      return smoothPolylineToPathShape(offsetPaths[0], shape.style, `${shape.name || "Path"} Offset`, { smoothing: 0.04 });
+    }
+    const offset = offsetPolygon(polygon, amount, normalizeStyle(shape.style).strokeJoin, normalizeStyle(shape.style).strokeMiterlimit);
+    if (!offset || offset.length < 3 || Math.abs(polygonArea(offset)) < 0.01) {
+      return null;
+    }
+    return smoothPolylineToPathShape(offset, shape.style, `${shape.name || "Path"} Offset`, { smoothing: 0.08 });
+  }
+  return null;
+}
+
+function offsetSelectedPaths() {
+  const amount = Number(dom.offsetPathInput.value);
+  if (!Number.isFinite(amount) || amount === 0) {
+    setStatus("Enter a non-zero offset amount");
+    return;
+  }
+  const selected = selectedTopLevelOrNestedObjects();
+  if (selected.length === 0) {
+    setStatus("Select objects to offset");
+    return;
+  }
+  const created = [];
+  pushHistory();
+  for (const shape of selected) {
+    const offset = offsetShape(shape, amount);
+    if (!offset) {
+      continue;
+    }
+    const found = getObjectById(shape.id);
+    const target = found?.parent?.children || state.objects;
+    offset.zIndex = found ? found.index + 1 : target.length;
+    target.splice(offset.zIndex, 0, offset);
+    target.forEach((entry, index) => {
+      entry.zIndex = index;
+    });
+    created.push(offset.id);
+  }
+  if (created.length === 0) {
+    state.history.undo.pop();
+    updateHistoryButtons();
+    setStatus("Offset supports rectangles, ellipses, polygons, and editable simple paths");
+    return;
+  }
+  state.selection = created;
+  setStatus(`Created ${created.length} offset path(s)`);
+  render();
+}
+
+function outlineLineShape(shape) {
+  const g = shape.geometry;
+  const width = Math.max(0.1, normalizeStyle(shape.style).strokeWidth || 1);
+  const dx = g.x2 - g.x1;
+  const dy = g.y2 - g.y1;
+  const length = Math.max(0.0001, Math.hypot(dx, dy));
+  const nx = (-dy / length) * (width / 2);
+  const ny = (dx / length) * (width / 2);
+  return {
+    ...deepClone(shape),
+    id: nextId("outline"),
+    type: "path",
+    name: `${shape.name || "Line"} Outline`,
+    transform: deepClone(shape.transform),
+    style: normalizeStyle({
+      ...shape.style,
+      fill: shape.style.stroke || "#000000",
+      stroke: "none",
+      strokeWidth: 0
+    }),
+    geometry: {
+      closed: true,
+      anchors: [
+        { x: g.x1 + nx, y: g.y1 + ny, inHandle: null, outHandle: null },
+        { x: g.x2 + nx, y: g.y2 + ny, inHandle: null, outHandle: null },
+        { x: g.x2 - nx, y: g.y2 - ny, inHandle: null, outHandle: null },
+        { x: g.x1 - nx, y: g.y1 - ny, inHandle: null, outHandle: null }
+      ]
+    }
+  };
+}
+
+function outlineStrokeSelection() {
+  const selected = selectedTopLevelOrNestedObjects();
+  if (selected.length === 0) {
+    setStatus("Select stroked objects to outline");
+    return;
+  }
+  const outlined = [];
+  pushHistory();
+  for (const shape of selected) {
+    const style = normalizeStyle(shape.style);
+    if (!style.stroke || style.stroke === "none" || style.strokeWidth <= 0) {
+      continue;
+    }
+    let replacement = null;
+    if (shape.type === "line" && !style.strokeDasharray) {
+      replacement = outlineLineShape(shape);
+    } else {
+      const commands = shapeToPathCommands(shape);
+      const world = commands ? transformPathCommands(commands, shape.transform) : null;
+      const polyline = world ? commandsToPolyline(world, 0.5) : null;
+      if (polyline?.length >= 2) {
+        const closed = shape.geometry?.closed === true || shape.type === "rect" || shape.type === "ellipse" || shape.type === "polygon";
+        const dashSegments = style.strokeDasharray && !closed ? dashedPolylineSegments(polyline, style.strokeDasharray) : [polyline];
+        const outlines = dashSegments
+          .map((segment) => outlinePolyline(segment, style.strokeWidth, closed, style))
+          .map((outline, index) => outline
+            ? smoothPolylineToPathShape(outline, {
+                ...style,
+                fill: style.stroke,
+                stroke: "none",
+                strokeWidth: 0
+              }, `${shape.name || "Object"} Stroke Outline${dashSegments.length > 1 ? ` ${index + 1}` : ""}`, { smoothing: 0.06 })
+            : null)
+          .filter(Boolean);
+        if (outlines.length === 1) {
+          replacement = outlines[0];
+        } else if (outlines.length > 1) {
+          replacement = {
+            id: nextId("outline"),
+            type: "group",
+            name: `${shape.name || "Object"} Dashed Stroke Outline`,
+            zIndex: shape.zIndex,
+            visible: true,
+            locked: false,
+            transform: deepClone(DEFAULT_TRANSFORM),
+            style: normalizeStyle({ ...style, fill: "none", stroke: "none", strokeWidth: 0 }),
+            geometry: { x: 0, y: 0, width: 0, height: 0 },
+            children: outlines.map((outline, index) => ({ ...outline, zIndex: index }))
+          };
+        }
+      }
+      if (!replacement) {
+        const bounds = getObjectWorldBoundsById(shape.id);
+        replacement = bounds ? rectFromBounds({
+          x: bounds.x - style.strokeWidth / 2,
+          y: bounds.y - style.strokeWidth / 2,
+          width: bounds.width + style.strokeWidth,
+          height: bounds.height + style.strokeWidth
+        }, `${shape.name || "Object"} Stroke Outline`, {
+          ...style,
+          fill: style.stroke,
+          stroke: "none",
+          strokeWidth: 0
+        }) : null;
+      }
+    }
+    if (replacement && replaceShapeWithMany(shape.id, [replacement])) {
+      outlined.push(replacement.id);
+    }
+  }
+  if (outlined.length === 0) {
+    state.history.undo.pop();
+    updateHistoryButtons();
+    setStatus("Outline Stroke supports simple stroked vectors; complex curves are preserved");
+    return;
+  }
+  state.selection = outlined;
+  setStatus(`Outlined ${outlined.length} stroke(s)`);
+  render();
+}
+
+function expandAppearanceSelection() {
+  const selected = selectedTopLevelOrNestedObjects();
+  if (selected.length === 0) {
+    setStatus("Select objects to expand");
+    return;
+  }
+  const expanded = [];
+  pushHistory();
+  for (const shape of selected) {
+    if (shape.type === "raw") {
+      continue;
+    }
+    const path = shapeToEditablePathShape(shape, `${shape.name || "Object"} Expanded`);
+    if (path && replaceShapeWithMany(shape.id, [path])) {
+      expanded.push(path.id);
+    }
+  }
+  if (expanded.length === 0) {
+    state.history.undo.pop();
+    updateHistoryButtons();
+    setStatus("Expand Appearance supports editable vector shapes; raw SVG content stays preserved");
+    return;
+  }
+  state.selection = expanded;
+  setStatus(`Expanded ${expanded.length} object(s) into editable paths`);
+  render();
+}
+
+function selectedSymbolInstance() {
+  const shape = getPrimarySelectedObject();
+  if (!shape || shape.type !== "raw" || !shape.geometry?.symbolHref) {
+    return null;
+  }
+  return shape;
+}
+
+function breakSelectedSymbolInstance() {
+  const symbol = selectedSymbolInstance();
+  if (!symbol) {
+    setStatus("Select an imported symbol instance to break");
+    return;
+  }
+  const symbolId = symbol.geometry.symbolHref.replace(/^#/, "");
+  if (!symbolId || !state.doc.defs) {
+    setStatus("Selected symbol instance has no preserved symbol definition");
+    return;
+  }
+  const doc = new DOMParser().parseFromString(`<svg xmlns="${SVG_NS}"><defs>${state.doc.defs}</defs></svg>`, "image/svg+xml");
+  const symbolNode = doc.getElementById(symbolId);
+  if (!symbolNode) {
+    setStatus(`Symbol definition not found: ${symbolId}`);
+    return;
+  }
+  const counters = {};
+  const children = importChildrenFromSvgNode(symbolNode, counters, matrixIdentity(), SVG_IMPORT_DEFAULT_STYLE, {
+    cssRules: [],
+    defs: state.doc.defs
+  });
+  if (children.length === 0) {
+    setStatus("Symbol definition could not be expanded into editable objects");
+    return;
+  }
+  pushHistory();
+  const group = {
+    id: nextId("symbol"),
+    type: "group",
+    sourceId: symbol.sourceId,
+    name: `${symbol.name || "Symbol"} Expanded`,
+    zIndex: symbol.zIndex,
+    visible: symbol.visible !== false,
+    locked: symbol.locked === true,
+    transform: deepClone(symbol.transform),
+    style: normalizeStyle({ ...symbol.style, fill: "none" }),
+    geometry: { x: 0, y: 0, width: 0, height: 0 },
+    children
+  };
+  replaceShapeWithMany(symbol.id, [group]);
+  state.selection = [group.id];
+  setStatus(`Broke symbol instance: ${symbol.name || symbolId}`);
   render();
 }
 
@@ -4723,8 +6143,23 @@ function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }
   if (computedFillOpacity !== 1 && computedFill !== "none") {
     styleAttributes.push(`fill-opacity="${computedFillOpacity}"`);
   }
+  if (style.fillRule === "evenodd") {
+    styleAttributes.push(`fill-rule="evenodd"`);
+  }
   if (computedStrokeOpacity !== 1 && computedStroke && computedStroke !== "none") {
     styleAttributes.push(`stroke-opacity="${computedStrokeOpacity}"`);
+  }
+  if (style.clipPath) {
+    styleAttributes.push(`clip-path="${escapeAttribute(style.clipPath)}"`);
+  }
+  if (style.mask) {
+    styleAttributes.push(`mask="${escapeAttribute(style.mask)}"`);
+  }
+  if (style.filter) {
+    styleAttributes.push(`filter="${escapeAttribute(style.filter)}"`);
+  }
+  if (style.mixBlendMode) {
+    styleAttributes.push(`style="mix-blend-mode:${escapeAttribute(style.mixBlendMode)}"`);
   }
 
   const transform = transformToString(shape.transform);
@@ -4784,6 +6219,10 @@ function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }
       return `${indent}<path${identityAttributes} d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
     }
 
+    if (op === "exclude") {
+      return `${indent}<path${identityAttributes} d="${aPath} ${bPath}" fill-rule="evenodd" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    }
+
     if (op === "intersect") {
       const clipId = `clip-${shape.id}`;
       return `${indent}<g${identityAttributes}${transformAttribute}>
@@ -4816,6 +6255,14 @@ ${indent}</g>`;
     }
   }
 
+  if (shape.type === "raw") {
+    const markup = shape.geometry?.markup || "";
+    if (!markup) {
+      return "";
+    }
+    return `${indent}<g${identityAttributes}${transformAttribute}>\n${indent}  ${markup}\n${indent}</g>`;
+  }
+
   if (shape.type === "group") {
     const childLines = [...(shape.children || [])]
       .sort((a, b) => a.zIndex - b.zIndex)
@@ -4831,8 +6278,13 @@ ${indent}</g>`;
   return "";
 }
 
-function exportSvgString() {
-  const ordered = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
+function exportSvgString(options = {}) {
+  normalizeArtboards(state.doc);
+  const preset = options.preset || dom.exportPresetInput?.value || "standard";
+  const sourceObjects = preset === "selected"
+    ? collectSelectedObjects()
+    : state.objects;
+  const ordered = [...sourceObjects].sort((a, b) => a.zIndex - b.zIndex);
   const context = { usedIds: new Set() };
   const lines = ordered.map((shape) => shapeToSvgString(shape, "  ", context)).filter(Boolean);
   const gradientLines = [];
@@ -4844,13 +6296,53 @@ function exportSvgString() {
     }
   }
   const defsContent = [state.doc.defs, ...gradientLines].filter(Boolean).join("\n");
-  return [
+  if (preset === "all-artboards") {
+    let cursorX = 0;
+    const artboardGap = 48;
+    const contextAll = { usedIds: new Set() };
+    const artboardLines = state.doc.artboards.map((artboard, index) => {
+      const clipId = `artboard-clip-${index + 1}`;
+      const content = ordered
+        .map((shape) => shapeToSvgString(shape, "    ", contextAll))
+        .filter(Boolean)
+        .join("\n");
+      const line = `  <g data-name="${escapeAttribute(artboard.name)}" transform="translate(${round(cursorX - artboard.x)} ${round(-artboard.y)})" clip-path="url(#${clipId})">\n${content}\n  </g>`;
+      cursorX += artboard.width + artboardGap;
+      return line;
+    });
+    const width = Math.max(1, cursorX - artboardGap);
+    const height = Math.max(...state.doc.artboards.map((artboard) => artboard.height), 1);
+    const clipDefs = state.doc.artboards
+      .map((artboard, index) => `    <clipPath id="artboard-clip-${index + 1}"><rect x="${round(artboard.x)}" y="${round(artboard.y)}" width="${round(artboard.width)}" height="${round(artboard.height)}" /></clipPath>`)
+      .join("\n");
+    let output = [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${round(width)}\" height=\"${round(height)}\" viewBox=\"0 0 ${round(width)} ${round(height)}\">`,
+      `  <defs>\n${[defsContent, clipDefs].filter(Boolean).join("\n")}\n  </defs>`,
+      ...artboardLines,
+      "</svg>"
+    ].filter(Boolean).join("\n");
+    output = output.replace(/^<\?xml[^>]+>\n/, "").replace(/>\s+</g, "><").replace(/\s{2,}/g, " ").trim();
+    return output;
+  }
+  let output = [
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
     `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${round(state.doc.width)}\" height=\"${round(state.doc.height)}\" viewBox=\"0 0 ${round(state.doc.width)} ${round(state.doc.height)}\">`,
     defsContent ? `  <defs>\n${defsContent}\n  </defs>` : "",
     ...lines,
     "</svg>"
   ].filter(Boolean).join("\n");
+  if (preset === "web") {
+    output = output.replace(/^<\?xml[^>]+>\n/, "");
+  }
+  if (preset === "minified" || preset === "onchain") {
+    output = output
+      .replace(/^<\?xml[^>]+>\n/, "")
+      .replace(/>\s+</g, "><")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+  return output;
 }
 
 function getToolLabel(tool) {
@@ -5194,12 +6686,28 @@ function parseEmbeddedSvgCss(svg) {
 }
 
 function extractImportDefs(svg) {
-  const defsNodes = [...svg.children].filter((node) => (node.localName || node.tagName || "").toLowerCase() === "defs");
-  if (defsNodes.length === 0) {
-    return "";
-  }
   const serializer = new XMLSerializer();
-  return defsNodes.map((defs) => [...defs.children].map((child) => serializer.serializeToString(child)).join("\n")).join("\n");
+  const definitionTags = new Set([
+    "clippath",
+    "filter",
+    "lineargradient",
+    "marker",
+    "mask",
+    "pattern",
+    "radialgradient",
+    "style",
+    "symbol"
+  ]);
+  const definitions = [];
+  for (const node of [...svg.children]) {
+    const tag = node.localName || node.tagName || "";
+    if (tag.toLowerCase() === "defs") {
+      definitions.push(...[...node.children].map((child) => serializer.serializeToString(child)));
+    } else if (definitionTags.has(tag.toLowerCase())) {
+      definitions.push(serializer.serializeToString(node));
+    }
+  }
+  return definitions.join("\n");
 }
 
 function cssRuleMatchesNode(rule, node) {
@@ -5264,6 +6772,21 @@ function svgStyleFromDeclarations(declarations) {
   if (read("opacity")) {
     style.opacity = readNumber("opacity");
   }
+  if (read("fill-rule")) {
+    style.fillRule = read("fill-rule").trim().toLowerCase() === "evenodd" ? "evenodd" : "nonzero";
+  }
+  if (read("clip-path")) {
+    style.clipPath = read("clip-path");
+  }
+  if (read("mask")) {
+    style.mask = read("mask");
+  }
+  if (read("filter")) {
+    style.filter = read("filter");
+  }
+  if (read("mix-blend-mode")) {
+    style.mixBlendMode = read("mix-blend-mode");
+  }
   return style;
 }
 
@@ -5280,7 +6803,12 @@ function presentationStyleForNode(node) {
     "stroke-miterlimit",
     "fill-opacity",
     "stroke-opacity",
-    "opacity"
+    "opacity",
+    "fill-rule",
+    "clip-path",
+    "mask",
+    "filter",
+    "mix-blend-mode"
   ]) {
     const value = node.getAttribute(name);
     if (value !== null && value !== "") {
@@ -5379,6 +6907,46 @@ function transformObjectGeometryForImport(shape, matrix) {
   return shape;
 }
 
+function serializeRawImportedNode(node) {
+  const clone = node.cloneNode(true);
+  clone.removeAttribute("transform");
+  clone.removeAttribute("id");
+  return new XMLSerializer().serializeToString(clone);
+}
+
+function rawImportedShape(node, base, matrix, reason = "unsupported SVG element") {
+  const tag = (node.localName || node.tagName || "svg").toLowerCase();
+  const symbolHref = tag === "use"
+    ? String(node.getAttribute("href") || node.getAttributeNS("http://www.w3.org/1999/xlink", "href") || "").trim()
+    : "";
+  const ownerViewBox = node.ownerSVGElement?.viewBox?.baseVal;
+  const fallbackWidth = Number(ownerViewBox?.width) || state.doc.width;
+  const fallbackHeight = Number(ownerViewBox?.height) || state.doc.height;
+  if (!rawImportedShape.warned) {
+    rawImportedShape.warned = new Set();
+  }
+  const key = `${tag}:${reason}`;
+  if (!rawImportedShape.warned.has(key)) {
+    rawImportedShape.warned.add(key);
+    console.warn(`SVG editor: preserving ${tag} as raw SVG-backed content (${reason})`);
+  }
+  return {
+    ...base,
+    type: "raw",
+    transform: matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix },
+    geometry: {
+      markup: serializeRawImportedNode(node),
+      symbolHref,
+      bounds: {
+        x: 0,
+        y: 0,
+        width: Math.max(1, fallbackWidth),
+        height: Math.max(1, fallbackHeight)
+      }
+    }
+  };
+}
+
 function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdentity(), parentStyle = SVG_IMPORT_DEFAULT_STYLE, context = null) {
   const tag = (node.localName || node.tagName).toLowerCase();
   const fallbackName = fallbackImportedName(tag, counters);
@@ -5463,7 +7031,7 @@ function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdenti
   }
   if (tag === "path") {
     const parsed = parseLegacyPathD(node.getAttribute("d") || "");
-    return transformObjectGeometryForImport({
+    const shape = {
       ...base,
       type: "path",
       geometry: {
@@ -5471,7 +7039,11 @@ function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdenti
         closed: parsed.closed,
         rawD: parsed.preserved ? parsed.rawD : ""
       }
-    }, importMatrix);
+    };
+    if (parsed.preserved && !matrixIsIdentity(importMatrix)) {
+      return rawImportedShape(node, base, importMatrix, "complex transformed path data");
+    }
+    return transformObjectGeometryForImport(shape, importMatrix);
   }
   if (tag === "text") {
     return transformObjectGeometryForImport({
@@ -5485,6 +7057,9 @@ function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdenti
         fontFamily: node.getAttribute("font-family") || "Inter, Arial, sans-serif"
       }
     }, importMatrix);
+  }
+  if (["use", "image", "foreignobject", "symbol"].includes(tag)) {
+    return rawImportedShape(node, base, importMatrix);
   }
   return null;
 }
@@ -5558,9 +7133,22 @@ function parseSvgSourceToDocument(source) {
   };
   const nextObjects = importChildrenFromSvgNode(svg, counters, rootMatrix, SVG_IMPORT_DEFAULT_STYLE, importContext);
   const nextDoc = {
+    name: "Imported SVG",
+    artboardName: "Imported Artboard",
     width: viewport.width,
     height: viewport.height,
-    defs: importContext.defs
+    defs: importContext.defs,
+    activeArtboardId: "imported-artboard",
+    artboards: [
+      {
+        id: "imported-artboard",
+        name: "Imported Artboard",
+        x: 0,
+        y: 0,
+        width: viewport.width,
+        height: viewport.height
+      }
+    ]
   };
 
   return { ok: true, svg, objects: nextObjects, doc: nextDoc };
@@ -5583,9 +7171,12 @@ function applyImportedSvgDocument(parsed, sourceLabel) {
   }
 
   pushHistory();
-  state.doc.width = parsed.doc.width;
-  state.doc.height = parsed.doc.height;
-  state.doc.defs = parsed.doc.defs || "";
+  state.doc = {
+    ...state.doc,
+    ...deepClone(parsed.doc || {}),
+    defs: parsed.doc.defs || ""
+  };
+  normalizeArtboards(state.doc);
   state.objects = parsed.objects;
   state.selection = [];
   state.activeLayerId = state.objects.find((shape) => shape.type === "group" && shape.visible !== false && !shape.locked)?.id || null;
@@ -5665,6 +7256,11 @@ function loadInitialDocument() {
         state.doc.width = clamp(Number(parsed.doc.width ?? state.doc.width), 64, 10000);
         state.doc.height = clamp(Number(parsed.doc.height ?? state.doc.height), 64, 10000);
         state.doc.defs = typeof parsed.doc.defs === "string" ? parsed.doc.defs : "";
+        state.doc.name = sanitizeManualName(parsed.doc.name) || state.doc.name;
+        state.doc.artboardName = sanitizeManualName(parsed.doc.artboardName) || state.doc.artboardName;
+        state.doc.activeArtboardId = typeof parsed.doc.activeArtboardId === "string" ? parsed.doc.activeArtboardId : state.doc.activeArtboardId;
+        state.doc.artboards = Array.isArray(parsed.doc.artboards) ? parsed.doc.artboards : state.doc.artboards;
+        normalizeArtboards(state.doc);
         state.activeLayerId = typeof parsed.activeLayerId === "string" ? parsed.activeLayerId : null;
       }
       if (!getObjectById(state.activeLayerId)) {
@@ -5734,28 +7330,106 @@ function deleteActiveAnchor() {
   return true;
 }
 
+function getSelectedPathObjects() {
+  return state.selection
+    .map((id) => getObjectById(id)?.object)
+    .filter((shape) => shape?.type === "path" && !shape.geometry?.rawD);
+}
+
+function reverseSelectedPaths() {
+  const paths = getSelectedPathObjects();
+  if (paths.length === 0) {
+    setStatus("Select editable paths to reverse");
+    return;
+  }
+  pushHistory();
+  for (const path of paths) {
+    path.geometry.anchors = [...(path.geometry.anchors || [])].reverse().map((anchor) => ({
+      x: anchor.x,
+      y: anchor.y,
+      inHandle: anchor.outHandle ? deepClone(anchor.outHandle) : null,
+      outHandle: anchor.inHandle ? deepClone(anchor.inHandle) : null
+    }));
+  }
+  setStatus(`Reversed ${paths.length} path(s)`);
+  render();
+}
+
+function simplifySelectedPaths() {
+  const paths = getSelectedPathObjects();
+  if (paths.length === 0) {
+    setStatus("Select editable paths to simplify");
+    return;
+  }
+  pushHistory();
+  for (const path of paths) {
+    const points = (path.geometry.anchors || []).map((anchor) => ({ x: anchor.x, y: anchor.y }));
+    const simplified = cleanPolygonPoints(simplifyPoints(points, 3), 0.25);
+    path.geometry.anchors = simplified.map((point) => ({ x: point.x, y: point.y, inHandle: null, outHandle: null }));
+    if (path.geometry.closed && path.geometry.anchors.length < 3) {
+      path.geometry.closed = false;
+    }
+  }
+  setStatus(`Simplified and cleaned ${paths.length} path(s)`);
+  render();
+}
+
+function joinSelectedOpenPaths() {
+  const paths = getSelectedPathObjects().filter((path) => !path.geometry.closed && (path.geometry.anchors || []).length > 0);
+  if (paths.length !== 2) {
+    setStatus("Select two open editable paths to join");
+    return;
+  }
+  pushHistory();
+  const [a, b] = paths;
+  a.geometry.anchors = [...a.geometry.anchors, ...b.geometry.anchors.map((anchor) => deepClone(anchor))];
+  state.objects = removeObjectsByIds(state.objects, new Set([b.id]));
+  state.selection = [a.id];
+  state.directSelection.pathId = a.id;
+  state.directSelection.anchorIndex = a.geometry.anchors.length - 1;
+  setStatus("Joined open paths");
+  render();
+}
+
+function convertSelectedAnchor() {
+  const active = getActiveAnchorSelection();
+  if (active) {
+    toggleAnchorSmooth(active.pathId, active.anchorIndex);
+    return;
+  }
+  const path = getSelectedPathObjects()[0];
+  if (!path) {
+    setStatus("Select an editable path anchor to convert");
+    return;
+  }
+  toggleAnchorSmooth(path.id, 0);
+}
+
 function duplicateSelection() {
   if (state.selection.length === 0) {
     return;
   }
 
   pushHistory();
-  const selected = new Set(state.selection);
-  const clones = state.objects
-    .filter((shape) => selected.has(shape.id))
-    .map((shape) => {
-      const clone = deepClone(shape);
-      clone.id = nextId(shape.type);
-      clone.name = `${shape.name || shape.type} copy`;
-      clone.transform = normalizeTransform(clone.transform);
-      clone.transform.tx += 18;
-      clone.transform.ty += 18;
-      clone.zIndex = state.objects.length;
-      return clone;
+  const clones = [];
+  for (const id of state.selection) {
+    const found = getObjectById(id);
+    if (!found) {
+      continue;
+    }
+    const clone = deepClone(found.object);
+    clone.id = nextId(found.object.type);
+    clone.name = `${found.object.name || found.object.type} copy`;
+    clone.transform = normalizeTransform(clone.transform);
+    clone.transform.tx += 18;
+    clone.transform.ty += 18;
+    const target = found.parent?.children || state.objects;
+    clone.zIndex = found.index + 1;
+    target.splice(found.index + 1, 0, clone);
+    target.forEach((shape, index) => {
+      shape.zIndex = index;
     });
-
-  for (const clone of clones) {
-    state.objects.push(clone);
+    clones.push(clone);
   }
   sortAndReindexObjects();
   state.selection = clones.map((shape) => shape.id);
@@ -5865,13 +7539,28 @@ function bindEvents() {
 
   dom.docWidth.addEventListener("change", () => {
     pushHistory();
-    state.doc.width = clamp(Number(dom.docWidth.value), 64, 10000);
+    resizeActiveArtboard(Number(dom.docWidth.value), state.doc.height);
     render();
   });
 
   dom.docHeight.addEventListener("change", () => {
     pushHistory();
-    state.doc.height = clamp(Number(dom.docHeight.value), 64, 10000);
+    resizeActiveArtboard(state.doc.width, Number(dom.docHeight.value));
+    render();
+  });
+
+  dom.documentNameInput.addEventListener("change", () => {
+    pushHistory();
+    state.doc.name = sanitizeManualName(dom.documentNameInput.value) || "Untitled SVG";
+    render();
+  });
+
+  dom.artboardNameInput.addEventListener("change", () => {
+    pushHistory();
+    const name = sanitizeManualName(dom.artboardNameInput.value) || "Artboard 1";
+    const active = getActiveArtboard();
+    active.name = name;
+    state.doc.artboardName = name;
     render();
   });
 
@@ -5956,6 +7645,21 @@ function bindEvents() {
   dom.redoBtn.addEventListener("click", redo);
   dom.undoToolbarBtn.addEventListener("click", undo);
   dom.redoToolbarBtn.addEventListener("click", redo);
+  dom.newProjectBtn.addEventListener("click", newProject);
+  dom.clearCanvasBtn.addEventListener("click", clearCanvas);
+  dom.saveDraftBtn.addEventListener("click", () => saveDraft());
+  dom.resetEditorBtn.addEventListener("click", resetEditorState);
+  dom.draftsSelect.addEventListener("change", () => {
+    if (dom.draftsSelect.value) {
+      openDraft(dom.draftsSelect.value);
+      dom.draftsSelect.value = "";
+    }
+  });
+  dom.autosaveToggle.addEventListener("change", () => {
+    state.autosave = dom.autosaveToggle.checked;
+    saveSettings();
+    setStatus(state.autosave ? "Autosave enabled" : "Autosave disabled");
+  });
   dom.addLayerBtn.addEventListener("click", () => addLayer());
   dom.duplicateBtn.addEventListener("click", duplicateSelection);
   dom.deleteBtn.addEventListener("click", deleteSelection);
@@ -5981,6 +7685,7 @@ function bindEvents() {
     dom.svgValidationMessage.textContent = "Valid SVG";
     dom.svgValidationMessage.classList.remove("is-error");
   });
+  dom.exportPresetInput.addEventListener("change", refreshCodePanelIfOpen);
   dom.applySvgCodeBtn.addEventListener("click", applySvgCode);
   dom.layerForwardBtn.addEventListener("click", () => moveSelectionInLayer(1));
   dom.layerBackwardBtn.addEventListener("click", () => moveSelectionInLayer(-1));
@@ -5997,6 +7702,42 @@ function bindEvents() {
   dom.booleanUniteBtn.addEventListener("click", () => applyBooleanOperation("unite"));
   dom.booleanSubtractBtn.addEventListener("click", () => applyBooleanOperation("subtract"));
   dom.booleanIntersectBtn.addEventListener("click", () => applyBooleanOperation("intersect"));
+  dom.booleanExcludeBtn.addEventListener("click", () => applyBooleanOperation("exclude"));
+  dom.dividePathBtn.addEventListener("click", divideSelection);
+  dom.reversePathBtn.addEventListener("click", reverseSelectedPaths);
+  dom.simplifyPathBtn.addEventListener("click", simplifySelectedPaths);
+  dom.offsetPathBtn.addEventListener("click", offsetSelectedPaths);
+  dom.outlineStrokeBtn.addEventListener("click", outlineStrokeSelection);
+  dom.expandAppearanceBtn.addEventListener("click", expandAppearanceSelection);
+  dom.joinPathsBtn.addEventListener("click", joinSelectedOpenPaths);
+  dom.convertAnchorBtn.addEventListener("click", convertSelectedAnchor);
+  dom.addArtboardBtn.addEventListener("click", addArtboard);
+  dom.duplicateArtboardBtn.addEventListener("click", duplicateArtboard);
+  dom.renameArtboardBtn.addEventListener("click", renameActiveArtboard);
+  dom.deleteArtboardBtn.addEventListener("click", deleteArtboard);
+  dom.fitArtboardBtn.addEventListener("click", fitArtboardToScreen);
+  dom.duplicateSymbolBtn.addEventListener("click", duplicateSelection);
+  dom.breakSymbolBtn.addEventListener("click", breakSelectedSymbolInstance);
+  dom.addFillSwatchBtn.addEventListener("click", () => {
+    const primary = getPrimarySelectedObject();
+    const style = normalizeStyle(primary?.style || DEFAULT_STYLE);
+    state.swatches.push({ type: "solid", name: `Swatch ${state.swatches.length + 1}`, color: style.fill === "none" ? "#000000" : colorToHex(style.fill, "#000000") });
+    saveSettings();
+    render();
+    setStatus("Saved fill swatch");
+  });
+  dom.addGradientSwatchBtn.addEventListener("click", () => {
+    const primary = getPrimarySelectedObject();
+    const gradient = normalizeStyle(primary?.style || DEFAULT_STYLE).fillGradient;
+    if (!gradient) {
+      setStatus("Select an object with a fill gradient first");
+      return;
+    }
+    state.swatches.push({ type: "gradient", name: `Gradient ${state.swatches.length + 1}`, gradient: deepClone(gradient) });
+    saveSettings();
+    render();
+    setStatus("Saved gradient swatch");
+  });
   dom.snapToggleBtn.addEventListener("click", () => {
     state.snap.enabled = !state.snap.enabled;
     if (!state.snap.enabled) {
@@ -6157,9 +7898,11 @@ function bindEvents() {
 }
 
 function init() {
+  loadSettings();
   loadInitialDocument();
   applyToolButtonState();
   bindEvents();
+  updateDraftsSelect();
   updateHistoryButtons();
   render();
   requestAnimationFrame(fitArtboardToScreen);

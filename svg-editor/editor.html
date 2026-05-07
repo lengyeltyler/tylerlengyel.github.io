@@ -10,8 +10,17 @@
   <div class="editor-shell">
     <header class="topbar" role="toolbar" aria-label="Editor options">
       <div class="app-mark">
-        <span class="app-icon">Ai</span>
-        <span class="app-title">SVG Systems Lab</span>
+        <span class="app-icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" focusable="false">
+            <path class="app-icon-path" d="M8 20.5 15.5 7 24 20.5" />
+            <path class="app-icon-path app-icon-path-soft" d="M11 19h10M15.5 7v18" />
+            <circle class="app-icon-node" cx="15.5" cy="7" r="2.2" />
+            <circle class="app-icon-node" cx="8" cy="20.5" r="2.2" />
+            <circle class="app-icon-node" cx="24" cy="20.5" r="2.2" />
+            <circle class="app-icon-core" cx="15.5" cy="19" r="2.8" />
+          </svg>
+        </span>
+        <span class="app-title">Vector Systems Lab</span>
       </div>
 
       <div class="control-strip" id="tool-options">
@@ -122,6 +131,14 @@
         <details class="panel-section" open>
           <summary>Properties</summary>
           <div class="field-row">
+            <label for="document-name-input">Document</label>
+            <input id="document-name-input" type="text" value="Untitled SVG" />
+          </div>
+          <div class="field-row">
+            <label for="artboard-name-input">Artboard</label>
+            <input id="artboard-name-input" type="text" value="Artboard 1" />
+          </div>
+          <div class="field-row">
             <label for="object-name-input">Name</label>
             <input id="object-name-input" type="text" value="" />
           </div>
@@ -134,6 +151,28 @@
             <input id="doc-height-input" type="number" min="64" max="10000" step="1" value="800" />
           </div>
           <p class="panel-note" id="selection-summary">No selection</p>
+        </details>
+
+        <details class="panel-section" open>
+          <summary>Project</summary>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="new-project-btn" class="text-button">New Project</button>
+            <button type="button" id="clear-canvas-btn" class="text-button">Clear Canvas</button>
+          </div>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="save-draft-btn" class="text-button">Save Draft</button>
+            <button type="button" id="reset-editor-btn" class="text-button">Reset Editor</button>
+          </div>
+          <div class="field-row">
+            <label for="drafts-select">Open recent</label>
+            <select id="drafts-select">
+              <option value="">No saved drafts</option>
+            </select>
+          </div>
+          <label class="toggle-row">
+            <input id="autosave-toggle" type="checkbox" checked />
+            Autosave
+          </label>
         </details>
 
         <details class="panel-section" open>
@@ -267,10 +306,77 @@
             <button type="button" id="boolean-subtract-btn" class="text-button">Minus</button>
             <button type="button" id="boolean-intersect-btn" class="text-button">Intersect</button>
           </div>
+          <div class="action-grid action-grid-three">
+            <button type="button" id="boolean-exclude-btn" class="text-button">Exclude</button>
+            <button type="button" id="divide-path-btn" class="text-button">Divide</button>
+            <button type="button" id="reverse-path-btn" class="text-button">Reverse</button>
+          </div>
+          <div class="action-grid action-grid-three">
+            <button type="button" id="simplify-path-btn" class="text-button">Simplify</button>
+            <button type="button" id="outline-stroke-btn" class="text-button">Outline</button>
+            <button type="button" id="expand-appearance-btn" class="text-button">Expand</button>
+          </div>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="join-paths-btn" class="text-button">Join Paths</button>
+            <button type="button" id="convert-anchor-btn" class="text-button">Corner/Smooth</button>
+          </div>
+          <div class="field-row">
+            <label for="offset-path-input">Offset</label>
+            <input id="offset-path-input" type="number" min="-256" max="256" step="1" value="12" />
+          </div>
+          <button type="button" id="offset-path-btn" class="text-button full-width">Offset Path</button>
+          <p class="panel-note" id="pathfinder-note">Select paths/shapes to use path operations.</p>
+        </details>
+
+        <details class="panel-section">
+          <summary>Artboards</summary>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="add-artboard-btn" class="text-button">Add</button>
+            <button type="button" id="duplicate-artboard-btn" class="text-button">Duplicate</button>
+          </div>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="rename-artboard-btn" class="text-button">Rename</button>
+            <button type="button" id="delete-artboard-btn" class="text-button">Delete</button>
+          </div>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="fit-artboard-btn" class="text-button">Fit Active</button>
+          </div>
+          <div id="artboards-list" class="artboards-list"></div>
+          <p class="panel-note" id="artboards-note">Objects remain in the shared layer stack; export uses the active artboard.</p>
+        </details>
+
+        <details class="panel-section">
+          <summary>Symbols</summary>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="duplicate-symbol-btn" class="text-button">Duplicate Instance</button>
+            <button type="button" id="break-symbol-btn" class="text-button">Break Instance</button>
+          </div>
+          <p class="panel-note" id="symbol-note">Select an imported symbol instance to edit or expand it.</p>
+        </details>
+
+        <details class="panel-section">
+          <summary>Swatches</summary>
+          <div class="action-grid action-grid-two">
+            <button type="button" id="add-fill-swatch-btn" class="text-button">Save Fill</button>
+            <button type="button" id="add-gradient-swatch-btn" class="text-button">Save Gradient</button>
+          </div>
+          <div id="swatches-list" class="swatches-list"></div>
         </details>
 
         <details class="panel-section" open>
           <summary>Export</summary>
+          <div class="field-row">
+            <label for="export-preset-input">Preset</label>
+            <select id="export-preset-input">
+              <option value="standard">Standard SVG</option>
+              <option value="web">Web SVG</option>
+              <option value="minified">Minified SVG</option>
+              <option value="onchain">On-chain SVG</option>
+              <option value="selected">Selected only</option>
+              <option value="current-artboard">Current artboard</option>
+              <option value="all-artboards">All artboards</option>
+            </select>
+          </div>
           <div class="action-grid action-grid-two">
             <button type="button" id="copy-svg-btn" class="text-button">Copy SVG</button>
             <button type="button" id="download-svg-btn" class="text-button">Download</button>
@@ -296,9 +402,10 @@
 
     <footer class="statusbar">
       <span id="status-left">Ready</span>
-      <span id="status-right">Canonical object model · Illustrator-style workspace</span>
+      <span id="status-right">Canonical vector model · local geometry workspace</span>
     </footer>
   </div>
+  <script src="./vendor/clipper-lib.js?v=6.4.2"></script>
   <script type="module" src="./illustrator-lite.js?v=20260507-names2"></script>
 </body>
 </html>
