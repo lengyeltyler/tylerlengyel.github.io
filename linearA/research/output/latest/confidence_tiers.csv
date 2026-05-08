@@ -1,0 +1,12 @@
+tier,confidence_percent,label,rationale
+corpus_adequacy_confidence,99.00,high,Corpus is broad enough for structure tests; metadata depth is still incomplete.
+normalization_confidence,95.16,high,"Strict mapping is stable, but unreadable signs and variants still limit certainty."
+structural_script_confidence,67.03,medium,"Order-sensitive models show some signal, but not enough for high-confidence decipherment."
+template_predictability_confidence,22.64,very low,Directly inherited from the current Phase 5 template component.
+out_of_sample_prediction_confidence,49.35,low,Supplemental held-out splits compared against a frequency-only null.
+semantic_anchor_confidence,50.33,medium,"Anchors are mostly administrative/functional, not lexical proof."
+phonetic_value_confidence,18.00,very low,Linear B comparison remains indirect; AB labels are not phonetic evidence by themselves.
+word_meaning_confidence,32.00,low,"A few formulae are plausible, but broad lexical translation is unsupported."
+language_family_confidence,8.00,very low,No implemented comparative language-family test supports a family assignment.
+overall_structural_confidence,71.52,medium-high,"Best current estimate for structural regularity, separate from decipherment."
+overall_decipherment_confidence,30.77,low,Conservative combined estimate for actual decipherment/translation confidence.

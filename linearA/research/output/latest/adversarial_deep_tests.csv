@@ -1,0 +1,17 @@
+test_name,model,baseline_ll_per_token,perturbed_ll_per_token,delta_ll_per_token,baseline_perplexity,perturbed_perplexity,expected_behavior,passed
+within_line_shuffle,null_unigram_frequency,-5.571969,-5.571969,0.000000,262.951443,262.951443,small_change_expected_for_frequency_only_null,1
+random_20pct_token_corruption,null_unigram_frequency,-5.571969,-5.569311,0.002658,262.951443,262.253415,small_change_expected_for_frequency_only_null,1
+length_preserving_frequency_sample,null_unigram_frequency,-5.571969,-5.557952,0.014017,262.951443,259.291297,small_change_expected_for_frequency_only_null,1
+global_label_permutation_scored_against_original,null_unigram_frequency,-5.571969,-7.992716,-2.420747,262.951443,2959.323687,should_degrade_if_sign_identity_matters,1
+within_line_shuffle,bigram_markov,-5.025268,-5.783417,-0.758149,152.211023,324.867400,should_degrade_for_order_sensitive_models,1
+random_20pct_token_corruption,bigram_markov,-5.025268,-5.463858,-0.438590,152.211023,236.006212,should_degrade_moderately,1
+length_preserving_frequency_sample,bigram_markov,-5.025268,-6.291597,-1.266329,152.211023,540.015047,should_degrade_strongly,1
+global_label_permutation_scored_against_original,bigram_markov,-5.025268,-7.252922,-2.227654,152.211023,1412.225741,should_degrade_if_sign_identity_matters,1
+within_line_shuffle,trigram_markov,-5.114104,-6.033742,-0.919638,166.351632,417.273508,should_degrade_for_order_sensitive_models,1
+random_20pct_token_corruption,trigram_markov,-5.114104,-5.569949,-0.455845,166.351632,262.420778,should_degrade_moderately,1
+length_preserving_frequency_sample,trigram_markov,-5.114104,-6.321922,-1.207819,166.351632,556.642026,should_degrade_strongly,1
+global_label_permutation_scored_against_original,trigram_markov,-5.114104,-7.242601,-2.128498,166.351632,1397.725201,should_degrade_if_sign_identity_matters,1
+within_line_shuffle,position_by_length_template,-5.181705,-5.748415,-0.566711,177.985980,313.693166,should_degrade_for_order_sensitive_models,1
+random_20pct_token_corruption,position_by_length_template,-5.181705,-5.373892,-0.192187,177.985980,215.700678,should_degrade_moderately,1
+length_preserving_frequency_sample,position_by_length_template,-5.181705,-6.064328,-0.882623,177.985980,430.233458,should_degrade_strongly,1
+global_label_permutation_scored_against_original,position_by_length_template,-5.181705,-7.601383,-2.419678,177.985980,2000.961385,should_degrade_if_sign_identity_matters,1

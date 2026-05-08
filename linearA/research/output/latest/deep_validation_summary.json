@@ -1,0 +1,209 @@
+{
+  "generated_utc": "2026-05-08T03:18:25Z",
+  "entries": 2593,
+  "artifacts": 619,
+  "sites": 21,
+  "object_classes": [
+    "administrative_tablet_like",
+    "inscription_or_vessel",
+    "nodule_or_sealing",
+    "sealed_document_or_roundel",
+    "unclassified"
+  ],
+  "metadata_summary": {
+    "generated_utc": "2026-05-08T03:18:22Z",
+    "inscriptions": 619,
+    "sites": 21,
+    "regions": {
+      "crete_central": 395,
+      "unknown": 10,
+      "aegean_islands": 19,
+      "crete_west": 134,
+      "mainland_or_external": 6,
+      "crete_east": 55
+    },
+    "object_types": {
+      "administrative_tablet_like": 379,
+      "unclassified": 37,
+      "sealed_document_or_roundel": 100,
+      "inscription_or_vessel": 73,
+      "nodule_or_sealing": 30
+    },
+    "formula_classes": {
+      "short_mark_or_label": 362,
+      "unclassified": 209,
+      "commodity_accounting": 26,
+      "a_series_sequence": 17,
+      "total_formula_candidate": 1,
+      "ab22_positional_formula": 4
+    },
+    "metadata_quality": {
+      "site_find_place": "inferred_from_artifact_prefix",
+      "region": "heuristic_from_site_prefix",
+      "object_type": "heuristic_from_artifact_id",
+      "date_period": "not_source_verified",
+      "find_context": "missing"
+    }
+  },
+  "tier_summary": [
+    {
+      "tier": "corpus_adequacy_confidence",
+      "confidence_percent": "99.00",
+      "label": "high",
+      "rationale": "Corpus is broad enough for structure tests; metadata depth is still incomplete."
+    },
+    {
+      "tier": "normalization_confidence",
+      "confidence_percent": "95.16",
+      "label": "high",
+      "rationale": "Strict mapping is stable, but unreadable signs and variants still limit certainty."
+    },
+    {
+      "tier": "structural_script_confidence",
+      "confidence_percent": "67.03",
+      "label": "medium",
+      "rationale": "Order-sensitive models show some signal, but not enough for high-confidence decipherment."
+    },
+    {
+      "tier": "template_predictability_confidence",
+      "confidence_percent": "22.64",
+      "label": "very low",
+      "rationale": "Directly inherited from the current Phase 5 template component."
+    },
+    {
+      "tier": "out_of_sample_prediction_confidence",
+      "confidence_percent": "49.35",
+      "label": "low",
+      "rationale": "Supplemental held-out splits compared against a frequency-only null."
+    },
+    {
+      "tier": "semantic_anchor_confidence",
+      "confidence_percent": "50.33",
+      "label": "medium",
+      "rationale": "Anchors are mostly administrative/functional, not lexical proof."
+    },
+    {
+      "tier": "phonetic_value_confidence",
+      "confidence_percent": "18.00",
+      "label": "very low",
+      "rationale": "Linear B comparison remains indirect; AB labels are not phonetic evidence by themselves."
+    },
+    {
+      "tier": "word_meaning_confidence",
+      "confidence_percent": "32.00",
+      "label": "low",
+      "rationale": "A few formulae are plausible, but broad lexical translation is unsupported."
+    },
+    {
+      "tier": "language_family_confidence",
+      "confidence_percent": "8.00",
+      "label": "very low",
+      "rationale": "No implemented comparative language-family test supports a family assignment."
+    },
+    {
+      "tier": "overall_structural_confidence",
+      "confidence_percent": "71.52",
+      "label": "medium-high",
+      "rationale": "Best current estimate for structural regularity, separate from decipherment."
+    },
+    {
+      "tier": "overall_decipherment_confidence",
+      "confidence_percent": "30.77",
+      "label": "low",
+      "rationale": "Conservative combined estimate for actual decipherment/translation confidence."
+    }
+  ],
+  "best_strict_models": [
+    {
+      "split": "formula_class_held_out",
+      "model": "bigram_markov",
+      "folds": 6,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-6.570523",
+      "perplexity": "997.391644",
+      "ll_improvement_over_unigram": "0.150423",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "artifact_held_out",
+      "model": "bigram_markov",
+      "folds": 244,
+      "test_lines": 2038,
+      "test_tokens": 5335,
+      "mean_log_likelihood_per_token": "-5.519666",
+      "perplexity": "321.268328",
+      "ll_improvement_over_unigram": "0.145720",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "object_class_held_out",
+      "model": "position_by_length_template",
+      "folds": 5,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-5.924169",
+      "perplexity": "396.766997",
+      "ll_improvement_over_unigram": "0.145697",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "artifact_held_out",
+      "model": "position_by_length_template",
+      "folds": 244,
+      "test_lines": 2038,
+      "test_tokens": 5335,
+      "mean_log_likelihood_per_token": "-5.530681",
+      "perplexity": "312.729138",
+      "ll_improvement_over_unigram": "0.134705",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "region_held_out",
+      "model": "position_by_length_template",
+      "folds": 6,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-5.964765",
+      "perplexity": "396.830541",
+      "ll_improvement_over_unigram": "0.095302",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "formula_class_held_out",
+      "model": "position_by_length_template",
+      "folds": 6,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-6.639499",
+      "perplexity": "1052.661514",
+      "ll_improvement_over_unigram": "0.081447",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "formula_class_held_out",
+      "model": "trigram_markov",
+      "folds": 6,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-6.640883",
+      "perplexity": "1054.692034",
+      "ll_improvement_over_unigram": "0.080063",
+      "beats_unigram": "1"
+    },
+    {
+      "split": "inscription_length_held_out",
+      "model": "bigram_markov",
+      "folds": 3,
+      "test_lines": 2593,
+      "test_tokens": 6591,
+      "mean_log_likelihood_per_token": "-8.190071",
+      "perplexity": "8949.075326",
+      "ll_improvement_over_unigram": "0.045565",
+      "beats_unigram": "1"
+    }
+  ],
+  "adversarial_failures": [],
+  "defensible_85": false,
+  "defensible_85_reason": "Template predictability, OOS prediction, semantic anchors, phonetic values, and language-family evidence are below high-confidence thresholds."
+}

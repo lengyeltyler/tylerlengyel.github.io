@@ -1,0 +1,7 @@
+anchor_id,anchor,evidence_type,observed_support_count,confidence_percent,tier,caveat
+numerals_and_quantities,Numeric fields and tallies,administrative context,0,72.0,moderate,"Quantity columns recur, but numeric interpretation is structural rather than lexical."
+commodity_logograms,GRA/OLE/VINA/FIC/OLIV and related logograms,comparative administrative convention,270,62.0,moderate,Commodity labels are plausible where logograms are explicit; they do not identify surrounding word meanings.
+ku_ro_total_formula,KU RO as possible total formula,repeated terminal/admin placement,30,58.0,moderate,"Traditionally discussed as 'total'; still treated here as a functional anchor, not full translation."
+ab22_positional_pivot,AB22 in 4-sign sequences,permutation test and recurrence,16,54.0,low,"Strong positional behavior, but the sign could be lexical rather than a divider."
+offering_formulae,Libation/offering table formulae,external scholarship target,0,34.0,low,Requires object/formula metadata not fully represented in current normalized corpus.
+place_or_person_names,Potential proper names,repeated sign groups,0,22.0,low,No controlled onomastic test is implemented yet.

@@ -1,0 +1,58 @@
+{
+  "anchors": [
+    {
+      "anchor_id": "numerals_and_quantities",
+      "anchor": "Numeric fields and tallies",
+      "evidence_type": "administrative context",
+      "observed_support_count": 0,
+      "confidence_percent": "72.0",
+      "tier": "moderate",
+      "caveat": "Quantity columns recur, but numeric interpretation is structural rather than lexical."
+    },
+    {
+      "anchor_id": "commodity_logograms",
+      "anchor": "GRA/OLE/VINA/FIC/OLIV and related logograms",
+      "evidence_type": "comparative administrative convention",
+      "observed_support_count": 270,
+      "confidence_percent": "62.0",
+      "tier": "moderate",
+      "caveat": "Commodity labels are plausible where logograms are explicit; they do not identify surrounding word meanings."
+    },
+    {
+      "anchor_id": "ku_ro_total_formula",
+      "anchor": "KU RO as possible total formula",
+      "evidence_type": "repeated terminal/admin placement",
+      "observed_support_count": 30,
+      "confidence_percent": "58.0",
+      "tier": "moderate",
+      "caveat": "Traditionally discussed as 'total'; still treated here as a functional anchor, not full translation."
+    },
+    {
+      "anchor_id": "ab22_positional_pivot",
+      "anchor": "AB22 in 4-sign sequences",
+      "evidence_type": "permutation test and recurrence",
+      "observed_support_count": 16,
+      "confidence_percent": "54.0",
+      "tier": "low",
+      "caveat": "Strong positional behavior, but the sign could be lexical rather than a divider."
+    },
+    {
+      "anchor_id": "offering_formulae",
+      "anchor": "Libation/offering table formulae",
+      "evidence_type": "external scholarship target",
+      "observed_support_count": 0,
+      "confidence_percent": "34.0",
+      "tier": "low",
+      "caveat": "Requires object/formula metadata not fully represented in current normalized corpus."
+    },
+    {
+      "anchor_id": "place_or_person_names",
+      "anchor": "Potential proper names",
+      "evidence_type": "repeated sign groups",
+      "observed_support_count": 0,
+      "confidence_percent": "22.0",
+      "tier": "low",
+      "caveat": "No controlled onomastic test is implemented yet."
+    }
+  ]
+}

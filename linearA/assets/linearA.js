@@ -9,6 +9,53 @@
     return response.json();
   }
 
+  async function loadCSV(url) {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+    const text = await response.text();
+    const lines = text.trim().split(/\r?\n/);
+    const headers = parseCSVLine(lines.shift() || "");
+    return lines
+      .filter(Boolean)
+      .map((line) => {
+        const values = parseCSVLine(line);
+        return Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
+      });
+  }
+
+  function parseCSVLine(line) {
+    const values = [];
+    let current = "";
+    let quoted = false;
+
+    for (let index = 0; index < line.length; index += 1) {
+      const char = line[index];
+      const next = line[index + 1];
+
+      if (char === '"' && quoted && next === '"') {
+        current += '"';
+        index += 1;
+        continue;
+      }
+
+      if (char === '"') {
+        quoted = !quoted;
+        continue;
+      }
+
+      if (char === "," && !quoted) {
+        values.push(current);
+        current = "";
+        continue;
+      }
+
+      current += char;
+    }
+
+    values.push(current);
+    return values;
+  }
+
   function setLatestBadges(summary) {
     const time = summary.run_utc || "unknown";
     const confidence =
@@ -44,6 +91,85 @@
         </table>
       </div>
     `;
+  }
+
+  function fillConfidenceTiers(rows) {
+    const target = document.querySelector("[data-confidence-tiers]");
+    if (!target || !rows.length) return;
+
+    target.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Confidence</th><th>Label</th><th>Rationale</th></tr>
+          </thead>
+          <tbody>
+            ${rows.map((row) => `
+              <tr>
+                <td>${formatTier(row.tier)}</td>
+                <td>${row.confidence_percent}%</td>
+                <td>${row.label}</td>
+                <td>${row.rationale}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function fillDeepSummary(summary) {
+    const target = document.querySelector("[data-deep-summary]");
+    if (!target || !summary) return;
+
+    const failures = Array.isArray(summary.adversarial_failures)
+      ? summary.adversarial_failures.length
+      : 0;
+    const best = Array.isArray(summary.best_strict_models)
+      ? summary.best_strict_models.slice(0, 3)
+      : [];
+
+    target.innerHTML = `
+      <div class="evidence-grid">
+        <div class="evidence-card is-strong">
+          <span class="evidence-label">Corpus</span>
+          <strong>${summary.entries ?? "n/a"} lines / ${summary.artifacts ?? "n/a"} artifacts</strong>
+          <p>${summary.sites ?? "n/a"} inferred site groups; object metadata still needs expert cleanup.</p>
+        </div>
+        <div class="evidence-card is-limited">
+          <span class="evidence-label">85% Check</span>
+          <strong>${summary.defensible_85 ? "Potentially defensible" : "Not defensible yet"}</strong>
+          <p>${summary.defensible_85_reason || "No reason recorded."}</p>
+        </div>
+        <div class="evidence-card ${failures ? "is-caution" : "is-strong"}">
+          <span class="evidence-label">Adversarial</span>
+          <strong>${failures} unresolved failures</strong>
+          <p>Order-sensitive supplemental tests now degrade under shuffled/corrupted controls.</p>
+        </div>
+      </div>
+      ${best.length ? `
+        <div class="table-wrap deep-mini-table">
+          <table>
+            <thead><tr><th>Split</th><th>Best model</th><th>Improvement vs unigram</th></tr></thead>
+            <tbody>
+              ${best.map((row) => `
+                <tr>
+                  <td>${row.split}</td>
+                  <td>${row.model}</td>
+                  <td>${row.ll_improvement_over_unigram}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      ` : ""}
+    `;
+  }
+
+  function formatTier(value) {
+    return String(value || "")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   async function embedPlainEnglish() {
@@ -271,6 +397,16 @@
     } catch (error) {
       document.querySelectorAll("[data-latest-run]").forEach((element) => {
         element.textContent = "Latest run unavailable";
+      });
+    }
+
+    try {
+      fillConfidenceTiers(await loadCSV("/linearA/research/output/latest/confidence_tiers.csv"));
+      fillDeepSummary(await loadJSON("/linearA/research/output/latest/deep_validation_summary.json"));
+    } catch (error) {
+      document.querySelectorAll("[data-confidence-tiers], [data-deep-summary]").forEach((element) => {
+        element.innerHTML =
+          "<p class='muted' style='padding: 12px;'>Supplemental validation outputs are not available yet.</p>";
       });
     }
 

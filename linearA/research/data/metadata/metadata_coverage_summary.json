@@ -1,0 +1,35 @@
+{
+  "generated_utc": "2026-05-08T03:18:22Z",
+  "inscriptions": 619,
+  "sites": 21,
+  "regions": {
+    "crete_central": 395,
+    "unknown": 10,
+    "aegean_islands": 19,
+    "crete_west": 134,
+    "mainland_or_external": 6,
+    "crete_east": 55
+  },
+  "object_types": {
+    "administrative_tablet_like": 379,
+    "unclassified": 37,
+    "sealed_document_or_roundel": 100,
+    "inscription_or_vessel": 73,
+    "nodule_or_sealing": 30
+  },
+  "formula_classes": {
+    "short_mark_or_label": 362,
+    "unclassified": 209,
+    "commodity_accounting": 26,
+    "a_series_sequence": 17,
+    "total_formula_candidate": 1,
+    "ab22_positional_formula": 4
+  },
+  "metadata_quality": {
+    "site_find_place": "inferred_from_artifact_prefix",
+    "region": "heuristic_from_site_prefix",
+    "object_type": "heuristic_from_artifact_id",
+    "date_period": "not_source_verified",
+    "find_context": "missing"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "generated_utc": "2026-05-08T03:18:25Z",
+  "sources": [
+    {
+      "source": "SigLA - The Signs of Linear A",
+      "url": "https://sigla.phis.me/",
+      "license_notes": "Dataset and drawings are indicated as CC BY-NC-SA 4.0 on SigLA.",
+      "provenance_confidence": "high",
+      "ingestion_status": "partially_ingested",
+      "normalization_status": "used for structural sign-sequence rows where locally available",
+      "legal_manual_review_notes": "Use metadata and sign-sequence data with attribution and noncommercial/share-alike awareness; avoid copying drawings unless needed and license-compliant."
+    },
+    {
+      "source": "INSCRIBE / Linear A SigLA documentation",
+      "url": "https://site.unibo.it/inscribe/en/linear-a-sigla",
+      "license_notes": "Project documentation; use as source description, not bulk data extraction.",
+      "provenance_confidence": "medium",
+      "ingestion_status": "documented_not_bulk_ingested",
+      "normalization_status": "metadata target fields derived from described SigLA capabilities",
+      "legal_manual_review_notes": "Manual review needed for any downloadable data beyond descriptive documentation."
+    },
+    {
+      "source": "John G. Younger Linear A archive via Wayback",
+      "url": "https://web.archive.org/web/20190416193018/http://www.people.ku.edu/~jyounger/LinearA/HTtexts.html",
+      "license_notes": "Archived academic web pages; use with provenance URLs and conservative structural extraction.",
+      "provenance_confidence": "medium",
+      "ingestion_status": "partially_ingested",
+      "normalization_status": "structural sequences normalized through variant map",
+      "legal_manual_review_notes": "Verify against primary editions before treating as authoritative."
+    },
+    {
+      "source": "GORILA / Recueil des inscriptions en lineaire A",
+      "url": "print_reference",
+      "license_notes": "Standard print corpus; not bulk-ingested here.",
+      "provenance_confidence": "high_as_reference",
+      "ingestion_status": "manual_review_required",
+      "normalization_status": "not_ingested",
+      "legal_manual_review_notes": "Do not republish copyrighted print corpus; use for expert verification/citation planning."
+    },
+    {
+      "source": "DAMOS Linear B corpus",
+      "url": "https://damos.hf.uio.no/about/online/",
+      "license_notes": "Content: CC BY-NC-SA 4.0 according to DAMOS.",
+      "provenance_confidence": "high",
+      "ingestion_status": "comparison_only_not_ingested",
+      "normalization_status": "not used in Linear A scoring",
+      "legal_manual_review_notes": "Use only as Linear B administrative comparison baseline; never as proof Linear A is Greek."
+    }
+  ]
+}

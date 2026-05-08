@@ -77,7 +77,8 @@
 
       <div class="key-takeaway">
         <strong>Key takeaway</strong>
-        Model fit is strongest for accounting-style templates, but corpus size and artifact diversity still limit certainty.
+        The expanded corpus ranks the syllabary-like structural model highest, while confidence remains capped by weak
+        template predictability and adversarial tests that do not all behave as expected.
       </div>
     </section>
 
@@ -85,6 +86,78 @@
     <div data-tech-summary class="embed-box">
       <p class="muted" style="padding: 12px;">Loading run summary…</p>
     </div>
+
+    <h2>Deep Validation Snapshot</h2>
+    <div data-deep-summary class="embed-box">
+      <p class="muted" style="padding: 12px;">Loading supplemental validation…</p>
+    </div>
+
+    <h2>Confidence Breakdown</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Score</th>
+            <th>Weight</th>
+            <th>Contribution</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Corpus adequacy</td>
+            <td>1.0000</td>
+            <td>25%</td>
+            <td>25.00</td>
+            <td>Expanded corpus is large enough for structural testing.</td>
+          </tr>
+          <tr>
+            <td>Normalization stability</td>
+            <td>0.9780</td>
+            <td>20%</td>
+            <td>19.56</td>
+            <td>Variant mapping is stable under strict normalization.</td>
+          </tr>
+          <tr>
+            <td>Template predictability</td>
+            <td>0.2264</td>
+            <td>20%</td>
+            <td>4.53</td>
+            <td>This is the largest drag on confidence; recurring templates are not yet predictive enough.</td>
+          </tr>
+          <tr>
+            <td>Out-of-sample performance</td>
+            <td>0.5000</td>
+            <td>20%</td>
+            <td>10.00</td>
+            <td>Generalization is provisional rather than decisive.</td>
+          </tr>
+          <tr>
+            <td>Adversarial robustness</td>
+            <td>0.8180</td>
+            <td>15%</td>
+            <td>12.27</td>
+            <td>Some stress tests hold, but not all expected falsification checks degrade the model.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section class="block">
+      <h2>Can the Current Evidence Support 85%?</h2>
+      <p>
+        Not yet. The generated confidence matrix reaches <strong>71.36%</strong>, and random-weight
+        sensitivity runs cap below 85%. The path to 85% would require the weak components to improve,
+        especially template predictability and out-of-sample performance, not merely a more favorable
+        explanation of the same evidence.
+      </p>
+      <ul class="evidence-list">
+        <li><strong>For:</strong> corpus breadth, provenance tracking, normalization stability, and AB22 positional concentration.</li>
+        <li><strong>Against:</strong> semantic and phonetic claims remain low confidence; shuffled-sequence falsification currently shows no degradation under the winning model.</li>
+        <li><strong>Needed:</strong> independent inscriptions or held-out artifacts where the model predicts structure before inspection.</li>
+      </ul>
+    </section>
 
     <h2>Core Technical Outputs</h2>
     <div class="table-wrap">
