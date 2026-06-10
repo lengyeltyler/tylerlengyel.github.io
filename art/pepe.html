@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Art - Tyler Lengyel</title>
+
+  <meta
+    name="description"
+    content="A small gallery archive from Tyler Lengyel."
+  />
+
+  <meta name="theme-color" content="#050505" />
+
+  <link rel="stylesheet" href="/assets/site-theme.css" />
+
+  <style>
+    :root {
+      --off-white: #faf7f0;
+      --dark-0: #050505;
+      --dark-1: #111111;
+      --dark-2: #1d1d1d;
+      --panel-dark-0: #080808;
+      --panel-dark-1: #151515;
+      --panel-dark-2: #232323;
+      --dodger-0: #1e90ff;
+      --dodger-1: #1877f2;
+      --dodger-2: #0f52ba;
+    }
+
+    body,
+    .page-shell {
+      background: linear-gradient(
+        135deg,
+        var(--dark-0) 0%,
+        var(--dark-1) 45%,
+        var(--dark-2) 100%
+      );
+    }
+
+    body::before {
+      display: none;
+    }
+
+    .site-header,
+    .paper-panel {
+      background: linear-gradient(
+        135deg,
+        var(--dodger-0) 0%,
+        var(--dodger-1) 45%,
+        var(--dodger-2) 100%
+      );
+    }
+
+    .site-header {
+      border-bottom: 1px solid rgba(250, 247, 240, 0.16);
+    }
+
+    .site-brand {
+      color: var(--off-white) !important;
+    }
+
+    .site-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .site-tabs a {
+      color: var(--off-white) !important;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .art-page .paper-panel {
+      display: grid;
+      gap: 18px;
+      border: 1px solid rgba(250, 247, 240, 0.18);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      color: var(--off-white);
+    }
+
+    .art-page .paper-panel,
+    .art-page .paper-panel h1,
+    .art-page .paper-panel p,
+    .art-page .paper-panel .eyebrow,
+    .art-page .lede {
+      color: var(--off-white);
+    }
+
+    .art-page .lede {
+      max-width: 46rem;
+    }
+
+    .art-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .gallery-panel {
+      display: grid;
+      gap: 18px;
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      border: 1px solid rgba(250, 247, 240, 0.12);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28);
+      color: var(--off-white);
+    }
+
+    .gallery-heading {
+      display: grid;
+      gap: 5px;
+    }
+
+    .gallery-heading h2,
+    .gallery-heading p {
+      margin: 0;
+    }
+
+    .gallery-heading h2,
+    .gallery-heading .eyebrow,
+    .gallery-heading .section-note {
+      color: var(--off-white);
+    }
+
+    .gallery-meta {
+      color: rgba(250, 247, 240, 0.74);
+      font: 600 0.88rem/1.3 var(--font-ui);
+    }
+
+    .pepe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .pepe-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 100%;
+      padding: 12px;
+      border: 1px solid rgba(250, 247, 240, 0.12);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, rgba(250, 247, 240, 0.96), #f3ede2);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+      color: #111111;
+      cursor: pointer;
+      text-align: left;
+      transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+    }
+
+    .pepe-card:hover,
+    .pepe-card:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.36);
+      box-shadow: 0 18px 38px rgba(30, 144, 255, 0.18);
+    }
+
+    .pepe-card img {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      display: block;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      background:
+        linear-gradient(135deg, #080808 0%, #151515 50%, #232323 100%);
+      transition: transform 180ms ease;
+    }
+
+    .pepe-card:hover img,
+    .pepe-card:focus-visible img {
+      transform: scale(1.012);
+    }
+
+    .pepe-card span {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: #111111;
+      font: 600 0.86rem/1.3 var(--font-ui);
+    }
+
+    .art-nav .link-button {
+      background: linear-gradient(
+        135deg,
+        var(--panel-dark-0) 0%,
+        var(--panel-dark-1) 50%,
+        var(--panel-dark-2) 100%
+      );
+      border: 1px solid rgba(250, 247, 240, 0.16);
+      color: var(--off-white);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    }
+
+    .art-nav .link-button:hover,
+    .art-nav .link-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.32);
+      box-shadow: 0 16px 32px rgba(30, 144, 255, 0.18);
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(121, 179, 251, 0.16), transparent 34%),
+        rgba(5, 5, 5, 0.86);
+      backdrop-filter: blur(10px);
+    }
+
+    .lightbox[hidden] {
+      display: none;
+    }
+
+    .lightbox-panel {
+      width: min(980px, 100%);
+      max-height: calc(100vh - 48px);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      color: #faf7f0;
+    }
+
+    .lightbox-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      font: 700 1rem/1.2 var(--font-ui);
+    }
+
+    .lightbox-bar button {
+      min-width: 44px;
+      min-height: 36px;
+      border: 1px solid rgba(250, 247, 240, 0.22);
+      border-radius: 999px;
+      background: rgba(250, 247, 240, 0.1);
+      color: #faf7f0;
+      cursor: pointer;
+      font: 700 0.9rem/1.1 var(--font-ui);
+      transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+    }
+
+    .lightbox-bar button:hover,
+    .lightbox-bar button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(250, 247, 240, 0.36);
+      background: rgba(250, 247, 240, 0.16);
+    }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: calc(100vh - 120px);
+      justify-self: center;
+      object-fit: contain;
+      border: 1px solid rgba(250, 247, 240, 0.14);
+      border-radius: var(--radius-md);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+    }
+
+    body.lightbox-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 760px) {
+      .pepe-grid {
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 10px;
+      }
+
+      .pepe-card {
+        padding: 9px;
+      }
+    }
+  </style>
+</head>
+
+<body class="art-page">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-frame">
+      <a class="site-brand" href="/">Tyler Lengyel</a>
+
+      <nav class="site-tabs" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/linearA/">Linear A</a>
+        <a href="/createPhil/">createPhil</a>
+        <a href="/nakes/">nakes</a>
+        <a href="/art/" aria-current="page">Art</a>
+        <a href="/svg-editor/">SVG Editor</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell is-wide">
+    <div class="page-stack">
+      <section class="paper-panel">
+        <p class="eyebrow">Art</p>
+        <h1>Art</h1>
+        <p class="lede">
+          A small local gallery archive. The first room is Pepe.
+        </p>
+        <nav class="art-nav" aria-label="Art sections">
+          <a class="link-button is-active" href="#pepe">Pepe</a>
+        </nav>
+      </section>
+
+      <section id="pepe" class="surface-card gallery-panel" aria-labelledby="pepe-heading">
+        <div class="gallery-heading">
+          <p class="eyebrow">Gallery</p>
+          <h2 id="pepe-heading">Pepe</h2>
+          <p class="section-note">Movie-poster-style Pepe variations from the local archive.</p>
+          <p class="gallery-meta">77 images</p>
+        </div>
+        <div class="pepe-grid" data-pepe-gallery></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="lightbox" data-lightbox hidden>
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+      <div class="lightbox-bar">
+        <span id="lightbox-title" data-lightbox-title></span>
+        <button type="button" data-lightbox-close aria-label="Close image preview">Close</button>
+      </div>
+      <img data-lightbox-image alt="" />
+    </div>
+  </div>
+
+  <script src="/art/pepe-gallery.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "PhilSVGStorage": "0xA4c4E61634BB0C20b4F2e28E451dF332B88b6aF0",
+  "PhilRegistry": "0x8F1Cf8A0845Ad7324b9469e90B0A2b9A0123b7A6",
+  "PhilEdition": "0x2E40e3d9ae82c73901c35012EeFA67780BC9993d",
+  "PhilAuction": "0xC3a31f83E82Cda28a0713d1f1be4f3B8dB11A533",
+  "tokenId": 1,
+  "reservePriceWei": "36900000000000000",
+  "minBidIncrementWei": "36900000000000000",
+  "auctionDurationSeconds": 130140,
+  "extensionWindowSeconds": 249,
+  "sellerProceedsRecipient": "0x17f2F9f2e0aaf90768c0f26579fba5043Ef0C903",
+  "etherscan": {
+    "registry": "https://sepolia.etherscan.io/address/0x8F1Cf8A0845Ad7324b9469e90B0A2b9A0123b7A6#code",
+    "registryRead": "https://sepolia.etherscan.io/address/0x8F1Cf8A0845Ad7324b9469e90B0A2b9A0123b7A6#readContract",
+    "edition": "https://sepolia.etherscan.io/address/0x2E40e3d9ae82c73901c35012EeFA67780BC9993d#code",
+    "editionRead": "https://sepolia.etherscan.io/address/0x2E40e3d9ae82c73901c35012EeFA67780BC9993d#readContract",
+    "auction": "https://sepolia.etherscan.io/address/0xC3a31f83E82Cda28a0713d1f1be4f3B8dB11A533#code",
+    "auctionRead": "https://sepolia.etherscan.io/address/0xC3a31f83E82Cda28a0713d1f1be4f3B8dB11A533#readContract",
+    "token": "https://sepolia.etherscan.io/nft/0x2E40e3d9ae82c73901c35012EeFA67780BC9993d/1",
+    "storage": "https://sepolia.etherscan.io/address/0xA4c4E61634BB0C20b4F2e28E451dF332B88b6aF0#code"
+  }
+}
