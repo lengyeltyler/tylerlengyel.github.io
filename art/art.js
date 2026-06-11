@@ -1,6 +1,7 @@
-const SEPOLIA_CHAIN_ID = 11155111n;
-const PUBLIC_SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com";
-const TOKEN_ID = 1n;
+const MAINNET_CHAIN_ID = 1n;
+const MAINNET_CHAIN_HEX = "0x1";
+const PUBLIC_MAINNET_RPC = "https://ethereum-rpc.publicnode.com";
+const PLATFORM_DATA_URL = "/art/data/platform-mainnet.json";
 
 const state = {
   platform: null,
@@ -239,11 +240,11 @@ function downloadText(filename, text, type) {
 async function init() {
   cacheElements();
   try {
-    state.platform = await fetchJson("/art/data/platform-sepolia.json");
+    state.platform = await fetchJson(PLATFORM_DATA_URL);
     state.abi.registry = await fetchJson("/art/abi/PhilRegistry.json");
     state.abi.edition = await fetchJson("/art/abi/PhilEdition.json");
     state.abi.auction = await fetchJson("/art/abi/PhilAuction.json");
-    state.readProvider = new ethers.JsonRpcProvider(PUBLIC_SEPOLIA_RPC, Number(SEPOLIA_CHAIN_ID));
+    state.readProvider = new ethers.JsonRpcProvider(PUBLIC_MAINNET_RPC, Number(MAINNET_CHAIN_ID));
     buildReadContracts();
     wireUi();
     applyLinks();
@@ -251,7 +252,7 @@ async function init() {
     setText("walletAddress", "Wallet not connected");
     setText("networkStatus", "Click Connect wallet");
     setInterval(refreshAuctionState, 15000);
-    log("Loaded Sepolia platform data and contract ABIs.");
+    log("Loaded Ethereum Mainnet platform data and contract ABIs.");
   } catch (error) {
     log(`Startup failed: ${error.message}`);
   }
@@ -259,7 +260,7 @@ async function init() {
 
 function cacheElements() {
   [
-    "activityLog", "connectWallet", "switchSepolia", "walletAddress", "networkStatus", "walletError", "providerOptions",
+    "activityLog", "connectWallet", "switchMainnet", "walletAddress", "networkStatus", "walletError", "providerOptions",
     "editionCount", "galleryList", "editionTitle", "editionDescription", "previewImage",
     "editionSymbol", "editionArtist", "tokenOwner", "registryLink", "editionLink",
     "auctionLink", "tokenLink", "loadSvg", "downloadSvg", "copySvg", "svgFrame",
@@ -287,7 +288,7 @@ function buildWalletContracts() {
 
 function wireUi() {
   el.connectWallet.addEventListener("click", connectWallet);
-  el.switchSepolia.addEventListener("click", switchToSepolia);
+  el.switchMainnet.addEventListener("click", switchToMainnet);
   el.refreshState.addEventListener("click", refreshAuctionState);
   el.loadSvg.addEventListener("click", loadFullSvg);
   el.downloadSvg.addEventListener("click", () => downloadText("sample-phil.svg", state.fullSvg, "image/svg+xml"));
@@ -323,11 +324,12 @@ function applyLinks() {
 }
 
 async function loadReadOnlyState() {
+  const tokenId = BigInt(state.platform.tokenId || 1);
   const [editionCount, editionInfo, tokenUri, owner, symbol] = await Promise.all([
     state.contracts.registry.getEditionCount(),
     state.contracts.registry.getEdition(1),
-    state.contracts.edition.tokenURI(TOKEN_ID),
-    state.contracts.edition.ownerOf(TOKEN_ID),
+    state.contracts.edition.tokenURI(tokenId),
+    state.contracts.edition.ownerOf(tokenId),
     state.contracts.edition.symbol()
   ]);
 
@@ -358,7 +360,7 @@ function renderGalleryCard(editionInfo, metadata) {
     <div>
       <h3>${metadata.name || editionInfo.name}</h3>
       <p>${editionInfo.symbol} · ${editionInfo.artist}</p>
-      <p>${editionInfo.active ? "Active Sepolia edition" : "Inactive edition"}</p>
+      <p>${editionInfo.active ? "Active Ethereum Mainnet edition" : "Inactive edition"}</p>
     </div>
   `;
   el.galleryList.replaceChildren(card);
@@ -388,7 +390,7 @@ async function refreshAuctionState() {
     auction.startTime(),
     auction.endTime(),
     auction.timeRemaining(),
-    auction.MIN_INCREMENT(),
+    auction.minBidIncrementWei(),
     auction.sellerProceeds()
   ]);
 
@@ -408,6 +410,7 @@ async function refreshAuctionState() {
   setText("endTime", formatTimestamp(end));
   setText("sellerProceeds", formatEth(proceeds));
   setText("refundBalance", formatEth(refund));
+  el.settleAuction.hidden = !ended;
 
   const defaultBid = started ? current + increment : reserve;
   el.bidAmount.value = ethers.formatEther(defaultBid);
@@ -485,48 +488,48 @@ async function updateWalletStatus(networkOverride) {
       return;
     }
   }
-  const onSepolia = network.chainId === SEPOLIA_CHAIN_ID;
-  el.switchSepolia.hidden = onSepolia;
-  setText("networkStatus", onSepolia ? "Connected to Sepolia" : `Wrong network: chain ${network.chainId.toString()}`);
+  const onMainnet = network.chainId === MAINNET_CHAIN_ID;
+  el.switchMainnet.hidden = onMainnet;
+  setText("networkStatus", onMainnet ? "Connected to Ethereum Mainnet" : `Wrong network: chain ${network.chainId.toString()}`);
   setText("walletAddress", state.account ? state.account : "Wallet not connected");
-  if (!onSepolia) log(`Wrong network detected: chain ${network.chainId.toString()}. Sepolia is required.`);
+  if (!onMainnet) log(`Wrong network detected: chain ${network.chainId.toString()}. Ethereum Mainnet is required.`);
   updateProviderDebug(network.chainId);
 }
 
-async function switchToSepolia() {
+async function switchToMainnet() {
   try {
     const provider = state.selectedProvider;
     if (!provider) {
       log("Cannot switch network because MetaMask provider was not found.");
       return;
     }
-    log("Requesting switch to Sepolia...");
+    log("Requesting switch to Ethereum Mainnet...");
     await provider.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0xaa36a7" }]
+      params: [{ chainId: MAINNET_CHAIN_HEX }]
     });
     await connectWallet(false);
   } catch (error) {
     if (error.code === 4902 || /Unrecognized chain ID|wallet_addEthereumChain/i.test(error.message || "")) {
       try {
-        log("Sepolia missing in wallet. Requesting wallet_addEthereumChain...");
+        log("Ethereum Mainnet missing in wallet. Requesting wallet_addEthereumChain...");
         await state.selectedProvider.request({
           method: "wallet_addEthereumChain",
           params: [{
-            chainId: "0xaa36a7",
-            chainName: "Sepolia",
+            chainId: MAINNET_CHAIN_HEX,
+            chainName: "Ethereum Mainnet",
             nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-            rpcUrls: [PUBLIC_SEPOLIA_RPC],
-            blockExplorerUrls: ["https://sepolia.etherscan.io"]
+            rpcUrls: [PUBLIC_MAINNET_RPC],
+            blockExplorerUrls: ["https://etherscan.io"]
           }]
         });
         await connectWallet(false);
         return;
       } catch (addError) {
-        log(`Adding Sepolia failed: ${addError.message}`);
+        log(`Adding Ethereum Mainnet failed: ${addError.message}`);
       }
     }
-    log(`Switch to Sepolia failed: ${error.message}`);
+    log(`Switch to Ethereum Mainnet failed: ${error.message}`);
   }
 }
 
@@ -535,7 +538,7 @@ async function requireWalletAuction() {
     await connectWallet();
   }
   const network = await state.walletProvider.getNetwork();
-  if (network.chainId !== SEPOLIA_CHAIN_ID) throw new Error("Switch MetaMask to Sepolia first.");
+  if (network.chainId !== MAINNET_CHAIN_ID) throw new Error("Switch MetaMask to Ethereum Mainnet first.");
   return state.walletContracts.auction;
 }
 
@@ -545,7 +548,7 @@ async function placeBid(event) {
     const auction = await requireWalletAuction();
     const value = ethers.parseEther(el.bidAmount.value.trim());
     setBusy(el.bidForm.querySelector("button"), true, "Pending...");
-    log(`Submitting bid for ${el.bidAmount.value} Sepolia ETH...`);
+    log(`Submitting bid for ${el.bidAmount.value} ETH on Ethereum Mainnet...`);
     const tx = await auction.placeBid({ value });
     log(`Bid submitted: ${tx.hash}`);
     await tx.wait();

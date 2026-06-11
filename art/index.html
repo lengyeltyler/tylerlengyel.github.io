@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Phil Art - Tyler Lengyel</title>
-  <meta name="description" content="Sepolia testnet interface for Tyler Lengyel's on-chain Phil art platform." />
+  <meta name="description" content="Ethereum Mainnet interface for Tyler Lengyel's on-chain Phil art platform." />
   <meta name="theme-color" content="#050505" />
   <link rel="stylesheet" href="/assets/site-theme.css" />
   <link rel="stylesheet" href="/art/art.css" />
@@ -33,14 +33,14 @@
   <main id="main-content" class="page-shell is-wide">
     <section class="hero-panel">
       <div>
-        <p class="eyebrow">Sepolia testnet</p>
-        <h1>Sample Phil</h1>
-        <p class="lede">A fully on-chain SVG edition with marketplace-light preview metadata, registry records, and a live auction contract.</p>
+        <p class="eyebrow">Ethereum Mainnet</p>
+        <h1>Phil001</h1>
+        <p class="lede">The Phil001 Mainnet Dress Rehearsal: a fully on-chain SVG edition with reduced reserve parameters for validating the live Phil auction lifecycle.</p>
       </div>
       <div class="wallet-panel" data-no-reveal>
-        <span class="badge">Sepolia only</span>
+        <span class="badge">Ethereum Mainnet</span>
         <button class="button" type="button" id="connectWallet">Connect wallet</button>
-        <button class="button ghost" type="button" id="switchSepolia" hidden>Switch to Sepolia</button>
+        <button class="button ghost" type="button" id="switchMainnet" hidden>Switch to Ethereum Mainnet</button>
         <p id="walletAddress" class="meta-line">Wallet not connected</p>
         <p id="networkStatus" class="status-line">Click Connect wallet</p>
         <p id="walletError" class="status-line wallet-error" hidden></p>
@@ -49,7 +49,7 @@
     </section>
 
     <section class="warning-panel">
-      <strong>Testnet warning:</strong> this page is for Sepolia only. Do not use mainnet funds. Auction/test data may be reset while Phil is still being tested.
+      <strong>Phil001 is live on Ethereum Mainnet.</strong> Transactions use real ETH. This dress rehearsal uses reduced reserve parameters while the live Phil platform flow is validated.
     </section>
 
     <div class="dashboard-grid">
@@ -121,12 +121,12 @@
         </dl>
 
         <form id="bidForm" class="bid-form" data-no-reveal>
-          <label for="bidAmount">Bid amount in Sepolia ETH</label>
+          <label for="bidAmount">Bid amount in ETH</label>
           <div class="bid-row">
             <input id="bidAmount" name="bidAmount" inputmode="decimal" autocomplete="off" />
             <button class="button" type="submit">Place bid</button>
           </div>
-          <p class="helper-text">Default bid is reserve before start, or current bid plus 0.0369 ETH after start.</p>
+          <p class="helper-text">Default bid is reserve before start, or current bid plus the minimum increment after start.</p>
         </form>
       </div>
 

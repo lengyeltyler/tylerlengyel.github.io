@@ -1,0 +1,25 @@
+{
+  "network": "mainnet",
+  "chainId": 1,
+  "PhilSVGStorage": "0x2f0F4C49151a87a04Fc0f21fb86304Bf5EA20348",
+  "PhilRegistry": "0xD9Da242257df2E9BD8df4271880877D1252E17D5",
+  "PhilEdition": "0x0aA5F46d7d0A507125C255F4f065c18058d497d2",
+  "PhilAuction": "0x042C8C3242Cb2301AC145F8351682F089BE40877",
+  "tokenId": 1,
+  "reservePriceWei": "100000000000000",
+  "minBidIncrementWei": "100000000000000",
+  "auctionDurationSeconds": 248400,
+  "extensionWindowSeconds": 249,
+  "sellerProceedsRecipient": "0xBEBAD7a7549E12113cbaf365A01355f9033f2129",
+  "etherscan": {
+    "storage": "https://etherscan.io/address/0x2f0F4C49151a87a04Fc0f21fb86304Bf5EA20348#code",
+    "storageRead": "https://etherscan.io/address/0x2f0F4C49151a87a04Fc0f21fb86304Bf5EA20348#readContract",
+    "registry": "https://etherscan.io/address/0xD9Da242257df2E9BD8df4271880877D1252E17D5#code",
+    "registryRead": "https://etherscan.io/address/0xD9Da242257df2E9BD8df4271880877D1252E17D5#readContract",
+    "edition": "https://etherscan.io/address/0x0aA5F46d7d0A507125C255F4f065c18058d497d2#code",
+    "editionRead": "https://etherscan.io/address/0x0aA5F46d7d0A507125C255F4f065c18058d497d2#readContract",
+    "auction": "https://etherscan.io/address/0x042C8C3242Cb2301AC145F8351682F089BE40877#code",
+    "auctionRead": "https://etherscan.io/address/0x042C8C3242Cb2301AC145F8351682F089BE40877#readContract",
+    "token": "https://etherscan.io/nft/0x0aA5F46d7d0A507125C255F4f065c18058d497d2/1"
+  }
+}
