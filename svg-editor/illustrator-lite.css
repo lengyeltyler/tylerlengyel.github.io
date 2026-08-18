@@ -10,12 +10,12 @@
   --ve-text: #f0f0f0;
   --ve-muted: #b6b6b9;
   --ve-faint: #7d7d83;
-  --ve-accent: #46a0ff;
+  --ve-accent: #b1e6ff;
   --ve-accent-2: #ff9f1a;
   --ve-danger: #ff6f7d;
   --ve-artboard: #ffffff;
-  --ve-grid-minor: rgba(65, 118, 171, 0.16);
-  --ve-grid-major: rgba(65, 118, 171, 0.28);
+  --ve-grid-minor: rgba(177, 230, 255, 0.16);
+  --ve-grid-major: rgba(177, 230, 255, 0.28);
 }
 
 * {
@@ -270,8 +270,8 @@ button {
 .icon-button.is-active,
 .text-button.is-active,
 .chip-button.is-active {
-  background: #163d66;
-  border-color: rgba(70, 160, 255, 0.7);
+  background: #4a3d5d;
+  border-color: rgba(177, 230, 255, 0.72);
   color: #ffffff;
 }
 
@@ -581,8 +581,8 @@ button {
 }
 
 .layer-item.is-selected {
-  border-color: rgba(70, 160, 255, 0.72);
-  background: #15324f;
+  border-color: rgba(177, 230, 255, 0.72);
+  background: #3b3247;
   color: var(--ve-text);
 }
 
@@ -708,20 +708,20 @@ button {
 }
 
 .transform-handle {
-  fill: #f5f9ff;
-  stroke: #187de0;
+  fill: #f2f0ea;
+  stroke: #75c6eb;
   stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
 }
 
 .transform-handle:hover {
-  fill: #bfe0ff;
+  fill: #d9f2ff;
 }
 
 .path-anchor-handle,
 .path-bezier-handle {
-  fill: #f5f9ff;
-  stroke: #187de0;
+  fill: #f2f0ea;
+  stroke: #75c6eb;
   stroke-width: 1.1;
   cursor: move;
   vector-effect: non-scaling-stroke;
@@ -765,7 +765,7 @@ button {
 }
 
 .marquee-rect {
-  fill: rgba(70, 160, 255, 0.14);
+  fill: rgba(177, 230, 255, 0.16);
   stroke: var(--ve-accent);
   stroke-width: 1;
   stroke-dasharray: 4 2;

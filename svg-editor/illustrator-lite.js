@@ -19,7 +19,7 @@ const TOOLS = {
 
 const DEFAULT_STYLE = {
   fill: "#90caf955",
-  stroke: "#1976d2",
+  stroke: "#3a8cb3",
   strokeWidth: 2,
   strokeJoin: "miter",
   strokeCap: "butt",
@@ -3365,7 +3365,7 @@ function render() {
 
   const style = primary ? normalizeStyle(primary.style) : deepClone(DEFAULT_STYLE);
   dom.fillInput.value = colorToHex(style.fill, "#90caf9");
-  dom.strokeInput.value = colorToHex(style.stroke, "#1976d2");
+  dom.strokeInput.value = colorToHex(style.stroke, "#3a8cb3");
   dom.fillModeInput.value = style.fillGradient?.type || (style.fill === "none" ? "none" : "solid");
   dom.strokeModeInput.value = style.strokeGradient?.type || (style.stroke === "none" ? "none" : "solid");
   dom.fillOpacityInput.value = String(round(clampNumber(style.fillOpacity, 0, 1, 1), 2));
@@ -3375,7 +3375,7 @@ function render() {
   dom.fillGradientStartInput.value = colorToHex(fillGradient.stops[0]?.color, "#90caf9");
   dom.fillGradientEndInput.value = colorToHex(fillGradient.stops[fillGradient.stops.length - 1]?.color, "#7c3aed");
   dom.fillGradientAngleInput.value = String(round(fillGradient.angle || 0, 1));
-  dom.strokeGradientStartInput.value = colorToHex(strokeGradient.stops[0]?.color, "#1976d2");
+  dom.strokeGradientStartInput.value = colorToHex(strokeGradient.stops[0]?.color, "#3a8cb3");
   dom.strokeGradientEndInput.value = colorToHex(strokeGradient.stops[strokeGradient.stops.length - 1]?.color, "#ff7a18");
   dom.strokeGradientAngleInput.value = String(round(strokeGradient.angle || 0, 1));
   dom.strokeWidthInput.value = String(round(clamp(Number(style.strokeWidth) || 0, 0, 64), 2));

@@ -3,7 +3,7 @@
 <head>
   <!-- PWA -->
   <link rel="manifest" href="/nakes/manifest.json">
-  <meta name="theme-color" content="#050505">
+  <meta name="theme-color" content="#17191C">
   <!-- iOS standalone feel when added to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,9 +16,12 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
+  <script src="/assets/site-shell.js"></script>
+  <link rel="stylesheet" href="/assets/site-theme.css" />
+
   <style>
     :root{
-      --off-white:#faf7f0;
+      --off-white:#f2f0ea;
 
       --dark-0:#050505;
       --dark-1:#111111;
@@ -28,17 +31,17 @@
       --panel-dark-1:#151515;
       --panel-dark-2:#232323;
 
-      --dodger-0:#1e90ff;
-      --dodger-1:#1877f2;
-      --dodger-2:#0f52ba;
+      --blue-0:#d9f2ff;
+      --blue-1:#b1e6ff;
+      --blue-2:#75c6eb;
 
       --bg:#050505;
       --grid:rgba(250,247,240,.12);
-      --nakes:#1e90ff;
+      --nakes:#b1e6ff;
       --nakesHead:#faf7f0;
-      --food:#0f52ba;
+      --food:#75c6eb;
       --ui:#faf7f0;
-      --accent:#1e90ff;
+      --accent:#b1e6ff;
 
       --size:20;
       --desktop-max:560px;
@@ -68,16 +71,22 @@
       overflow:hidden;
     }
 
+    .nakes-page{
+      height:100dvh;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+    }
+
     .app{
-      position:fixed;
-      inset:0;
+      position:relative;
+      min-height:0;
       padding:calc(var(--safe-top) + 10px) calc(var(--safe-right) + 10px)
               calc(var(--safe-bottom) + 10px) calc(var(--safe-left) + 10px);
       display:grid;
       grid-template-rows:1fr auto;
       gap:var(--gap);
       max-width:min(100vw,100svw);
-      max-height:min(100vh,100svh);
+      max-height:100%;
     }
 
     .hud{
@@ -93,78 +102,12 @@
       pointer-events:none;
     }
 
-    .route-tabs{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      pointer-events:auto;
-      align-items:center;
-    }
-
-    .route-tabs a{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:36px;
-      padding:7px 11px;
-      border-radius:999px;
-      border:1px solid rgba(250,247,240,.18);
-      background:linear-gradient(
-        135deg,
-        var(--dodger-0) 0%,
-        var(--dodger-1) 45%,
-        var(--dodger-2) 100%
-      );
-      color:var(--off-white);
-      text-decoration:none;
-      font-size:13px;
-      font-weight:700;
-      box-shadow:0 10px 24px rgba(0,0,0,.24);
-    }
-
-    .route-tabs a:hover{
-      transform:translateY(-1px);
-      box-shadow:0 14px 28px rgba(30,144,255,.2);
-    }
-
-    .social-links {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-left:4px;
-    }
-
-    .social-links a {
-      width:28px;
-      height:28px;
-      min-height:28px;
-      padding:0;
-      background:transparent;
-      border:0;
-      box-shadow:none;
-    }
-
-    .social-links img {
-      width:20px;
-      height:20px;
-      display:block;
-      filter:
-        brightness(0)
-        saturate(100%)
-        invert(96%)
-        sepia(9%)
-        saturate(294%)
-        hue-rotate(332deg)
-        brightness(105%)
-        contrast(96%);
-    }
-
     .title{
       font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--off-white);
-      text-shadow:0 2px 14px rgba(30,144,255,.3);
+      text-shadow:0 2px 14px rgba(177,230,255,.3);
     }
 
     .stats{
@@ -176,7 +119,7 @@
     .pill{
       pointer-events:auto;
       border:1px solid rgba(250,247,240,.14);
-      border-radius:999px;
+      border-radius:0;
       padding:5px 9px;
       font-size:13px;
       color:var(--off-white);
@@ -203,7 +146,7 @@
       max-width:var(--desktop-max);
       aspect-ratio:1/1;
       border:1px solid rgba(250,247,240,.14);
-      border-radius:20px;
+      border-radius:0;
       background:linear-gradient(
         135deg,
         var(--panel-dark-0) 0%,
@@ -226,16 +169,16 @@
 
     .btn{
       border:1px solid rgba(250,247,240,.16);
-      border-radius:16px;
+      border-radius:0;
       padding:14px 12px;
       text-align:center;
       background:linear-gradient(
         135deg,
-        var(--dodger-0) 0%,
-        var(--dodger-1) 45%,
-        var(--dodger-2) 100%
+        var(--blue-0) 0%,
+        var(--blue-1) 45%,
+        var(--blue-2) 100%
       );
-      color:var(--off-white);
+      color:#211d27;
       font-weight:800;
       cursor:pointer;
       transition:transform .04s ease, background .1s ease, box-shadow .1s ease, opacity .1s ease;
@@ -250,7 +193,12 @@
     }
 
     .btn:hover{
-      box-shadow:0 16px 34px rgba(30,144,255,.22);
+      box-shadow:0 16px 34px rgba(117,198,235,.2);
+    }
+
+    .btn:focus-visible {
+      outline:3px solid #b1e6ff;
+      outline-offset:3px;
     }
 
     .grid-spacer{visibility:hidden}
@@ -280,14 +228,6 @@
         pointer-events:auto;
       }
 
-      .route-tabs{
-        margin-bottom:6px;
-      }
-
-      .social-links {
-        margin-left:0;
-      }
-
       .title{
         font-size:13px;
         margin-bottom:4px;
@@ -302,13 +242,13 @@
       .pill{
         font-size:11px;
         padding:3px 7px;
-        border-radius:10px;
+        border-radius:0;
       }
 
       .btn{
         padding:12px;
         font-size:15px;
-        border-radius:12px;
+        border-radius:0;
       }
 
       .controls{
@@ -322,46 +262,11 @@
   </style>
 </head>
 
-<body>
+<body class="nakes-page">
+  <header data-site-header="nakes"></header>
   <div class="app">
     <div class="stage">
       <div class="hud">
-        <nav class="route-tabs" aria-label="Game links">
-          <a href="/" rel="home">Home</a>
-          <a href="/linearA/">Linear A</a>
-          <a href="/createPhil/">createPhil</a>
-          <a href="/nakes/" aria-current="page">nakes</a>
-        <a href="/art/">Art</a>
-          <a href="/svg-editor/">SVG Editor</a>
-          <a href="/nakes/leaderboard.html">Leaderboard</a>
-
-          <div class="social-links" aria-label="Social links">
-            <a href="https://x.com/tylerlengyel" target="_blank" rel="noopener noreferrer" aria-label="X Account">
-              <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
-            </a>
-
-            <a href="https://github.com/lengyeltyler" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-              <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
-            </a>
-
-            <a href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-              <img src="https://cdn.simpleicons.org/linkedin/faf7f0" alt="" />
-            </a>
-
-            <a href="https://www.instagram.com/lengyel_tyler/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
-            </a>
-
-            <a href="https://www.facebook.com/profile.php?id=61572755744935" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
-            </a>
-
-            <a href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page" target="_blank" rel="noopener noreferrer" aria-label="Substack">
-              <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
-            </a>
-          </div>
-        </nav>
-
         <div class="title">S N A K E</div>
 
         <div class="stats">

@@ -3,388 +3,193 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>createPhil - Tyler Lengyel</title>
-
-  <meta name="theme-color" content="#050505" />
-
+  <meta
+    name="description"
+    content="Operate the createPhil trait machine and assemble a one-of-one Phil."
+  />
+  <meta name="theme-color" content="#EAE7DF" />
+  <script src="/assets/site-shell.js"></script>
   <link rel="stylesheet" href="/assets/site-theme.css" />
-
-  <style>
-    :root {
-      --off-white: #faf7f0;
-
-      --dark-0: #050505;
-      --dark-1: #111111;
-      --dark-2: #1d1d1d;
-
-      --panel-dark-0: #080808;
-      --panel-dark-1: #151515;
-      --panel-dark-2: #232323;
-
-      --dodger-0: #1e90ff;
-      --dodger-1: #1877f2;
-      --dodger-2: #0f52ba;
-    }
-
-    body,
-    .page-shell,
-    .frame-shell {
-      background: linear-gradient(
-        135deg,
-        var(--dark-0) 0%,
-        var(--dark-1) 45%,
-        var(--dark-2) 100%
-      );
-    }
-
-    body::before {
-      display: none;
-    }
-
-    .site-header {
-      background: linear-gradient(
-        135deg,
-        var(--dodger-0) 0%,
-        var(--dodger-1) 45%,
-        var(--dodger-2) 100%
-      );
-
-      border-bottom: 1px solid rgba(250,247,240,0.16);
-    }
-
-    .site-brand {
-      color: var(--off-white) !important;
-    }
-
-    .site-tabs {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .site-tabs a {
-      color: var(--off-white) !important;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    .social-links {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-left: 28px;
-    }
-
-    .social-links a {
-      width: 34px;
-      height: 34px;
-
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-
-      text-decoration: none;
-
-      transition:
-        transform 0.18s ease,
-        opacity 0.18s ease;
-    }
-
-    .social-links a:hover {
-      transform: translateY(-2px);
-      opacity: 0.82;
-    }
-
-    .social-links img {
-      width: 22px;
-      height: 22px;
-      display: block;
-
-      filter:
-        brightness(0)
-        saturate(100%)
-        invert(96%)
-        sepia(9%)
-        saturate(294%)
-        hue-rotate(332deg)
-        brightness(105%)
-        contrast(96%);
-    }
-
-    .paper-panel {
-      background: linear-gradient(
-        135deg,
-        var(--dodger-0) 0%,
-        var(--dodger-1) 45%,
-        var(--dodger-2) 100%
-      );
-
-      border: 1px solid rgba(250,247,240,0.18);
-
-      box-shadow: 0 24px 60px rgba(0,0,0,0.24);
-    }
-
-    .paper-panel,
-    .paper-panel h1,
-    .paper-panel p,
-    .paper-panel .eyebrow,
-    .paper-panel .lede {
-      color: var(--off-white);
-    }
-
-    .frame-panel {
-      background: linear-gradient(
-        135deg,
-        var(--panel-dark-0) 0%,
-        var(--panel-dark-1) 50%,
-        var(--panel-dark-2) 100%
-      );
-
-      border: 1px solid rgba(250,247,240,0.12);
-
-      box-shadow: 0 20px 48px rgba(0,0,0,0.28);
-    }
-
-    .embedded-frame {
-      border-radius: 14px;
-      background: #050505;
-    }
-
-    .link-button,
-    .button {
-      background: linear-gradient(
-        135deg,
-        var(--panel-dark-0) 0%,
-        var(--panel-dark-1) 50%,
-        var(--panel-dark-2) 100%
-      );
-
-      border: 1px solid rgba(250,247,240,0.16);
-
-      color: var(--off-white);
-
-      box-shadow: 0 12px 28px rgba(0,0,0,0.22);
-    }
-
-    .link-button:hover,
-    .button:hover,
-    .link-button:focus-visible,
-    .button:focus-visible {
-      transform: translateY(-1px);
-
-      border-color: rgba(250,247,240,0.32);
-
-      box-shadow: 0 16px 32px rgba(30,144,255,0.18);
-    }
-
-    @media (max-width: 720px) {
-
-      .social-links {
-        margin-left: 0;
-      }
-
-      .site-frame {
-        justify-content: center;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/createPhil/machine.css" />
 </head>
 
-<body>
-
+<body class="create-phil-page">
   <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <header class="site-header">
+  <header data-site-header="create-phil"></header>
 
-    <div class="site-frame">
-
-      <a class="site-brand" href="/">
-        Tyler Lengyel
-      </a>
-
-      <nav class="site-tabs" aria-label="Primary">
-
-        <a href="/">Home</a>
-        <a href="/linearA/">Linear A</a>
-        <a href="/createPhil/" aria-current="page">createPhil</a>
-        <a href="/nakes/">nakes</a>
-        <a href="/art/">Art</a>
-        <a href="/svg-editor/">SVG Editor</a>
-
-        <div class="social-links" aria-label="Social links">
-
-          <a
-            href="https://x.com/tylerlengyel"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="X Account"
-          >
-            <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://github.com/lengyeltyler"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-          >
-            <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn"
-          >
-            <img src="https://cdn.simpleicons.org/linkedin/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://www.instagram.com/lengyel_tyler/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://www.facebook.com/profile.php?id=61572755744935"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook"
-          >
-            <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Substack"
-          >
-            <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
-          </a>
-
-        </div>
-
-      </nav>
-
-    </div>
-
-  </header>
-
-  <main id="main-content" class="page-shell is-wide frame-shell">
-
-    <section class="paper-panel" data-writing-root>
-
-      <p class="eyebrow">
-        Legacy Tool
-      </p>
-
-      <h1>
-        createPhil
-      </h1>
-
+  <main id="main-content" class="page-shell is-wide machine-page">
+    <section class="machine-intro" data-writing-root>
+      <p class="eyebrow">Phil experimental works · machine no. 01</p>
+      <h1>createPhil</h1>
       <p class="lede">
-        The original createPhil environment is preserved below in an embedded
-        frame so the legacy workflow stays available without changing the
-        underlying tool.
+        Build a Phil one layer at a time. Every lever operates its labeled trait generator;
+        the machine keeps the pieces in their original stacking order as you work.
       </p>
-
     </section>
 
-    <section class="frame-panel" data-no-reveal>
+    <section class="machine-cabinet" aria-labelledby="machine-heading">
+      <div class="machine-marquee">
+        <div>
+          <p class="machine-kicker">Trait assembly terminal</p>
+          <h2 id="machine-heading">Phil Mk I</h2>
+        </div>
+        <div class="mechanical-counter" role="group" aria-label="Successful generation count">
+          <span>RUNS</span>
+          <output data-generation-count>0000</output>
+        </div>
+      </div>
 
-      <iframe
-        id="createPhilFrame"
-        class="embedded-frame"
-        src="https://lengyeltyler.github.io/createPhil/"
-        title="createPhil"
-        loading="eager"
-        referrerpolicy="no-referrer">
-      </iframe>
+      <div class="machine-deck">
+        <section class="display-bay" aria-labelledby="output-heading">
+          <div class="display-label-row">
+            <h3 id="output-heading">Assembly window</h3>
+            <span class="power-light" aria-hidden="true"></span>
+          </div>
 
+          <div
+            class="phil-display"
+            data-phil-display
+            role="img"
+            aria-label="Generated Phil preview; no traits loaded"
+          >
+            <div class="display-idle" data-display-idle>
+              <span class="crosshair" aria-hidden="true"></span>
+              <strong>READY</strong>
+              <span>Pull a trait lever to begin.</span>
+            </div>
+          </div>
+
+          <p class="machine-status" data-machine-status aria-live="polite">
+            Engine warming up…
+          </p>
+
+          <div class="output-controls" role="group" aria-label="Assembly controls">
+            <button class="machine-button" type="button" data-export disabled>
+              Export assembled SVG
+            </button>
+            <button class="machine-button machine-button-secondary" type="button" data-reset-all disabled>
+              Reset machine
+            </button>
+          </div>
+        </section>
+
+        <section class="control-bank" aria-labelledby="controls-heading">
+          <div class="control-bank-heading">
+            <div>
+              <p class="machine-kicker">Independent generators</p>
+              <h3 id="controls-heading">Trait levers</h3>
+            </div>
+            <p>One lever, one layer.</p>
+          </div>
+
+          <div class="lever-grid">
+            <article class="trait-station" data-station="bg">
+              <div class="trait-plate"><span>01</span><strong>Background</strong></div>
+              <div class="trait-window" data-trait-preview="bg"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="bg" aria-label="Generate Background trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="bg" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="wings">
+              <div class="trait-plate"><span>02</span><strong>Wings</strong></div>
+              <div class="trait-window" data-trait-preview="wings"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="wings" aria-label="Generate Wings trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="wings" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="phil">
+              <div class="trait-plate"><span>03</span><strong>Phil</strong></div>
+              <div class="trait-window" data-trait-preview="phil"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="phil" aria-label="Generate Phil body trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="phil" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="spikes">
+              <div class="trait-plate"><span>04</span><strong>Spikes</strong></div>
+              <div class="trait-window" data-trait-preview="spikes"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="spikes" aria-label="Generate Spikes trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="spikes" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="eyes">
+              <div class="trait-plate"><span>05</span><strong>Eyes</strong></div>
+              <div class="trait-window" data-trait-preview="eyes"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="eyes" aria-label="Generate Eyes trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="eyes" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="nose">
+              <div class="trait-plate"><span>06</span><strong>Nose</strong></div>
+              <div class="trait-window" data-trait-preview="nose"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="nose" aria-label="Generate Nose trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="nose" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="teeth">
+              <div class="trait-plate"><span>07</span><strong>Teeth</strong></div>
+              <div class="trait-window" data-trait-preview="teeth"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="teeth" aria-label="Generate Teeth trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="teeth" disabled>Clear layer</button>
+            </article>
+
+            <article class="trait-station" data-station="top">
+              <div class="trait-plate"><span>08</span><strong>Top</strong></div>
+              <div class="trait-window" data-trait-preview="top"><span>EMPTY</span></div>
+              <button class="lever" type="button" data-trait="top" aria-label="Generate Top trait">
+                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
+                <span class="lever-caption">PULL</span>
+              </button>
+              <button class="eject-button" type="button" data-clear-trait="top" disabled>Clear layer</button>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <footer class="machine-footer">
+        <span>TYLER LENGYEL · PHIL EXPERIMENTAL WORKS</span>
+        <a href="https://lengyeltyler.github.io/createPhil/" target="_blank" rel="noopener noreferrer">
+          Open engine service panel
+        </a>
+      </footer>
     </section>
 
+    <iframe
+      class="engine-frame"
+      data-engine-frame
+      src="https://lengyeltyler.github.io/createPhil/"
+      title="createPhil generation engine"
+      tabindex="-1"
+      aria-hidden="true"
+    ></iframe>
+
+    <noscript>
+      <p class="notice">JavaScript is required to operate the createPhil machine.</p>
+    </noscript>
   </main>
 
-  <script defer src="/assets/site-theme.js"></script>
-
-  <script>
-    const createPhilFrame =
-      document.getElementById("createPhilFrame");
-
-    const TRUSTED_CREATEPHIL_ORIGIN =
-      "https://lengyeltyler.github.io";
-
-    window.addEventListener("message", (event) => {
-
-      if (event.origin !== TRUSTED_CREATEPHIL_ORIGIN) return;
-
-      if (
-        createPhilFrame &&
-        createPhilFrame.contentWindow &&
-        event.source !== createPhilFrame.contentWindow
-      ) return;
-
-      const message = event.data || {};
-
-      if (
-        message.source === "createPhil" &&
-        message.kind === "download-svg"
-      ) {
-
-        try {
-
-          const blob = new Blob(
-            [message.data],
-            {
-              type:
-                message.mime ||
-                "image/svg+xml;charset=utf-8"
-            }
-          );
-
-          const url =
-            URL.createObjectURL(blob);
-
-          const link =
-            document.createElement("a");
-
-          link.href = url;
-
-          link.download =
-            message.filename ||
-            "download.svg";
-
-          link.rel = "noopener";
-
-          document.body.appendChild(link);
-
-          link.click();
-
-          setTimeout(() => {
-
-            URL.revokeObjectURL(url);
-            link.remove();
-
-          }, 0);
-
-        } catch (error) {
-
-          console.warn(
-            "Top-level SVG download failed:",
-            error
-          );
-        }
-      }
-    });
-  </script>
-
+  <script src="/createPhil/machine.js"></script>
 </body>
 </html>

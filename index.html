@@ -23,6 +23,8 @@
   <meta property="og:url" content="https://tylerlengyel.com/" />
 
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:creator" content="@tyler_lengyel" />
+  <meta name="twitter:site" content="@tyler_lengyel" />
 
   <meta property="og:image" content="https://tylerlengyel.com/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -30,159 +32,76 @@
 
   <meta name="twitter:image" content="https://tylerlengyel.com/assets/og-image.png" />
 
-  <meta name="theme-color" content="#050505" />
-
+  <meta name="theme-color" content="#EAE7DF" />
+  <script src="/assets/site-shell.js"></script>
   <link rel="stylesheet" href="/assets/site-theme.css" />
 
   <style>
-    body,
-    .page-shell {
-      background: linear-gradient(
-        135deg,
-        #050505 0%,
-        #111111 45%,
-        #1d1d1d 100%
-      );
-    }
-
     .section-stack,
     .card-grid {
       background: transparent !important;
     }
 
-    .site-header,
-    .paper-panel,
-    .hero-title,
-    .project-line,
-    .card-link {
-      background: linear-gradient(
-        135deg,
-        #1e90ff 0%,
-        #1877f2 45%,
-        #0f52ba 100%
-      );
-    }
-
-    .paper-panel {
-      color: #faf7f0;
-    }
-
-    .paper-panel .lede,
-    .paper-panel .eyebrow {
-      color: #faf7f0;
-    }
+    .paper-panel { background: var(--paper); }
 
     .hero-title {
-      font-size: 4rem;
-      line-height: 1.05;
-      padding: 18px 24px;
-      border-radius: 18px;
-      color: #faf7f0;
       display: inline-block;
-      background: linear-gradient(
-        135deg,
-        #2d9cff 0%,
-        #1f7fff 50%,
-        #0f52ba 100%
-      );
+      max-width: 100%;
+      padding: 18px 24px;
+      border: 2px solid var(--line-strong);
+      border-radius: 0;
+      background: var(--contrast);
+      color: var(--accent);
+      font-size: clamp(2.5rem, 7vw, 4rem);
+      line-height: 1.05;
+      box-shadow:
+        inset 0 0 0 4px var(--contrast-raised),
+        6px 6px 0 var(--shadow-pixel);
+    }
+
+    .paper-panel .eyebrow {
+      color: var(--accent-ink);
+    }
+
+    .paper-panel .lede {
+      color: var(--muted);
     }
 
     .surface-card {
-      background: linear-gradient(
-        135deg,
-        #080808 0%,
-        #151515 50%,
-        #232323 100%
-      );
-
-      color: #faf7f0;
-      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--contrast);
+      color: var(--on-contrast);
+      border-color: var(--line-strong);
     }
 
     .surface-card h2,
+    .home-copy-heading {
+      color: var(--accent);
+    }
+
     .surface-card p,
-    .home-copy-heading,
-    .section-note {
-      color: #faf7f0;
+    .surface-card .section-note {
+      color: var(--on-contrast-muted);
     }
 
-    .project-line,
-    .card-link {
-      color: #faf7f0 !important;
-      border: 1px solid rgba(255,255,255,0.08);
+    .project-line {
+      background: var(--contrast-raised);
+      color: var(--on-contrast);
+      border-color: var(--line-strong);
     }
 
-    .project-line span,
+    .project-line:hover,
+    .project-line:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 2px 2px 0 #090b0d;
+    }
+
     .project-line strong,
-    .project-number,
-    .project-copy,
-    .card-link h3,
-    .card-link p,
-    .card-path,
-    .card-description {
-      color: #faf7f0 !important;
+    .project-number {
+      color: var(--accent);
     }
 
-    .site-tabs {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
-
-    .site-tabs a {
-      color: #faf7f0 !important;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    .social-links {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-left: 28px;
-    }
-
-    .social-links a {
-      width: 34px;
-      height: 34px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition:
-        transform 0.18s ease,
-        opacity 0.18s ease;
-    }
-
-    .social-links a:hover {
-      transform: translateY(-2px);
-      opacity: 0.82;
-    }
-
-    .social-links img {
-      width: 22px;
-      height: 22px;
-      display: block;
-    
-      filter:
-        brightness(0)
-        saturate(100%)
-        invert(96%)
-        sepia(9%)
-        saturate(294%)
-        hue-rotate(332deg)
-        brightness(105%)
-        contrast(96%);
-    }
-
-    .section-heading h2 {
-      color: #faf7f0;
-    }
-
-    .section-heading p {
-      color: rgba(250,247,240,0.8);
+    .project-copy span {
+      color: var(--on-contrast-muted);
     }
   </style>
 
@@ -208,80 +127,7 @@
 
   <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <header class="site-header">
-    <div class="site-frame home-nav-frame">
-
-      <nav class="site-tabs" aria-label="Primary">
-
-        <a href="/" aria-current="page">Home</a>
-        <a href="/linearA/">Linear A</a>
-        <a href="/createPhil/">createPhil</a>
-        <a href="/nakes/">nakes</a>
-        <a href="/art/">Art</a>
-        <a href="/svg-editor/">SVG Editor</a>
-
-        <div class="social-links" aria-label="Social links">
-
-          <a
-            href="https://x.com/tylerlengyel"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="X Account"
-          >
-            <img src="https://cdn.simpleicons.org/x/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://github.com/lengyeltyler"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-          >
-            <img src="https://cdn.simpleicons.org/github/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://www.linkedin.com/in/tyler-lengyel-b16b12368/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn"
-          >
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/linkedin.svg" alt="" />
-          </a>
-
-          <a
-            href="https://www.instagram.com/lengyel_tyler/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            <img src="https://cdn.simpleicons.org/instagram/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://www.facebook.com/profile.php?id=61572755744935"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Facebook"
-          >
-            <img src="https://cdn.simpleicons.org/facebook/faf7f0" alt="" />
-          </a>
-
-          <a
-            href="https://substack.com/@0xling?r=1p4uy1&utm_campaign=profile&utm_medium=profile-page"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Substack"
-          >
-            <img src="https://cdn.simpleicons.org/substack/faf7f0" alt="" />
-          </a>
-
-        </div>
-
-      </nav>
-
-    </div>
-  </header>
+  <header data-site-header="home"></header>
 
   <main id="main-content" class="page-shell page-stack" data-writing-root>
 
@@ -327,16 +173,14 @@
             <p class="home-copy-heading">Current Focus</p>
 
             <p>
-              The history of Religion.
+              The history of religion and human evolution.
             </p>
 
             <p>
-              Phil becoming an On-Chain Generative Art project inspired by Avastars and CyberBrokers 
-              that lives on Ethereum.
-            </p>
-
-            <p>
-              🐸
+              I'm building Phil into a long-term digital project centered around identity,
+              ownership, art, and the way we interact in the digital world. The idea is for Phil to
+              grow beyond a single project into something that can evolve with its owner over time,
+              while keeping the person — not a platform — in control.
             </p>
 
           </div>
@@ -357,6 +201,16 @@
       const projects = [
         {
           id: "1",
+          name: "Phil",
+          href: "https://github.com/lengyeltyler/Phil",
+          path: "github.com/lengyeltyler/Phil",
+          external: true,
+          description:
+            "The private source repository for Phil's long-term identity and ownership work."
+        },
+
+        {
+          id: "2",
           name: "Linear A Research",
           href: "/linearA/",
           path: "/linearA/",
@@ -365,16 +219,16 @@
         },
 
         {
-          id: "2",
-          name: "createPhil (Legacy)",
+          id: "3",
+          name: "createPhil",
           href: "/createPhil/",
           path: "/createPhil/",
           description:
-            "Legacy Phil build environment and historical generation tooling."
+            "A hands-on machine for generating and assembling Phil traits."
         },
 
         {
-          id: "3",
+          id: "4",
           name: "illustrator",
           href: "/svg-editor/",
           path: "/svg-editor/",
@@ -383,7 +237,7 @@
         },
 
         {
-          id: "4",
+          id: "5",
           name: "nakes Arcade",
           href: "/nakes/",
           path: "/nakes/",
@@ -392,7 +246,7 @@
         },
 
         {
-          id: "5",
+          id: "6",
           name: "Art",
           href: "/art/",
           path: "/art/",
@@ -414,6 +268,10 @@
 
         link.className = "project-line";
         link.href = project.href;
+        if (project.external) {
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+        }
 
         const number =
           document.createElement("span");
