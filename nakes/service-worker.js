@@ -1,5 +1,7 @@
-const CACHE_NAME = "nakes-v4";
+const CACHE_NAME = "nakes-v5-sitewide-theme";
 const ASSETS = [
+  "/assets/site-theme.css?v=20261116-sitewide-theme",
+  "/assets/site-shell.js?v=20261116-sitewide-theme",
   "/nakes/",
   "/nakes/index.html",
   "/nakes/leaderboard.html",

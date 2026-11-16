@@ -16,8 +16,8 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <script src="/assets/site-shell.js"></script>
-  <link rel="stylesheet" href="/assets/site-theme.css" />
+  <script src="/assets/site-shell.js?v=20261116-sitewide-theme"></script>
+  <link rel="stylesheet" href="/assets/site-theme.css?v=20261116-sitewide-theme" />
 
   <style>
     :root{
@@ -57,13 +57,8 @@
     html,body{height:100%;margin:0}
 
     body{
-      background:linear-gradient(
-        135deg,
-        var(--dark-0) 0%,
-        var(--dark-1) 45%,
-        var(--dark-2) 100%
-      );
-      color:var(--ui);
+      background:var(--surface-canvas);
+      color:var(--ink);
       font-family:"SF Pro Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
       touch-action:none;
       -webkit-user-select:none;
@@ -106,7 +101,7 @@
       font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
-      color:var(--off-white);
+      color:var(--ink);
       text-shadow:0 2px 14px rgba(177,230,255,.3);
     }
 
@@ -211,7 +206,7 @@
 
     .help{
       font-size:13px;
-      color:rgba(250,247,240,.78);
+      color:var(--muted);
       margin-bottom:8px;
     }
 
