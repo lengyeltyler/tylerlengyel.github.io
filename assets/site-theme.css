@@ -1,6 +1,6 @@
 :root,
 :root[data-theme="light"] {
-  --surface-canvas: #f2f0ea;
+  --surface-canvas: #ffffff;
   --page-bg: #eae7df;
   --page-bg-strong: #dedad0;
   --paper: #f2f0ea;
@@ -32,6 +32,7 @@
 }
 
 :root[data-theme="dark"] {
+  --surface-canvas: #000000;
   --page-bg: #1a1d21;
   --page-bg-strong: #14171a;
   --paper: #24282d;
