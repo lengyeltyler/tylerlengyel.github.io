@@ -1,0 +1,37 @@
+/* Articles share the site's light/dark palette and navigation. */
+.articles-page { overflow-wrap: break-word; }
+.article-preview { padding: clamp(22px, 4vw, 36px); }
+.article-preview h2 { max-width: 30ch; font-size: clamp(1.65rem, 4vw, 2.6rem); }
+.article-preview h2 a { color: var(--ink); text-decoration: none; }
+.article-preview h2 a:hover { text-decoration: underline; text-decoration-color: var(--accent-strong); }
+.article-preview .meta-line { margin-bottom: 18px; }
+.article-excerpt { margin: 16px 0 24px; color: var(--muted); max-width: 54ch; }
+.article-preview .link-button { gap: 12px; }
+.article-breadcrumb, .article-source, .article-footer {
+  font: 700 0.78rem/1.6 var(--font-ui);
+}
+.article-breadcrumb a, .article-footer a, .article-source a {
+  display: inline-block; padding-block: 10px;
+}
+.article-full { padding: clamp(22px, 5vw, 54px); }
+.article-heading { padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 32px; }
+.article-heading h1 { max-width: 24ch; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.12; }
+.article-heading .lede { margin: 20px 0; }
+.article-heading .meta-line { margin-bottom: 8px; }
+.article-source { margin: 0; }
+.article-body { max-width: 68ch; margin-inline: auto; font-size: clamp(1.06rem, 2vw, 1.2rem); line-height: 1.85; }
+.article-body p { margin: 0 0 1.5em; }
+.article-body p:last-child { margin-bottom: 0; }
+.article-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--line); }
+@media (max-width: 720px) {
+  .article-heading h1 { font-size: clamp(1.9rem, 7vw, 2.6rem); }
+  .article-full { padding: 22px 18px; }
+  .article-footer { flex-direction: column; }
+}
+@media print {
+  .articles-page { background: #fff; color: #000; }
+  .site-header, .skip-link, .article-breadcrumb, .article-footer { display: none; }
+  .page-shell { width: 100%; padding: 0; }
+  .article-full { background: #fff; color: #000; border: 0; box-shadow: none; padding: 0; }
+  .article-heading h1, .article-body { color: #000; }
+}

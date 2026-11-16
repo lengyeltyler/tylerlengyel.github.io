@@ -8,6 +8,19 @@
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+  <!-- Articles -->
+  <url>
+    <loc>https://tylerlengyel.com/articles/</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tylerlengyel.com/articles/arch-manning-name-not-game/</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <!-- Linear A research -->
   <url>
     <loc>https://tylerlengyel.com/linearA/index.html</loc>

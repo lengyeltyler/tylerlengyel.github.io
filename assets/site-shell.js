@@ -69,6 +69,7 @@
       ["/createPhil/", "createPhil", "create-phil"],
       ["/nakes/", "nakes", "nakes"],
       ["/art/", "Art", "art"],
+      ["/articles/", "Articles", "articles"],
       ["/svg-editor/", "SVG Editor", "svg-editor"]
     ].map(([href, label, id]) => navLink(href, label, id, active)).join("");
 
