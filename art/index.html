@@ -243,6 +243,10 @@
     .kiera-dialog button { cursor:pointer; }
     .kiera-dialog .kiera-links { margin-top:12px; }
     @media(max-width:560px) { .kiera-grid { grid-template-columns:1fr; } .kiera-image img { height:auto; max-height:420px; } }
+    .gallery-panel .kiera-contract a { color:var(--accent); }
+    .phils-grid { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+    .phils-grid .kiera-image img { height:auto; aspect-ratio:1; object-fit:contain; }
+    [data-art-panel] { scroll-margin-top:110px; }
   </style>
 </head>
 
@@ -257,11 +261,12 @@
         <p class="eyebrow">Art</p>
         <h1>Art</h1>
         <p class="lede">
-          A working archive of image experiments, artwork, and the Kiera Fund collection.
+          A working archive of image experiments, artwork, the Kiera Fund collection, and Phils.
         </p>
         <nav class="art-nav" aria-label="Art sections">
           <a class="link-button is-active" href="#pepe" data-art-section="pepe" aria-current="page">Pepe</a>
           <a class="link-button" href="#kiera" data-art-section="kiera">Kiera</a>
+          <a class="link-button" href="#phils" data-art-section="phils">Phils</a>
         </nav>
       </section>
 
@@ -299,6 +304,22 @@
 
 </div>
       </section>
+
+      <section id="phils" data-art-panel class="surface-card gallery-panel" aria-labelledby="phils-heading" hidden>
+        <div class="gallery-heading">
+          <p class="eyebrow">Phils / Ethereum</p>
+          <h2 id="phils-heading">Phils</h2>
+          <p class="section-note">Five Phils, each with its own combination of colors, layers, and character.</p>
+          <p class="gallery-meta">5 artworks · Ethereum</p>
+        </div>
+        <div class="kiera-links"><a class="link-button" href="https://opensea.io/collection/phils-761118960" target="_blank" rel="noopener noreferrer">Collection on OpenSea</a></div>
+        <p class="kiera-contract">Contract: <a href="https://etherscan.io/address/0x9732f84c54407cd846b3e987594417bcfa30644e" target="_blank" rel="noopener noreferrer">0x9732f84c54407cd846b3e987594417bcfa30644e</a></p>
+        <div class="kiera-grid phils-grid"><figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/c9568baa633eef6a13bd43e62e3cc7/51c9568baa633eef6a13bd43e62e3cc7.svg" data-title="Phil-Paleoflux #0" data-release="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/0" data-marketplace="OpenSea" aria-label="Preview Phil-Paleoflux #0"><img src="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/c9568baa633eef6a13bd43e62e3cc7/51c9568baa633eef6a13bd43e62e3cc7.svg" alt="Phil-Paleoflux #0" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Token #0</span><h3>Phil-Paleoflux #0</h3><a href="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/0" target="_blank" rel="noopener noreferrer">View on OpenSea</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/efe47c36337afa18d542e6f5384720/c9efe47c36337afa18d542e6f5384720.svg" data-title="Phil-Dragon #1" data-release="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/1" data-marketplace="OpenSea" aria-label="Preview Phil-Dragon #1"><img src="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/efe47c36337afa18d542e6f5384720/c9efe47c36337afa18d542e6f5384720.svg" alt="Phil-Dragon #1" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Token #1</span><h3>Phil-Dragon #1</h3><a href="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/1" target="_blank" rel="noopener noreferrer">View on OpenSea</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/ff1e3139c03535784c2199e12c4943/3bff1e3139c03535784c2199e12c4943.svg" data-title="Phil-Dracogloom #2" data-release="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/2" data-marketplace="OpenSea" aria-label="Preview Phil-Dracogloom #2"><img src="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/ff1e3139c03535784c2199e12c4943/3bff1e3139c03535784c2199e12c4943.svg" alt="Phil-Dracogloom #2" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Token #2</span><h3>Phil-Dracogloom #2</h3><a href="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/2" target="_blank" rel="noopener noreferrer">View on OpenSea</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/da0dd1cc20b3a06915d284d3ea6474/a9da0dd1cc20b3a06915d284d3ea6474.svg" data-title="Phil-Gold #3" data-release="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/3" data-marketplace="OpenSea" aria-label="Preview Phil-Gold #3"><img src="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/da0dd1cc20b3a06915d284d3ea6474/a9da0dd1cc20b3a06915d284d3ea6474.svg" alt="Phil-Gold #3" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Token #3</span><h3>Phil-Gold #3</h3><a href="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/3" target="_blank" rel="noopener noreferrer">View on OpenSea</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/b17291a7d35b7a01dd5e6ccc8d6695/f8b17291a7d35b7a01dd5e6ccc8d6695.svg" data-title="Phil-Warlock #4" data-release="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/4" data-marketplace="OpenSea" aria-label="Preview Phil-Warlock #4"><img src="https://raw2.seadn.io/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/b17291a7d35b7a01dd5e6ccc8d6695/f8b17291a7d35b7a01dd5e6ccc8d6695.svg" alt="Phil-Warlock #4" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Token #4</span><h3>Phil-Warlock #4</h3><a href="https://opensea.io/item/ethereum/0x9732f84c54407cd846b3e987594417bcfa30644e/4" target="_blank" rel="noopener noreferrer">View on OpenSea</a></figcaption></figure></div>
+      </section>
     </div>
   </main>
 
@@ -312,8 +333,8 @@
     </div>
   </div>
 
-  <dialog class="kiera-dialog" data-kiera-dialog aria-labelledby="kiera-preview-title"><header><h2 id="kiera-preview-title"></h2><button type="button" class="link-button" data-kiera-close aria-label="Close Kiera image preview">Close</button></header><img alt="" /><div class="kiera-links"><a data-kiera-original target="_blank" rel="noopener noreferrer">Open original image</a><a data-kiera-release target="_blank" rel="noopener noreferrer">View on Manifold</a></div></dialog>
-  <script src="/art/kiera-gallery.js?v=20261117-kiera"></script>
+  <dialog class="kiera-dialog" data-kiera-dialog aria-labelledby="kiera-preview-title"><header><h2 id="kiera-preview-title"></h2><button type="button" class="link-button" data-kiera-close aria-label="Close artwork preview">Close</button></header><img alt="" /><div class="kiera-links"><a data-kiera-original target="_blank" rel="noopener noreferrer">Open original image</a><a data-kiera-release target="_blank" rel="noopener noreferrer">View on Manifold</a></div></dialog>
+  <script src="/art/kiera-gallery.js?v=20261117-phils"></script>
   <script src="/art/pepe-gallery.js?v=20261117-artwork"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 (() => {
   const tabs = [...document.querySelectorAll('[data-art-section]')];
   function selectSection() {
-    const selected = location.hash === '#kiera' ? 'kiera' : 'pepe';
+    const requested = location.hash.slice(1);
+    const selected = tabs.some(tab => tab.dataset.artSection === requested) ? requested : 'pepe';
     for (const tab of tabs) {
       const active = tab.dataset.artSection === selected;
       tab.classList.toggle('is-active', active);
@@ -26,6 +27,7 @@
       title.textContent = button.dataset.title;
       original.href = button.dataset.kieraImage;
       release.href = button.dataset.release;
+      release.textContent = 'View on ' + (button.dataset.marketplace || 'Manifold');
       dialog.showModal();
     });
   }
