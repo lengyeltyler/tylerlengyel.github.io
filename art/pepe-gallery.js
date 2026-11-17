@@ -92,6 +92,14 @@ const pepeImages = [
     "title": "Mr Mrs Pepe"
   },
   {
+    "file": "pepe.png",
+    "title": "Pepe"
+  },
+  {
+    "file": "pepe-at-the-museum.jpeg",
+    "title": "Pepe at the Museum"
+  },
+  {
     "file": "pepe-blues.jpeg",
     "title": "Pepe Blues"
   },
@@ -164,10 +172,6 @@ const pepeImages = [
     "title": "Pepe Unchained"
   },
   {
-    "file": "pepe.png",
-    "title": "Pepe"
-  },
-  {
     "file": "pepe42.png",
     "title": "Pepe42"
   },
@@ -236,6 +240,10 @@ const pepeImages = [
     "title": "The Matrix Pepes Code"
   },
   {
+    "file": "the-pepe.png",
+    "title": "The Pepe"
+  },
+  {
     "file": "the-pepe-club.png",
     "title": "The Pepe Club"
   },
@@ -254,10 +262,6 @@ const pepeImages = [
   {
     "file": "the-pepe-show.jpeg",
     "title": "The Pepe Show"
-  },
-  {
-    "file": "the-pepe.png",
-    "title": "The Pepe"
   },
   {
     "file": "the-pepe2.png",
@@ -309,6 +313,9 @@ const pepeImages = [
   }
 ];
 
+const imageCount = document.querySelector("[data-pepe-count]");
+if (imageCount) imageCount.textContent = pepeImages.length + " images";
+
 const gallery = document.querySelector("[data-pepe-gallery]");
 const lightbox = document.querySelector("[data-lightbox]");
 const lightboxImage = document.querySelector("[data-lightbox-image]");
@@ -320,7 +327,7 @@ function openLightbox(item) {
     return;
   }
 
-  lightboxImage.src = "/art/pepe/" + item.file;
+  lightboxImage.src = "/art/pepe/" + item.file + "?v=20261117-artwork";
   lightboxImage.alt = item.title;
   lightboxTitle.textContent = item.title;
   lightbox.hidden = false;
@@ -348,7 +355,7 @@ if (gallery) {
     button.setAttribute("aria-label", "View " + item.title);
 
     const image = document.createElement("img");
-    image.src = "/art/pepe/" + item.file;
+    image.src = "/art/pepe/" + item.file + "?v=20261117-artwork";
     image.alt = item.title;
     image.loading = "lazy";
     image.decoding = "async";

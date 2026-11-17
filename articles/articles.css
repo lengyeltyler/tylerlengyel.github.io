@@ -35,3 +35,18 @@
   .article-full { background: #fff; color: #000; border: 0; box-shadow: none; padding: 0; }
   .article-heading h1, .article-body { color: #000; }
 }
+
+.article-archive-meta { margin: 20px 0 12px; }
+.article-original { display: inline-block; margin-left: 20px; padding-block: 12px; font: 700 0.75rem/1.6 var(--font-ui); }
+.article-preview .link-button { margin-top: 20px; }
+.article-body img { display: block; width: auto; max-width: 100%; height: auto; margin: 24px auto; }
+.article-body figure { margin: 24px 0; }
+.article-body figcaption { color: var(--muted); font-size: 0.85em; }
+.article-body blockquote { border-left: 3px solid var(--accent-strong); margin-inline: 0; padding-left: 20px; }
+.article-body pre { overflow: auto; padding: 16px; background: var(--paper-soft); }
+.article-body table { display: block; overflow-x: auto; max-width: 100%; }
+.article-body a { overflow-wrap: anywhere; }
+.article-media-note { color: var(--muted); font-size: 0.9em; }
+@media (max-width: 720px) {
+ .article-original { margin-left: 0; }
+}
