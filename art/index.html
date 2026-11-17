@@ -42,10 +42,10 @@
     .gallery-panel {
       display: grid;
       gap: 18px;
-      background: var(--contrast);
+      background: var(--paper-soft);
       border: 2px solid var(--line-strong);
       box-shadow: 6px 6px 0 var(--shadow-pixel);
-      color: var(--on-contrast);
+      color: var(--ink);
     }
 
     .gallery-heading {
@@ -60,15 +60,15 @@
 
     .gallery-heading h2,
     .gallery-heading .eyebrow {
-      color: var(--accent);
+      color: var(--accent-ink);
     }
 
     .gallery-heading .section-note {
-      color: var(--on-contrast-muted);
+      color: var(--muted);
     }
 
     .gallery-meta {
-      color: var(--on-contrast-muted);
+      color: var(--muted);
       font: 700 0.76rem/1.3 var(--font-ui);
     }
 
@@ -87,7 +87,7 @@
       border: 2px solid var(--line-strong);
       border-radius: 0;
       background: var(--paper);
-      box-shadow: 4px 4px 0 #090b0d;
+      box-shadow: 4px 4px 0 var(--shadow-pixel);
       color: var(--ink);
       cursor: pointer;
       text-align: left;
@@ -101,7 +101,7 @@
     .pepe-card:focus-visible {
       transform: translate(2px, 2px);
       border-color: var(--accent);
-      box-shadow: 2px 2px 0 #090b0d;
+      box-shadow: 2px 2px 0 var(--shadow-pixel);
     }
 
     .pepe-card img {
@@ -110,7 +110,7 @@
       display: block;
       object-fit: cover;
       border-radius: 0;
-      background: var(--contrast-raised);
+      background: var(--paper-soft);
       transition: transform 180ms ease;
     }
 
@@ -228,8 +228,8 @@
     .kiera-links { display:flex; flex-wrap:wrap; gap:12px; }
     .kiera-contract { overflow-wrap:anywhere; font:600 .8rem/1.6 var(--font-ui); }
     .kiera-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
-    .kiera-card { margin:0; padding:12px; background:var(--paper); color:var(--ink); border:2px solid var(--line-strong); box-shadow:4px 4px 0 #090b0d; }
-    .kiera-image { display:block; width:100%; padding:0; border:0; cursor:zoom-in; background:var(--contrast-raised); }
+    .kiera-card { margin:0; padding:12px; background:var(--paper); color:var(--ink); border:2px solid var(--line-strong); box-shadow:4px 4px 0 var(--shadow-pixel); }
+    .kiera-image { display:block; width:100%; padding:0; border:0; cursor:zoom-in; background:var(--paper-soft); }
     .kiera-image img { display:block; width:100%; height:280px; object-fit:contain; }
     .kiera-card figcaption { display:grid; gap:8px; padding:12px 0 2px; }
     .kiera-card .gallery-meta { color:var(--ink); opacity:.7; }
@@ -243,7 +243,7 @@
     .kiera-dialog button { cursor:pointer; }
     .kiera-dialog .kiera-links { margin-top:12px; }
     @media(max-width:560px) { .kiera-grid { grid-template-columns:1fr; } .kiera-image img { height:auto; max-height:420px; } }
-    .gallery-panel .kiera-contract a { color:var(--accent); }
+    .gallery-panel .kiera-contract a { color:var(--accent-ink); }
     .phils-grid { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
     .phils-grid .kiera-image img { height:auto; aspect-ratio:1; object-fit:contain; }
     [data-art-panel] { scroll-margin-top:110px; }
