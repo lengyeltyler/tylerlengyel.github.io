@@ -222,6 +222,27 @@
         padding: 9px;
       }
     }
+
+    [data-art-panel][hidden] { display: none; }
+    .art-nav .is-active { background: var(--accent); color: var(--contrast); }
+    .kiera-links { display:flex; flex-wrap:wrap; gap:12px; }
+    .kiera-contract { overflow-wrap:anywhere; font:600 .8rem/1.6 var(--font-ui); }
+    .kiera-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+    .kiera-card { margin:0; padding:12px; background:var(--paper); color:var(--ink); border:2px solid var(--line-strong); box-shadow:4px 4px 0 #090b0d; }
+    .kiera-image { display:block; width:100%; padding:0; border:0; cursor:zoom-in; background:var(--contrast-raised); }
+    .kiera-image img { display:block; width:100%; height:280px; object-fit:contain; }
+    .kiera-card figcaption { display:grid; gap:8px; padding:12px 0 2px; }
+    .kiera-card .gallery-meta { color:var(--ink); opacity:.7; }
+    .kiera-card h3 { margin:0; font:700 1rem/1.4 var(--font-ui); }
+    .kiera-card a { font:600 .8rem/1.4 var(--font-ui); }
+    .kiera-dialog { width:min(1000px,95vw); max-height:94vh; padding:18px; color:var(--ink); background:var(--paper); border:2px solid var(--accent); }
+    .kiera-dialog::backdrop { background:rgba(5,5,5,.88); }
+    .kiera-dialog img { display:block; width:100%; max-height:70vh; object-fit:contain; }
+    .kiera-dialog header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:12px; }
+    .kiera-dialog h2 { margin:0; font-size:1.1rem; }
+    .kiera-dialog button { cursor:pointer; }
+    .kiera-dialog .kiera-links { margin-top:12px; }
+    @media(max-width:560px) { .kiera-grid { grid-template-columns:1fr; } .kiera-image img { height:auto; max-height:420px; } }
   </style>
 </head>
 
@@ -236,14 +257,15 @@
         <p class="eyebrow">Art</p>
         <h1>Art</h1>
         <p class="lede">
-          A working archive of image experiments. For now, this room belongs entirely to Pepe.
+          A working archive of image experiments, artwork, and the Kiera Fund collection.
         </p>
         <nav class="art-nav" aria-label="Art sections">
-          <a class="link-button is-active" href="#pepe">Pepe</a>
+          <a class="link-button is-active" href="#pepe" data-art-section="pepe" aria-current="page">Pepe</a>
+          <a class="link-button" href="#kiera" data-art-section="kiera">Kiera</a>
         </nav>
       </section>
 
-      <section id="pepe" class="surface-card gallery-panel" aria-labelledby="pepe-heading">
+      <section data-art-panel id="pepe" class="surface-card gallery-panel" aria-labelledby="pepe-heading">
         <div class="gallery-heading">
           <p class="eyebrow">Gallery</p>
           <h2 id="pepe-heading">Pepe archive</h2>
@@ -251,6 +273,31 @@
           <p class="gallery-meta" data-pepe-count>78 images</p>
         </div>
         <div class="pepe-grid" data-pepe-gallery></div>
+      </section>
+
+      <section id="kiera" data-art-panel class="surface-card gallery-panel" aria-labelledby="kiera-heading" hidden>
+        <div class="gallery-heading">
+          <p class="eyebrow">Kiera Fund / 2023</p>
+          <h2 id="kiera-heading">Kiera</h2>
+          <p class="section-note">A collection created to help fund Kiera’s eye surgery, preserving moments from her life in art.</p>
+          <p class="gallery-meta">14 artworks · Ethereum</p>
+        </div>
+        <div class="kiera-links"><a class="link-button" href="https://x.com/KieraFund" target="_blank" rel="noopener noreferrer">Kiera Fund on X</a><a class="link-button" href="https://manifold.xyz/@641a3175/contract/874641648" target="_blank" rel="noopener noreferrer">Collection on Manifold</a></div>
+        <p class="kiera-contract">Contract: <a href="https://etherscan.io/address/0xdff96e34f5e4653cd34393b72fc5661653ccb7ac" target="_blank" rel="noopener noreferrer">0xdff96e34f5e4653cd34393b72fc5661653ccb7ac</a></p>
+        <div class="kiera-grid"><figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://turbo-gateway.com/RP9iflwK852krc6BuskSjG4ZeJLvkH3zfmXZS4-0tHo" data-title="Texas sunsets" data-release="https://app.manifold.xyz/c/KieraFund" aria-label="Preview Texas sunsets, edition 1"><img src="https://turbo-gateway.com/RP9iflwK852krc6BuskSjG4ZeJLvkH3zfmXZS4-0tHo" alt="Texas sunsets" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 01</span><h3>Texas sunsets</h3><a href="https://app.manifold.xyz/c/KieraFund" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://ardrive.net/CDZr330tOJqnJtjMzb5JHeZ4g_UBpBo3IUKQYmydr_A" data-title="Queens of the Water" data-release="https://app.manifold.xyz/c/KieraFund2" aria-label="Preview Queens of the Water, edition 2"><img src="https://ardrive.net/CDZr330tOJqnJtjMzb5JHeZ4g_UBpBo3IUKQYmydr_A" alt="Queens of the Water" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 02</span><h3>Queens of the Water</h3><a href="https://app.manifold.xyz/c/KieraFund2" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://ardrive.net/k1KhorUIPhry8LMyEwqfHQxlYKEF8FlDxLNExXI6oQI" data-title="Kiera the Sailor" data-release="https://app.manifold.xyz/c/KieraFund3" aria-label="Preview Kiera the Sailor, edition 3"><img src="https://ardrive.net/k1KhorUIPhry8LMyEwqfHQxlYKEF8FlDxLNExXI6oQI" alt="Kiera the Sailor" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 03</span><h3>Kiera the Sailor</h3><a href="https://app.manifold.xyz/c/KieraFund3" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://ardrive.net/8rjHspLofNiYffE2IYwG-81scV_EIQFSBkvAs_uibP4" data-title="One With Nature" data-release="https://app.manifold.xyz/c/KieraFund4" aria-label="Preview One With Nature, edition 4"><img src="https://ardrive.net/8rjHspLofNiYffE2IYwG-81scV_EIQFSBkvAs_uibP4" alt="One With Nature" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 04</span><h3>One With Nature</h3><a href="https://app.manifold.xyz/c/KieraFund4" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/ybFv1A4HY2SBe_SvjBhts6pMHbIlzmZ5lcQnq-1RXPg" data-title="Ball Time" data-release="https://app.manifold.xyz/c/KieraFund5" aria-label="Preview Ball Time, edition 5"><img src="https://arweave.net/ybFv1A4HY2SBe_SvjBhts6pMHbIlzmZ5lcQnq-1RXPg" alt="Ball Time" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 05</span><h3>Ball Time</h3><a href="https://app.manifold.xyz/c/KieraFund5" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/jzoKBrB7LIGmcraHhbdaTVmj-eNcmbnCoes29jAZ910" data-title="Kiera in Pink" data-release="https://app.manifold.xyz/c/KieraFund6" aria-label="Preview Kiera in Pink, edition 6"><img src="https://arweave.net/jzoKBrB7LIGmcraHhbdaTVmj-eNcmbnCoes29jAZ910" alt="Kiera in Pink" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 06</span><h3>Kiera in Pink</h3><a href="https://app.manifold.xyz/c/KieraFund6" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/UULhAWTd12Wg-WpgG3F6c4hV5Gnq94xKUcSfVgosZDw" data-title="Summer Day&#x27;s" data-release="https://app.manifold.xyz/c/KieraFund7" aria-label="Preview Summer Day&#x27;s, edition 7"><img src="https://arweave.net/UULhAWTd12Wg-WpgG3F6c4hV5Gnq94xKUcSfVgosZDw" alt="Summer Day&#x27;s" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 07</span><h3>Summer Day&#x27;s</h3><a href="https://app.manifold.xyz/c/KieraFund7" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/oNfKcHBqUc-TAq3ZwSk_TWzGjCHTMHrVnHiJ9D4e3tU" data-title="Ball Time" data-release="https://app.manifold.xyz/c/KieraFund8" aria-label="Preview Ball Time, edition 8"><img src="https://arweave.net/oNfKcHBqUc-TAq3ZwSk_TWzGjCHTMHrVnHiJ9D4e3tU" alt="Ball Time" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 08</span><h3>Ball Time</h3><a href="https://app.manifold.xyz/c/KieraFund8" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://ardrive.net/4RlXqJR7e-CuTGGPjFPsEznn7rCHykvuyB3Frz1oTFg" data-title="Rainbows and Sunsets" data-release="https://app.manifold.xyz/c/KieraFund9" aria-label="Preview Rainbows and Sunsets, edition 9"><img src="https://ardrive.net/4RlXqJR7e-CuTGGPjFPsEznn7rCHykvuyB3Frz1oTFg" alt="Rainbows and Sunsets" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 09</span><h3>Rainbows and Sunsets</h3><a href="https://app.manifold.xyz/c/KieraFund9" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/Lk5SnbVvShcFi6Tf7XBJ5sEJ7ph2lh7BvZXuTIATb84" data-title="Queens. Kings. And BTC." data-release="https://app.manifold.xyz/c/KieraFund10" aria-label="Preview Queens. Kings. And BTC., edition 10"><img src="https://arweave.net/Lk5SnbVvShcFi6Tf7XBJ5sEJ7ph2lh7BvZXuTIATb84" alt="Queens. Kings. And BTC." loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 10</span><h3>Queens. Kings. And BTC.</h3><a href="https://app.manifold.xyz/c/KieraFund10" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://turbo-gateway.com/DwtdPvgPVCUoOm_eckyYW39tlhis2Ahn_TitHb4rstA" data-title="Focused." data-release="https://app.manifold.xyz/c/KieraFund11" aria-label="Preview Focused., edition 11"><img src="https://turbo-gateway.com/DwtdPvgPVCUoOm_eckyYW39tlhis2Ahn_TitHb4rstA" alt="Focused." loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 11</span><h3>Focused.</h3><a href="https://app.manifold.xyz/c/KieraFund11" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://ardrive.net/nS6HqJrPQr4vit6gfPdUwbser0zCEiVDRVm9tJD_kUk" data-title="As Is." data-release="https://app.manifold.xyz/c/KieraFund12" aria-label="Preview As Is., edition 12"><img src="https://ardrive.net/nS6HqJrPQr4vit6gfPdUwbser0zCEiVDRVm9tJD_kUk" alt="As Is." loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 12</span><h3>As Is.</h3><a href="https://app.manifold.xyz/c/KieraFund12" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://turbo-gateway.com/nYB-Pz78rpHDx7M2zI3TofdTFfBNLU_Xv21iK0wQCzQ" data-title="24 in 10." data-release="https://app.manifold.xyz/c/KieraFund13" aria-label="Preview 24 in 10., edition 13"><img src="https://turbo-gateway.com/nYB-Pz78rpHDx7M2zI3TofdTFfBNLU_Xv21iK0wQCzQ" alt="24 in 10." loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 13</span><h3>24 in 10.</h3><a href="https://app.manifold.xyz/c/KieraFund13" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure>
+<figure class="kiera-card"><button class="kiera-image" type="button" data-kiera-image="https://arweave.net/rZ1XpeQPthBPhzaQ4EpOyV3RRfP99ytQSFxKWN_mMHY" data-title="Removed for Copyright" data-release="https://app.manifold.xyz/c/KieraFund14" aria-label="Preview Removed for Copyright, edition 14"><img src="https://arweave.net/rZ1XpeQPthBPhzaQ4EpOyV3RRfP99ytQSFxKWN_mMHY" alt="Removed for Copyright" loading="lazy" decoding="async" /></button><figcaption><span class="gallery-meta">Edition 14</span><h3>Removed for Copyright</h3><a href="https://app.manifold.xyz/c/KieraFund14" target="_blank" rel="noopener noreferrer">View on Manifold</a></figcaption></figure></div>
       </section>
     </div>
   </main>
@@ -265,6 +312,8 @@
     </div>
   </div>
 
+  <dialog class="kiera-dialog" data-kiera-dialog aria-labelledby="kiera-preview-title"><header><h2 id="kiera-preview-title"></h2><button type="button" class="link-button" data-kiera-close aria-label="Close Kiera image preview">Close</button></header><img alt="" /><div class="kiera-links"><a data-kiera-original target="_blank" rel="noopener noreferrer">Open original image</a><a data-kiera-release target="_blank" rel="noopener noreferrer">View on Manifold</a></div></dialog>
+  <script src="/art/kiera-gallery.js?v=20261117-kiera"></script>
   <script src="/art/pepe-gallery.js?v=20261117-artwork"></script>
 </body>
 </html>
