@@ -257,28 +257,39 @@ function normalizeTransform(transform) {
   };
 }
 
+function normalizeViewport(v){
+  if(!v||![v.x,v.y,v.width,v.height,...(Array.isArray(v.viewBox)?v.viewBox:[])].every(n=>typeof n==='number'&&Number.isFinite(n)&&Math.abs(n)<=1e7)||!Array.isArray(v.viewBox)||v.viewBox.length!==4||v.width<=0||v.height<=0||v.viewBox[2]<=0||v.viewBox[3]<=0)return null;
+  const out={x:v.x,y:v.y,width:v.width,height:v.height,viewBox:v.viewBox.slice()};if(/^(?:none|x(?:Min|Mid|Max)Y(?:Min|Mid|Max)(?: (?:meet|slice))?)$/.test(v.preserveAspectRatio||''))out.preserveAspectRatio=v.preserveAspectRatio;return out;
+}
+
 function normalizeStyle(style) {
   const result={
     ...DEFAULT_STYLE,
     ...(style || {})
   };
   result.gradient=normalizeGradient(result.gradient);
+  result.strokeGradient=normalizeGradient(result.strokeGradient);
   result.strokeCap=['butt','round','square'].includes(result.strokeCap)?result.strokeCap:'butt';
   result.strokeJoin=['miter','round','bevel'].includes(result.strokeJoin)?result.strokeJoin:'miter';
   result.strokeDash=normalizeDash(result.strokeDash);
+  result.isolation=result.isolation===true;
+  result.paintOrder=result.paintOrder==='stroke fill'?'stroke fill':'normal';
+  result.strokeMiter=clamp(Number(result.strokeMiter)||4,1,1000);
   return result;
 }
 
 function normalizeDash(value){const parts=String(value||'').trim().split(/[ ,]+/).filter(Boolean).map(Number);return parts.length<=24&&parts.every(n=>Number.isFinite(n)&&n>=0&&n<=10000)&&parts.some(n=>n>0)?parts.join(' '):'';}
+function safeSvgTransform(value){return typeof value==='string'&&value.length<512&&/^(?:\s*,?\s*(?:matrix|translate|rotate|scale|skewX|skewY)\s*\([-+\d.eE,\s]+\)\s*)+$/.test(value)?value:'';}
 function normalizeGradient(g){
   if(!g||!['linear','radial'].includes(g.type)||!Array.isArray(g.stops)||g.stops.length<2)return null;
   const defaults=g.type==='linear'?{x1:0,y1:.5,x2:1,y2:.5}:{cx:.5,cy:.5,r:.5,fx:.5,fy:.5};
-  const coords=Object.fromEntries(Object.entries(defaults).map(([k,v])=>[k,Number.isFinite(Number(g.coords?.[k]))?clamp(Number(g.coords[k]),-100,100):v]));if(g.type==='radial')coords.r=Math.max(.001,coords.r);
-  return {type:g.type,angle:clamp(Number(g.angle)||0,-360,360),coords,stops:g.stops.slice(0,16).map(s=>({offset:clamp(Number(s.offset)||0,0,100),color:/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#000000',opacity:clamp(Number.isFinite(Number(s.opacity))?Number(s.opacity):1,0,1)})).sort((a,b)=>a.offset-b.offset)};
+  const units=g.units==='userSpaceOnUse'?'userSpaceOnUse':'objectBoundingBox',limit=units==='userSpaceOnUse'?1e7:100;
+  const coords=Object.fromEntries(Object.entries(defaults).map(([k,v])=>[k,Number.isFinite(Number(g.coords?.[k]))?clamp(Number(g.coords[k]),-limit,limit):v]));if(g.type==='radial')coords.r=Math.max(.000001,coords.r);
+  return {type:g.type,units,transform:safeSvgTransform(g.transform),angle:clamp(Number(g.angle)||0,-360,360),coords,stops:g.stops.slice(0,64).map(s=>({offset:clamp(Number(s.offset)||0,0,100),color:/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#000000',opacity:clamp(Number.isFinite(Number(s.opacity))?Number(s.opacity):1,0,1)})).sort((a,b)=>a.offset-b.offset)};
 }
-function gradientId(shape){return 'paint-'+String(shape.id).replace(/[^a-zA-Z0-9_-]/g,'_');}
-function gradientNode(shape,g){const el=createSvgElement(g.type==='radial'?'radialGradient':'linearGradient');el.setAttribute('id',gradientId(shape));for(const [k,v] of Object.entries(g.coords))el.setAttribute(k,v);if(g.angle)el.setAttribute('gradientTransform',`rotate(${g.angle} .5 .5)`);for(const s of g.stops){const stop=createSvgElement('stop');stop.setAttribute('offset',`${s.offset}%`);stop.setAttribute('stop-color',s.color);stop.setAttribute('stop-opacity',s.opacity);el.appendChild(stop);}return el;}
-function gradientMarkup(shape,g){const tag=g.type==='radial'?'radialGradient':'linearGradient',attrs=Object.entries(g.coords).map(([k,v])=>`${k}="${v}"`).join(' ')+(g.angle?` gradientTransform="rotate(${g.angle} .5 .5)"`:'');return `<${tag} id="${gradientId(shape)}" ${attrs}>${g.stops.map(s=>`<stop offset="${s.offset}%" stop-color="${s.color}" stop-opacity="${s.opacity}"/>`).join('')}</${tag}>`;}
+function gradientId(shape,kind='fill'){return (kind==='stroke'?'stroke-paint-':'paint-')+String(shape.id).replace(/[^a-zA-Z0-9_-]/g,'_');}
+function gradientNode(shape,g,kind){const el=createSvgElement(g.type==='radial'?'radialGradient':'linearGradient');el.setAttribute('id',gradientId(shape,kind));el.setAttribute('gradientUnits',g.units);for(const [k,v] of Object.entries(g.coords))el.setAttribute(k,v);const tx=g.transform||(g.angle?`rotate(${g.angle} .5 .5)`:'');if(tx)el.setAttribute('gradientTransform',tx);for(const s of g.stops){const stop=createSvgElement('stop');stop.setAttribute('offset',`${s.offset}%`);stop.setAttribute('stop-color',s.color);stop.setAttribute('stop-opacity',s.opacity);el.appendChild(stop);}return el;}
+function gradientMarkup(shape,g,kind){const tag=g.type==='radial'?'radialGradient':'linearGradient',tx=g.transform||(g.angle?`rotate(${g.angle} .5 .5)`:''),attrs=Object.entries(g.coords).map(([k,v])=>`${k}="${v}"`).join(' ')+(tx?` gradientTransform="${tx}"`:'');return `<${tag} id="${gradientId(shape,kind)}" gradientUnits="${g.units}" ${attrs}>${g.stops.map(s=>`<stop offset="${s.offset}%" stop-color="${s.color}" stop-opacity="${s.opacity}"/>`).join('')}</${tag}>`;}
 
 function transformToString(transform) {
   const t = normalizeTransform(transform);
@@ -523,6 +534,7 @@ function normalizeCanonicalShape(raw, fallbackZ) {
   };
 
   if (normalized.type === "group") {
+    const viewport=normalizeViewport(normalized.geometry?.viewport);normalized.geometry=viewport?{viewport}:{};
     const children = Array.isArray(raw.children) ? raw.children : [];
     normalized.children = children.map((child, index) =>
       isCanonicalShape(child) ? normalizeCanonicalShape(child, index) : fromLegacyShape(child, index)
@@ -549,7 +561,7 @@ function normalizeCanonicalShape(raw, fallbackZ) {
     };
   }
   if(normalized.type==='text'){
-    const g=normalized.geometry||{};normalized.geometry={x:Number(g.x)||0,y:Number(g.y)||0,text:String(g.text??'Type here'),fontSize:clamp(Number(g.fontSize)||36,6,500),fontFamily:String(g.fontFamily||'Arial'),fontWeight:Number(g.fontWeight)===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:clamp(Number(g.letterSpacing)||0,-20,100),lineHeight:clamp(Number(g.lineHeight)||1.2,.5,4)};
+    const g=normalized.geometry||{};normalized.geometry={x:Number(g.x)||0,y:Number(g.y)||0,text:String(g.text??'Type here'),fontSize:clamp(Number(g.fontSize)||36,.1,500),fontFamily:String(g.fontFamily||'Arial'),fontWeight:Number(g.fontWeight)===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:clamp(Number(g.letterSpacing)||0,-20,100),lineHeight:clamp(Number(g.lineHeight)||1.2,.5,4)};
   }
   if(normalized.type==='compound'){
     const g=normalized.geometry||{};normalized.geometry={contours:(g.contours||[]).map(c=>({anchors:(c.anchors||[]).map(a=>({x:Number(a.x)||0,y:Number(a.y)||0,inHandle:a.inHandle||null,outHandle:a.outHandle||null})),closed:c.closed===true})),fillRule:g.fillRule==='nonzero'?'nonzero':'evenodd'};
@@ -1245,7 +1257,7 @@ function computeSnapAdjustment(startBounds, rawDx, rawDy, excludedIds) {
 function pointHitsShapeGeometry(shape, point) {
   const local = applyInverseTransform(point, shape.transform);
 
-  if (shape.type === "rect") {
+  if (shape.type === "rect" || shape.type === 'svg-image') {
     const g = shape.geometry;
     return (
       local.x >= g.x &&
@@ -1361,6 +1373,8 @@ function applyPaintAttributes(node, style, fillOverride = null) {
   node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
   node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
   node.setAttribute('stroke-linecap',style.strokeCap);node.setAttribute('stroke-linejoin',style.strokeJoin);if(style.strokeDash)node.setAttribute('stroke-dasharray',style.strokeDash);
+  node.setAttribute('stroke-miterlimit',style.strokeMiter);if(style.paintOrder!=='normal')node.setAttribute('paint-order',style.paintOrder);
+  if(style.isolation)node.style.isolation='isolate';
 }
 
 function renderShape(shape, parentNode) {
@@ -1384,8 +1398,13 @@ function renderShape(shape, parentNode) {
 
   const style = normalizeStyle(shape.style);
   if(style.gradient){$('paint-defs').appendChild(gradientNode(shape,style.gradient));style.fill=`url(#${gradientId(shape)})`;}
+  if(style.strokeGradient){$('paint-defs').appendChild(gradientNode(shape,style.strokeGradient,'stroke'));style.stroke=`url(#${gradientId(shape,'stroke')})`;}
 
-  if (shape.type === "rect") {
+  if (shape.type === 'svg-image') {
+    const g=shape.geometry,node=createSvgElement('image');
+    for(const key of ['x','y','width','height'])node.setAttribute(key,String(g[key]));
+    node.setAttribute('href',g.href);node.setAttribute('opacity',String(clamp(style.opacity,0,1)));group.appendChild(node);
+  } else if (shape.type === "rect") {
     const node = createSvgElement("rect");
     node.setAttribute("x", String(round(shape.geometry.x)));
     node.setAttribute("y", String(round(shape.geometry.y)));
@@ -1403,8 +1422,8 @@ function renderShape(shape, parentNode) {
     const node = createSvgElement("ellipse");
     node.setAttribute("cx", String(round(shape.geometry.cx)));
     node.setAttribute("cy", String(round(shape.geometry.cy)));
-    node.setAttribute("rx", String(round(Math.max(1, shape.geometry.rx))));
-    node.setAttribute("ry", String(round(Math.max(1, shape.geometry.ry))));
+    node.setAttribute("rx", String(round(Math.max(0, shape.geometry.rx))));
+    node.setAttribute("ry", String(round(Math.max(0, shape.geometry.ry))));
     applyPaintAttributes(node, style);
     group.appendChild(node);
   } else if (shape.type === "path") {
@@ -1493,8 +1512,11 @@ function renderShape(shape, parentNode) {
     }
   } else if (shape.type === "group") {
     group.setAttribute('opacity',String(clamp(style.opacity,0,1)));
+    if(style.isolation)group.style.isolation='isolate';
+    const viewport=shape.geometry.viewport,container=viewport?createSvgElement('svg'):group;
+    if(viewport){for(const [key,value] of Object.entries(viewport))container.setAttribute(key,Array.isArray(value)?value.join(' '):value);group.appendChild(container);}
     for (const child of shape.children || []) {
-      renderShape(child, group);
+      renderShape(child, container);
     }
   }
 
@@ -1740,7 +1762,7 @@ function layerThumbnail(shape){
   try{
     const signature=JSON.stringify([shape.type,shape.geometry,shape.style,shape.children]);const cached=layerThumbnailCache.get(shape.id);
     let uri=cached?.signature===signature?cached.uri:null;
-    if(!uri){const node=dom.scene.querySelector(`[data-object-id="${CSS.escape(shape.id)}"]`);if(node){const box=node.getBBox(),w=Math.max(1,box.width),h=Math.max(1,box.height),pad=Math.max(w,h)*.12;const defs=[];const gather=s=>{const g=normalizeGradient(s.style?.gradient);if(g)defs.push(gradientMarkup(s,g));(s.children||[]).forEach(gather);};gather(shape);const art=shapeToSvgString({...shape,transform:DEFAULT_TRANSFORM,visible:true},'');const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box.x-pad} ${box.y-pad} ${w+2*pad} ${h+2*pad}"><defs>${defs.join('')}</defs>${art}</svg>`;if(svg.length<100000)uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+    if(!uri){const node=dom.scene.querySelector(`[data-object-id="${CSS.escape(shape.id)}"]`);if(node){const box=node.getBBox(),w=Math.max(1,box.width),h=Math.max(1,box.height),pad=Math.max(w,h)*.12;const defs=[];const gather=s=>{const g=normalizeGradient(s.style?.gradient),sg=normalizeGradient(s.style?.strokeGradient);if(g)defs.push(gradientMarkup(s,g));if(sg)defs.push(gradientMarkup(s,sg,'stroke'));(s.children||[]).forEach(gather);};gather(shape);const art=shapeToSvgString({...shape,transform:DEFAULT_TRANSFORM,visible:true},'');const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box.x-pad} ${box.y-pad} ${w+2*pad} ${h+2*pad}"><defs>${defs.join('')}</defs>${art}</svg>`;if(svg.length<100000)uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
       if(uri){layerThumbnailCache.set(shape.id,{signature,uri});if(layerThumbnailCache.size>256)layerThumbnailCache.delete(layerThumbnailCache.keys().next().value);}}
     if(uri){const img=document.createElement('img');img.src=uri;img.alt='';wrapper.append(img);return wrapper;}
   }catch{}
@@ -1981,6 +2003,7 @@ function getPrimarySelectedObject() {
 }
 
 function applyStyleToSelection(patch) {
+  if('stroke' in patch&&!('strokeGradient' in patch))patch={...patch,strokeGradient:null};
   state.paint={...state.paint,...patch};
   if (state.selection.length === 0) {
     render();
@@ -3096,7 +3119,7 @@ function shapeToSvgString(shape, indent = "  ") {
   const style = normalizeStyle(shape.style);
   const styleAttributes = [];
   const computedFill = shape.type === "path" && !shape.geometry.closed ? "none" : style.gradient?`url(#${gradientId(shape)})`:style.fill || "none";
-  const computedStroke = style.stroke || "none";
+  const computedStroke = style.strokeGradient?`url(#${gradientId(shape,'stroke')})`:style.stroke || "none";
   const computedStrokeWidth = round(clamp(Number(style.strokeWidth) || 0, 0, 999), 3);
   const computedOpacity = round(clamp(Number(style.opacity), 0, 1), 3);
 
@@ -3119,10 +3142,17 @@ function shapeToSvgString(shape, indent = "  ") {
   if (computedOpacity !== 1) {
     styleAttributes.push(`opacity="${computedOpacity}"`);
   }
+  if(style.strokeMiter!==4)styleAttributes.push(`stroke-miterlimit="${style.strokeMiter}"`);
+  if(style.paintOrder!=='normal')styleAttributes.push(`paint-order="${style.paintOrder}"`);
+  if(style.isolation)styleAttributes.push('style="isolation:isolate"');
 
   const transform = transformToString(shape.transform);
   const transformAttribute = transform ? ` transform="${transform}"` : "";
 
+  if (shape.type === 'svg-image') {
+    const g=shape.geometry;
+    return `${indent}<image x="${round(g.x)}" y="${round(g.y)}" width="${round(g.width)}" height="${round(g.height)}" href="${g.href}" opacity="${computedOpacity}"${transformAttribute}/>`;
+  }
   if (shape.type === "rect") {
     const g = shape.geometry;
     const rx = g.rx ? ` rx="${round(g.rx)}"` : "";
@@ -3202,7 +3232,8 @@ ${indent}</g>`;
     if (!childLines) {
       return "";
     }
-    return `${indent}<g${transformAttribute}${computedOpacity!==1?` opacity="${computedOpacity}"`:''}>\n${childLines}\n${indent}</g>`;
+    const viewport=shape.geometry.viewport,attrs=viewport?Object.entries(viewport).map(([key,value])=>`${key}="${Array.isArray(value)?value.join(' '):value}"`).join(' '):'';
+    return `${indent}<g${transformAttribute}${computedOpacity!==1?` opacity="${computedOpacity}"`:''}${style.isolation?' style="isolation:isolate"':''}>\n${viewport?`${indent}  <svg ${attrs}>\n`:''}${childLines}${viewport?`\n${indent}  </svg>`:''}\n${indent}</g>`;
   }
 
   return "";
@@ -3210,7 +3241,7 @@ ${indent}</g>`;
 
 function exportSvgString() {
   const ordered = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
-  const defs=[];function gather(shapes){for(const shape of shapes){if(!shape.visible)continue;const g=normalizeGradient(shape.style?.gradient);if(g&&shape.type!=='group'&&!(shape.type==='path'&&!shape.geometry.closed))defs.push(gradientMarkup(shape,g));if(shape.children)gather(shape.children);}}gather(ordered);
+  const defs=[];function gather(shapes){for(const shape of shapes){if(!shape.visible)continue;const g=normalizeGradient(shape.style?.gradient),sg=normalizeGradient(shape.style?.strokeGradient);if(g&&shape.type!=='group'&&!(shape.type==='path'&&!shape.geometry.closed))defs.push(gradientMarkup(shape,g));if(sg&&shape.type!=='group')defs.push(gradientMarkup(shape,sg,'stroke'));if(shape.children)gather(shape.children);}}gather(ordered);
   const lines = ordered.map((shape) => shapeToSvgString(shape, "  ")).filter(Boolean);
   return [
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
@@ -3251,17 +3282,18 @@ function decodeProject(raw){
   if(raw?.format!=='philstudio-v1'||!Array.isArray(raw.objects))throw Error('Unsupported project format');
   const num=(v,min=-1e7,max=1e7)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw Error('Invalid project number');return v;};
   const color=v=>{if(typeof v==='string'&&(/^(?:#[a-fA-F0-9]{3,4}|#[a-fA-F0-9]{6}(?:[a-fA-F0-9]{2})?|none|transparent)$/.test(v)))return v;if(typeof v==='string'&&/^(?:\w+|rgba?\([\d.,%\s]+\))$/.test(v))return colorToHex(v);throw Error('Invalid project color');};
-  const shapeTypes=new Set(['rect','ellipse','path','compound','text','group','boolean']);let count=0;const point=p=>({x:num(p.x),y:num(p.y)});
+  const shapeTypes=new Set(['rect','ellipse','path','compound','text','group','boolean','svg-image']);let count=0;const point=p=>({x:num(p.x),y:num(p.y)});
   function contour(c){if(!Array.isArray(c.anchors)||c.anchors.length>20000)throw Error('Invalid project anchors');return {anchors:c.anchors.map(a=>({...point(a),inHandle:a.inHandle?point(a.inHandle):null,outHandle:a.outHandle?point(a.outHandle):null})),closed:c.closed===true};}
   function read(s,z,depth){
     if(!s||!shapeTypes.has(s.type)||++count>5000||depth>32)throw Error('Unsupported or oversized project');const t=s.transform||DEFAULT_TRANSFORM,g=s.geometry||{},style=normalizeStyle(s.style);style.fill=color(style.fill);style.stroke=color(style.stroke);style.strokeWidth=num(style.strokeWidth,0,10000);style.opacity=num(style.opacity,0,1);
     const out={id:nextId(),type:s.type,name:String(s.name||s.type).slice(0,100),zIndex:z,visible:s.visible!==false,locked:s.locked===true,transform:{tx:num(t.tx),ty:num(t.ty),sx:num(t.sx,-10000,10000),sy:num(t.sy,-10000,10000),rotation:num(t.rotation)},style,geometry:{}};
-    if(s.type==='rect')out.geometry={x:num(g.x),y:num(g.y),width:num(g.width,0),height:num(g.height,0),rx:num(g.rx||0,0),ry:num(g.ry||0,0)};
+    if(s.type==='svg-image'){if(!isEmbeddedSvg(g.href))throw Error('Invalid embedded SVG');out.geometry={x:num(g.x),y:num(g.y),width:num(g.width,1),height:num(g.height,1),href:g.href};}
+    else if(s.type==='rect')out.geometry={x:num(g.x),y:num(g.y),width:num(g.width,0),height:num(g.height,0),rx:num(g.rx||0,0),ry:num(g.ry||0,0)};
     else if(s.type==='ellipse')out.geometry={cx:num(g.cx),cy:num(g.cy),rx:num(g.rx,0),ry:num(g.ry,0)};
     else if(s.type==='path')out.geometry=contour(g);
     else if(s.type==='compound'){if(!Array.isArray(g.contours)||g.contours.length>1000)throw Error('Invalid compound contours');out.geometry={contours:g.contours.map(contour),fillRule:g.fillRule==='nonzero'?'nonzero':'evenodd'};}
-    else if(s.type==='text')out.geometry={x:num(g.x),y:num(g.y),text:String(g.text||'').slice(0,100000),fontSize:num(g.fontSize,6,500),fontFamily:String(g.fontFamily||'Arial').slice(0,100),fontWeight:g.fontWeight===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:num(g.letterSpacing||0,-20,100),lineHeight:num(g.lineHeight||1.2,.5,4)};
-    else if(s.type==='group'){if(!Array.isArray(s.children))throw Error('Invalid group');out.children=s.children.map((child,i)=>read(child,i,depth+1));}
+    else if(s.type==='text')out.geometry={x:num(g.x),y:num(g.y),text:String(g.text||'').slice(0,100000),fontSize:num(g.fontSize,.1,500),fontFamily:String(g.fontFamily||'Arial').slice(0,100),fontWeight:g.fontWeight===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:num(g.letterSpacing||0,-20,100),lineHeight:num(g.lineHeight||1.2,.5,4)};
+    else if(s.type==='group'){if(!Array.isArray(s.children))throw Error('Invalid group');if(g.viewport){const v=normalizeViewport(g.viewport);if(!v)throw Error('Invalid SVG viewport');out.geometry={viewport:v};}out.children=s.children.map((child,i)=>read(child,i,depth+1));}
     else if(s.type==='boolean'){if(!['unite','subtract','intersect'].includes(g.op))throw Error('Invalid boolean operation');const path=d=>parseEditableContours(d).map(c=>buildPathD(c.anchors,c.closed)).join(' ');out.geometry={op:g.op,aPath:path(g.aPath),bPath:path(g.bPath),bounds:{x:num(g.bounds.x),y:num(g.bounds.y),width:num(g.bounds.width,0),height:num(g.bounds.height,0)}};}
     return out;
   }
@@ -3427,43 +3459,95 @@ function renderGradientInspector(style){
 }
 function buildSwatches(){for(const color of ['#000000','#ffffff','#777777','#da3b42','#eaa64b','#f0dc50','#65b458','#2db8bc','#4f83db','#764cb8','#e08ab5','#9c714b']){const b=document.createElement('button');b.type='button';b.style.background=color;b.title=`Fill ${color} (Shift: stroke)`;b.setAttribute('aria-label',b.title);b.addEventListener('click',e=>applyStyleToSelection(e.shiftKey?{stroke:color}:{fill:color,gradient:null}));$('swatches').append(b);}}
 
-// Parse only the editable SVG primitives this object model supports. Never
-// insert imported markup into the page. Unsupported effects fail explicitly.
-function importSvg(source){
+// Complex SVGs can be placed as inert vector images, never as DOM markup.
+function isEmbeddedSvg(href){return typeof href==='string'&&href.length<=7000000&&/^data:image\/svg\+xml;base64,[A-Za-z0-9+/]+={0,2}$/.test(href);}
+function svgDimensions(root){
+  const vb=(root.getAttribute('viewBox')||'').trim().split(/[ ,\s]+/).map(Number);
+  if(vb.length===4&&vb.every(Number.isFinite)&&vb[2]>0&&vb[3]>0)return vb;
+  const length=(key,fallback)=>{const m=(root.getAttribute(key)||'').trim().match(/^([\d.]+)(px|pt|pc|mm|cm|in)?$/);return m?Number(m[1])*({pt:96/72,pc:16,mm:96/25.4,cm:96/2.54,in:96,px:1}[m[2]||'px']):fallback;};
+  return [0,0,length('width',1200),length('height',800)];
+}
+async function importSvg(source,name='Imported SVG'){
   const parsed=new DOMParser().parseFromString(source,'image/svg+xml'),root=parsed.documentElement;
   if(root.localName!=='svg'||parsed.querySelector('parsererror'))throw Error('Invalid SVG document');
-  const supported=new Set(['rect','ellipse','circle','line','polyline','polygon','path','text','g']);
-  const number=(el,key,fallback=0)=>{const value=el.getAttribute(key);if(value===null)return fallback;const n=Number(value);if(!Number.isFinite(n))throw Error(`Unsupported ${key} value`);return n;};
+  const [, ,w,h]=svgDimensions(root);if(!(w>0&&h>0&&Number.isFinite(w)&&Number.isFinite(h)))throw Error('Invalid SVG dimensions');
+  try{importEditableSvg(root);return;}catch(error){
+    // SVG image documents disable scripts and external resource loading. Keep
+    // the original vector content encoded and isolated, including complex CSS.
+    const href='data:image/svg+xml;base64,'+btoa(Array.from(new TextEncoder().encode(source),byte=>String.fromCharCode(byte)).join(''));
+    if(!isEmbeddedSvg(href))throw Error('SVG is too large to place');
+    const scale=Math.min(1,10000/w,10000/h),width=Math.max(1,w*scale),height=Math.max(1,h*scale);
+    const image=new Image();image.src=href;await image.decode();
+    pushHistory();state.doc={width,height};state.objects=[normalizeCanonicalShape({id:nextId(),type:'svg-image',name,zIndex:0,visible:true,locked:false,transform:DEFAULT_TRANSFORM,style:{...DEFAULT_STYLE,opacity:1},geometry:{x:0,y:0,width,height,href}},0)];deselectAll();fitArtboard();render();setStatus(`Opened as a vector image (not individually editable): ${error.message}`);
+  }
+}
+
+// Resolve simple Illustrator-style class rules and inline presentation styles.
+// More complex CSS is preserved by the isolated vector-image import.
+function inlineSvgStyles(root){
+  const allowed=new Set(['fill','stroke','stroke-width','opacity','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-miterlimit','paint-order','isolation','fill-rule','font-size','font-family','font-weight','font-style','text-anchor','letter-spacing','stop-color','stop-opacity','display','visibility']);
+  const declarations=value=>value.split(';').filter(s=>s.trim()).map(s=>{const i=s.indexOf(':'),key=s.slice(0,i).trim(),val=s.slice(i+1).trim();if(i<0||!allowed.has(key)||!val||/!important/i.test(val))throw Error('Complex SVG styling');return[key,val];});
+  const rules=[];
+  for(const sheet of root.querySelectorAll('style')){
+    const css=sheet.textContent.replace(/\/\*[\s\S]*?\*\//g,'').trim();let rest=css;
+    for(const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)){rest=rest.replace(match[0],'');for(const selector of match[1].split(',').map(s=>s.trim())){if(!/^(?:[a-z][\w-]*|\.[\w-]+|#[\w-]+)$/i.test(selector))throw Error('Complex SVG selector');rules.push({selector,specificity:selector[0]==='#'?2:selector[0]==='.'?1:0,values:declarations(match[2])});}}
+    if(rest.trim())throw Error('Complex SVG stylesheet');sheet.remove();
+  }
+  rules.sort((a,b)=>a.specificity-b.specificity);
+  for(const el of [root,...root.querySelectorAll('*')]){
+    for(const rule of rules)if(el.matches(rule.selector))for(const [key,value] of rule.values)el.setAttribute(key,value);
+    if(el.hasAttribute('style'))for(const [key,value] of declarations(el.getAttribute('style')))el.setAttribute(key,value);
+    el.removeAttribute('style');el.removeAttribute('class');
+  }
+}
+
+function importEditableSvg(root){
+  inlineSvgStyles(root);
+  const supported=new Set(['rect','ellipse','circle','line','polyline','polygon','path','text','g','svg']);
+  const number=(el,key,fallback=0)=>{const value=el.getAttribute(key);if(value===null)return fallback;const n=Number(value.replace(/px$/i,''));if(!Number.isFinite(n))throw Error(`Unsupported ${key} value`);return n;};
   const paint=(value,fallback)=>{if(value===null)return fallback;if(value==='none'||value==='transparent')return value;if(/^#[0-9a-f]{3,4}$/i.test(value))return '#'+[...value.slice(1)].map(c=>c+c).join('');if(/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value))return value;if(!/^\w+$/.test(value)&&!/^rgba?\([\d.,%\s]+\)$/i.test(value))throw Error('Unsupported paint');return colorToHex(value,fallback);};
   const fraction=(value,fallback)=>{if(value===null)return fallback;const v=value.endsWith('%')?Number(value.slice(0,-1))/100:Number(value);if(!Number.isFinite(v))throw Error('Invalid gradient coordinate');return v;};
-  const gradients=new Map();for(const defs of [...root.children].filter(c=>c.localName==='defs'))for(const el of defs.children){
+  const gradients=new Map(),definitions=new Map();
+  for(const defs of root.querySelectorAll('defs'))for(const el of defs.children){
     if(!['linearGradient','radialGradient'].includes(el.localName))throw Error(`Unsupported definition: ${el.localName}`);
-    const id=el.getAttribute('id'),type=el.localName==='linearGradient'?'linear':'radial';if(!id||gradients.has(id)||el.hasAttribute('href')||el.hasAttribute('xlink:href')||!['objectBoundingBox',null].includes(el.getAttribute('gradientUnits'))||!['pad',null].includes(el.getAttribute('spreadMethod')))throw Error('Unsupported gradient definition');
-    const tx=el.getAttribute('gradientTransform');let angle=0;if(tx){const m=tx.match(/^rotate\(([-+\d.]+)[ ,]+(?:0?\.5)[ ,]+(?:0?\.5)\)$/);if(!m)throw Error('Unsupported gradient transform');angle=Number(m[1]);}
-    let coords;if(type==='linear')coords={x1:fraction(el.getAttribute('x1'),0),y1:fraction(el.getAttribute('y1'),0),x2:fraction(el.getAttribute('x2'),1),y2:fraction(el.getAttribute('y2'),0)};else{const cx=fraction(el.getAttribute('cx'),.5),cy=fraction(el.getAttribute('cy'),.5);coords={cx,cy,r:fraction(el.getAttribute('r'),.5),fx:fraction(el.getAttribute('fx'),cx),fy:fraction(el.getAttribute('fy'),cy)};}
-    const stops=[...el.children].map(s=>{if(s.localName!=='stop'||s.hasAttribute('style'))throw Error('Unsupported gradient stop');return{offset:fraction(s.getAttribute('offset'),0)*100,color:colorToHex(paint(s.getAttribute('stop-color'),'#000000')),opacity:number(s,'stop-opacity',1)};});if(stops.length<2||stops.length>16)throw Error('Gradient requires 2–16 stops');gradients.set(id,normalizeGradient({type,angle,coords,stops}));
+    const id=el.getAttribute('id');if(!id||definitions.has(id))throw Error('Duplicate or missing gradient ID');definitions.set(id,el);
   }
+  function resolveGradient(id,seen=new Set()){
+    if(gradients.has(id))return gradients.get(id);
+    const el=definitions.get(id);if(!el||seen.has(id)||seen.size>64)throw Error('Invalid gradient reference');seen.add(id);
+    const ref=el.getAttribute('href')||el.getAttribute('xlink:href');if(ref&&!/^#[\w.:-]+$/.test(ref))throw Error('External gradient reference');
+    const base=ref?resolveGradient(ref.slice(1),seen):null,type=el.localName==='linearGradient'?'linear':'radial',units=el.getAttribute('gradientUnits')||base?.units||'objectBoundingBox';
+    if(!['objectBoundingBox','userSpaceOnUse'].includes(units)||!['pad',null].includes(el.getAttribute('spreadMethod')))throw Error('Unsupported gradient definition');
+    const tx=el.getAttribute('gradientTransform')??base?.transform??'';if(tx&&!safeSvgTransform(tx))throw Error('Unsupported gradient transform');
+    const coord=(key,fallback)=>fraction(el.getAttribute(key),base?.coords?.[key]??fallback);
+    let coords;if(type==='linear')coords={x1:coord('x1',0),y1:coord('y1',0),x2:coord('x2',1),y2:coord('y2',0)};else{const cx=coord('cx',.5),cy=coord('cy',.5);coords={cx,cy,r:coord('r',.5),fx:coord('fx',cx),fy:coord('fy',cy)};}
+    const stops=el.children.length?[...el.children].map(s=>{if(s.localName!=='stop')throw Error('Unsupported gradient stop');return{offset:fraction(s.getAttribute('offset'),0)*100,color:colorToHex(paint(s.getAttribute('stop-color'),'#000000')),opacity:number(s,'stop-opacity',1)};}):base?.stops;
+    if(!stops||stops.length<2||stops.length>64)throw Error('Unsupported gradient stops');const g=normalizeGradient({type,units,transform:tx,coords,stops});gradients.set(id,g);return g;
+  }
+  for(const id of definitions.keys())resolveGradient(id);
   function read(el,z,inherited){
     const tag=el.localName;if(!supported.has(tag))throw Error(`Unsupported SVG element: ${tag}`);
     if(el.hasAttribute('style')||el.hasAttribute('clip-path')||el.hasAttribute('mask')||el.hasAttribute('filter')||el.hasAttribute('class'))throw Error('SVG contains unsupported effects or CSS styles');
-    const rawTransform=el.getAttribute('transform')||'';if(rawTransform&&!/^(?:\s*(?:translate|rotate|scale)\s*\([-+\d.eE,\s]+\)\s*)+$/.test(rawTransform))throw Error('Unsupported transform');
+    const rawTransform=el.getAttribute('transform')||'';if(rawTransform&&!/^(?:\s*,?\s*(?:translate|rotate|scale)\s*\([-+\d.eE,\s]+\)\s*)+$/.test(rawTransform))throw Error('Unsupported transform');
     const fill=el.getAttribute('fill'),ref=fill?.match(/^url\(#([\w.:-]+)\)$/);if(ref&&!gradients.has(ref[1]))throw Error('Unknown gradient reference');
-    const style={fill:ref?'#000000':paint(fill,inherited.fill),gradient:ref?deepClone(gradients.get(ref[1])):fill===null?deepClone(inherited.gradient||null):null,stroke:paint(el.getAttribute('stroke'),inherited.stroke),strokeWidth:number(el,'stroke-width',inherited.strokeWidth),opacity:number(el,'opacity',1),strokeCap:el.getAttribute('stroke-linecap')||inherited.strokeCap,strokeJoin:el.getAttribute('stroke-linejoin')||inherited.strokeJoin,strokeDash:el.getAttribute('stroke-dasharray')||inherited.strokeDash};
-    const shape={id:nextId(),type:tag,name:tag,zIndex:z,visible:true,locked:false,transform:parseLegacyTransform(rawTransform),style,geometry:{}};
+    const stroke=el.getAttribute('stroke'),strokeRef=stroke?.match(/^url\(#([\w.:-]+)\)$/);if(strokeRef&&!gradients.has(strokeRef[1]))throw Error('Unknown stroke gradient');
+    const style={fill:ref?'#000000':paint(fill,inherited.fill),gradient:ref?deepClone(gradients.get(ref[1])):fill===null?deepClone(inherited.gradient||null):null,stroke:strokeRef?'#000000':paint(stroke,inherited.stroke),strokeGradient:strokeRef?deepClone(gradients.get(strokeRef[1])):stroke===null?deepClone(inherited.strokeGradient||null):null,strokeWidth:number(el,'stroke-width',inherited.strokeWidth),opacity:number(el,'opacity',1),strokeCap:el.getAttribute('stroke-linecap')||inherited.strokeCap,strokeJoin:el.getAttribute('stroke-linejoin')||inherited.strokeJoin,strokeDash:el.getAttribute('stroke-dasharray')||inherited.strokeDash};
+    style.isolation=el.getAttribute('isolation')==='isolate';style.paintOrder=el.getAttribute('paint-order');style.strokeMiter=number(el,'stroke-miterlimit',inherited.strokeMiter||4);
+    const shape={id:nextId(),type:tag,name:el.getAttribute('id')||el.getAttribute('aria-label')|| (tag==='g'?`Group ${z+1}`:tag==='svg'?'SVG layer':tag),zIndex:z,visible:el.getAttribute('display')!=='none'&&el.getAttribute('visibility')!=='hidden',locked:false,transform:parseLegacyTransform(rawTransform),style,geometry:{}};
     const anchor=(x,y)=>({x,y,inHandle:null,outHandle:null});
     if(tag==='rect')shape.geometry={x:number(el,'x'),y:number(el,'y'),width:Math.max(1,number(el,'width')),height:Math.max(1,number(el,'height')),rx:number(el,'rx'),ry:number(el,'ry')};
-    else if(tag==='ellipse'||tag==='circle'){shape.type='ellipse';shape.geometry={cx:number(el,'cx'),cy:number(el,'cy'),rx:Math.max(1,number(el,tag==='circle'?'r':'rx')),ry:Math.max(1,number(el,tag==='circle'?'r':'ry'))};}
+    else if(tag==='ellipse'||tag==='circle'){shape.type='ellipse';shape.geometry={cx:number(el,'cx'),cy:number(el,'cy'),rx:Math.max(0,number(el,tag==='circle'?'r':'rx')),ry:Math.max(0,number(el,tag==='circle'?'r':'ry'))};}
     else if(tag==='line'){shape.type='path';shape.geometry={anchors:[anchor(number(el,'x1'),number(el,'y1')),anchor(number(el,'x2'),number(el,'y2'))],closed:false};}
     else if(tag==='polygon'||tag==='polyline'){const pts=(el.getAttribute('points')||'').trim().split(/[ ,\s]+/).map(Number);if(pts.length<4||pts.length%2||pts.some(n=>!Number.isFinite(n)))throw Error('Invalid polygon points');shape.type='path';shape.geometry={anchors:pts.filter((_,i)=>i%2===0).map((x,i)=>anchor(x,pts[i*2+1])),closed:tag==='polygon'};}
-    else if(tag==='path'){const contours=parseEditableContours(el.getAttribute('d')||'');if(!contours.length)throw Error('Invalid path');if(contours.length===1){shape.geometry=contours[0];}else{shape.type='compound';shape.geometry={contours,fillRule:el.getAttribute('fill-rule')==='evenodd'?'evenodd':'nonzero'};}}
-    else if(tag==='text'){if([...el.children].some(c=>c.localName!=='tspan'))throw Error('Unsupported text layout');const leading=el.children[1]?.getAttribute('dy')?.match(/^([\d.]+)em$/);shape.geometry={x:number(el,'x'),y:number(el,'y'),text:el.children.length?[...el.children].map(c=>c.textContent).join('\n'):el.textContent,fontSize:number(el,'font-size',36),fontFamily:el.getAttribute('font-family')||'Arial',fontWeight:el.getAttribute('font-weight')==='bold'?700:number(el,'font-weight',400),fontStyle:el.getAttribute('font-style'),textAlign:el.getAttribute('text-anchor'),letterSpacing:number(el,'letter-spacing',0),lineHeight:leading?Number(leading[1]):1.2};}
-    else {shape.type='group';shape.children=[...el.children].filter(c=>!['title','desc','metadata'].includes(c.localName)).map((c,i)=>read(c,i,style));}
+    else if(tag==='path'){const contours=parseEditableContours(el.getAttribute('d')||'');if(!contours.length)throw Error('Invalid path');if(contours.length===1&&(contours[0].closed||style.fill==='none')){shape.geometry=contours[0];}else{shape.type='compound';shape.geometry={contours,fillRule:el.getAttribute('fill-rule')==='evenodd'?'evenodd':'nonzero'};}}
+    else if(tag==='text'){if([...el.children].some(c=>c.localName!=='tspan'))throw Error('Unsupported text layout');const size=number(el,'font-size',36),dy=el.children[1]?.getAttribute('dy'),leading=dy?.match(/^([\d.]+)em$/);shape.geometry={x:number(el,'x'),y:number(el,'y'),text:el.children.length?[...el.children].map(c=>c.textContent).join('\n'):el.textContent,fontSize:size,fontFamily:el.getAttribute('font-family')||'Arial',fontWeight:el.getAttribute('font-weight')==='bold'?700:number(el,'font-weight',400),fontStyle:el.getAttribute('font-style'),textAlign:el.getAttribute('text-anchor'),letterSpacing:number(el,'letter-spacing',0),lineHeight:leading?Number(leading[1]):dy?Number(dy)/size:1.2};}
+    else {shape.type='group';if(tag==='svg'){const vb=svgDimensions(el);shape.geometry.viewport={x:number(el,'x'),y:number(el,'y'),width:number(el,'width',vb[2]),height:number(el,'height',vb[3]),viewBox:vb,preserveAspectRatio:el.getAttribute('preserveAspectRatio')};}shape.children=[...el.children].filter(c=>!['title','desc','metadata','defs'].includes(c.localName)).map((c,i)=>read(c,i,style));}
     return normalizeCanonicalShape(shape,z);
   }
-  const vb=(root.getAttribute('viewBox')||'').trim().split(/[ ,\s]+/).map(Number);let width,height,originX=0,originY=0;
-  if(vb.length===4&&vb.every(Number.isFinite)){[originX,originY,width,height]=vb;}else{width=number(root,'width',1200);height=number(root,'height',800);}
+  const [originX,originY,width,height]=svgDimensions(root);
   if(!(width>0&&height>0&&width<=10000&&height<=10000))throw Error('Unsupported SVG dimensions');
   const objects=[...root.children].filter(c=>!['title','desc','metadata','defs'].includes(c.localName)).map((c,i)=>read(c,i,{fill:paint(root.getAttribute('fill'),'#000000'),stroke:paint(root.getAttribute('stroke'),'none'),strokeWidth:number(root,'stroke-width',1),opacity:1}));
+  if(!objects.length)throw Error('No editable artwork found');
   for(const shape of objects){shape.transform.tx-=originX;shape.transform.ty-=originY;}
   pushHistory();state.doc={width,height};state.objects=objects;deselectAll();fitArtboard();render();setStatus(`Imported ${objects.length} editable object(s)`);
 }
@@ -3496,7 +3580,7 @@ function bindEvents() {
   $('new-doc-btn').addEventListener('click',()=>{syncBoards();if((state.boards.length>1||state.boards.some(b=>b.objects.length))&&!confirm('Start a new project? You can undo this.'))return;pushHistory();state.objects=[];state.doc={width:1200,height:800};state.boards=[];state.activeBoard=0;deselectAll();fitArtboard();render();setStatus('New project');});
   $('artboard-select').addEventListener('change',()=>selectBoard(Number($('artboard-select').value)));$('add-artboard-btn').addEventListener('click',()=>addBoard(false));$('duplicate-artboard-btn').addEventListener('click',()=>addBoard(true));$('rename-artboard-btn').addEventListener('click',renameBoard);$('delete-artboard-btn').addEventListener('click',removeBoard);
   $('import-svg-btn').addEventListener('click',()=>$('import-svg-input').click());
-  $('import-svg-input').addEventListener('change',async()=>{const file=$('import-svg-input').files[0];if(!file)return;try{if(file.size>2*1024*1024)throw Error('SVG exceeds 2 MB');importSvg(await file.text());}catch(error){setStatus('Open SVG: '+error.message);}finally{$('import-svg-input').value='';}});
+  $('import-svg-input').addEventListener('change',async()=>{const file=$('import-svg-input').files[0];if(!file)return;try{if(file.size>5*1024*1024)throw Error('SVG exceeds 5 MB');setStatus('Opening SVG…');await importSvg(await file.text(),file.name);}catch(error){setStatus('Open SVG: '+error.message);alert('Could not open SVG: '+error.message);}finally{$('import-svg-input').value='';}});
   $('save-project-btn').addEventListener('click',saveProject);$('open-project-btn').addEventListener('click',()=>$('project-input').click());$('project-input').addEventListener('change',async()=>{const file=$('project-input').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Project exceeds 10 MB');openProject(await file.text());}catch(error){setStatus('Open project: '+error.message);}finally{$('project-input').value='';}});
   if(window.ResizeObserver)new ResizeObserver(()=>{renderView();drawSelectionOutline();}).observe(dom.canvas);
   window.addEventListener('pagehide',saveDocument);
