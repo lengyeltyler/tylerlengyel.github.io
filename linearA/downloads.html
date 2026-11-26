@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Linear A — Data Downloads</title>
-<meta name="description" content="Download latest Linear A pipeline outputs (CSV, markdown logs, and confidence statements)." />
+<title>Research files | Linear A</title>
+<meta name="description" content="Start with the tablet notes to check a reading. The other files contain the numbers behind the computer tests." />
 <link rel="canonical" href="https://tylerlengyel.com/linearA/downloads.html" />
 <meta name="theme-color" content="#EAE7DF" />
 <script src="/assets/site-shell.js?v=20261116-sitewide-theme"></script>
@@ -12,11 +12,18 @@
 {
   "@context": "https://schema.org",
   "@type": "ScholarlyArticle",
-  "headline": "Linear A — Data Downloads",
-  "description": "Download latest Linear A pipeline outputs (CSV, markdown logs, and confidence statements).",
+  "headline": "Research files",
+  "description": "Start with the tablet notes to check a reading. The other files contain the numbers behind the computer tests.",
   "url": "https://tylerlengyel.com/linearA/downloads.html",
-  "author": { "@type": "Person", "name": "Tyler Lengyel", "url": "https://tylerlengyel.com" },
-  "about": { "@type": "Thing", "name": "Linear A script" }
+  "author": {
+    "@type": "Person",
+    "name": "Tyler Lengyel",
+    "url": "https://tylerlengyel.com"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Linear A script"
+  }
 }
 </script>
 <link rel="stylesheet" href="/linearA/assets/linearA.css?v=20261116-sitewide-theme" />
@@ -24,90 +31,88 @@
 </head>
 <body>
   <header data-site-header="linear-a"></header>
-
-  <div class="site-shell">
-    <div class="la-top">
-      <div class="la-breadcrumb"><a href="/">Home</a> / <a href="/linearA/index.html">Linear A</a> / <strong>Data Downloads</strong></div>
-      
-    </div>
-
+  <main class="site-shell">
     <nav class="la-tabs" aria-label="Linear A navigation">
-      <a href="/linearA/index.html">Overview</a>
-      <a href="/linearA/analysis.html">Analysis (Technical)</a>
-      <a href="/linearA/findings.html">Findings (Plain English)</a>
-      <a class="is-active" href="/linearA/downloads.html">Data Downloads</a>
+      <a href="/linearA/index.html">Start here</a>
+      <a href="/linearA/findings.html">Tablet clues</a>
+      <a href="/linearA/analysis.html">How we tested it</a>
+      <a class="is-active" aria-current="page" href="/linearA/downloads.html">Research files</a>
     </nav>
-
-    <section class="la-hero">
-      <h1>Data Downloads</h1>
-      <p><a href="/linearA/research/data/reviewed_tablets.csv" download>Download the nine reviewed tablet notes and their source links (CSV)</a>.</p><p>The remaining files preserve the May 2026 analysis and its inputs. Some rows came from withdrawn local readings. <a href="/linearA/analysis.html">Read the data audit before reusing the historical files</a>.</p>
-    </section>
-
-<section class="block"><h2>What changed after removing the write-ups?</h2><p>Running the same primary model with seed 20260224 on the 2,698 imported observations left 2,550 normalized entries and 610 identifiers. The weighted score moved from 71.36 to 71.40. Shuffling the signs within each entry produced exactly the same likelihood for the winning model. The pipeline also flagged a failed stress check. The score therefore gives us no basis for choosing a word order or assigning a translation probability.</p><p><a href="/linearA/research/output/review-2026-11-26/run_summary.json">Run summary</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_adversarial_suite.csv">Control results</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_model_bakeoff_scores.csv">Model comparison</a>.</p></section>    <h2>Archived core run files</h2>
-    <ul class="download-list">
-      <li><span><code>run_summary.json</code></span><a href="/linearA/research/output/latest/run_summary.json">Download</a></li>
-      <li><span><code>research_log.md</code></span><a href="/linearA/research/output/latest/research_log.md">Download</a></li>
-      <li><span><code>final_confidence_statement.txt</code></span><a href="/linearA/research/output/latest/final_confidence_statement.txt">Download</a></li>
-      <li><span><code>external_expansion_delta_report.md</code></span><a href="/linearA/research/output/latest/external_expansion_delta_report.md">Download</a></li>
-      <li><span><code>plain_english_summary.html</code></span><a href="/linearA/research/output/latest/plain_english_summary.html">Download</a></li>
-      <li><span><code>plain_english_summary.md</code></span><a href="/linearA/research/output/latest/plain_english_summary.md">Download</a></li>
-    </ul>
-
-    <h2>Phase 1–2 Structural Data</h2>
-    <ul class="download-list">
-      <li><span><code>phase1_corpus_manifest.csv</code></span><a href="/linearA/research/output/latest/phase1_corpus_manifest.csv">Download</a></li>
-      <li><span><code>phase1_corpus_provenance_links.csv</code></span><a href="/linearA/research/output/latest/phase1_corpus_provenance_links.csv">Download</a></li>
-      <li><span><code>phase1_normalization_mapping_log.csv</code></span><a href="/linearA/research/output/latest/phase1_normalization_mapping_log.csv">Download</a></li>
-      <li><span><code>phase1_normalization_uncertainty_flags.csv</code></span><a href="/linearA/research/output/latest/phase1_normalization_uncertainty_flags.csv">Download</a></li>
-      <li><span><code>phase1_variant_collisions.csv</code></span><a href="/linearA/research/output/latest/phase1_variant_collisions.csv">Download</a></li>
-      <li><span><code>phase1_sign_frequency.csv</code></span><a href="/linearA/research/output/latest/phase1_sign_frequency.csv">Download</a></li>
-      <li><span><code>phase1_bigram_frequency.csv</code></span><a href="/linearA/research/output/latest/phase1_bigram_frequency.csv">Download</a></li>
-      <li><span><code>phase1_trigram_frequency.csv</code></span><a href="/linearA/research/output/latest/phase1_trigram_frequency.csv">Download</a></li>
-      <li><span><code>phase1_initial_position_frequency.csv</code></span><a href="/linearA/research/output/latest/phase1_initial_position_frequency.csv">Download</a></li>
-      <li><span><code>phase1_terminal_position_frequency.csv</code></span><a href="/linearA/research/output/latest/phase1_terminal_position_frequency.csv">Download</a></li>
-      <li><span><code>phase1_prefix_patterns.csv</code></span><a href="/linearA/research/output/latest/phase1_prefix_patterns.csv">Download</a></li>
-      <li><span><code>phase1_suffix_patterns.csv</code></span><a href="/linearA/research/output/latest/phase1_suffix_patterns.csv">Download</a></li>
-      <li><span><code>phase2_morphological_clusters.csv</code></span><a href="/linearA/research/output/latest/phase2_morphological_clusters.csv">Download</a></li>
-      <li><span><code>phase2_similarity_edges.csv</code></span><a href="/linearA/research/output/latest/phase2_similarity_edges.csv">Download</a></li>
-      <li><span><code>phase2_structural_templates.csv</code></span><a href="/linearA/research/output/latest/phase2_structural_templates.csv">Download</a></li>
-      <li><span><code>phase3_hypothesis_matrix.csv</code></span><a href="/linearA/research/output/latest/phase3_hypothesis_matrix.csv">Download</a></li>
-    </ul>
-
-    <h2>Phase 5 Validation and Confidence</h2>
-    <ul class="download-list">
-      <li><span><code>phase5_model_bakeoff_scores.csv</code></span><a href="/linearA/research/output/latest/phase5_model_bakeoff_scores.csv">Download</a></li>
-      <li><span><code>phase5_model_diagnostics.md</code></span><a href="/linearA/research/output/latest/phase5_model_diagnostics.md">Download</a></li>
-      <li><span><code>phase5_adversarial_suite.csv</code></span><a href="/linearA/research/output/latest/phase5_adversarial_suite.csv">Download</a></li>
-      <li><span><code>phase5_failure_modes.md</code></span><a href="/linearA/research/output/latest/phase5_failure_modes.md">Download</a></li>
-      <li><span><code>phase5_confidence_components.csv</code></span><a href="/linearA/research/output/latest/phase5_confidence_components.csv">Download</a></li>
-      <li><span><code>phase5_confidence_sensitivity.csv</code></span><a href="/linearA/research/output/latest/phase5_confidence_sensitivity.csv">Download</a></li>
-      <li><span><code>confidence_scoring_matrix.csv</code></span><a href="/linearA/research/output/latest/confidence_scoring_matrix.csv">Download</a></li>
-    </ul>
-
-    <h2>Supplemental Deep Validation</h2>
-    <ul class="download-list">
-      <li><span><code>deep_validation_summary.json</code></span><a href="/linearA/research/output/latest/deep_validation_summary.json">Download</a></li>
-      <li><span><code>confidence_tiers.csv</code></span><a href="/linearA/research/output/latest/confidence_tiers.csv">Download</a></li>
-      <li><span><code>strict_model_comparison.csv</code></span><a href="/linearA/research/output/latest/strict_model_comparison.csv">Download</a></li>
-      <li><span><code>adversarial_deep_tests.csv</code></span><a href="/linearA/research/output/latest/adversarial_deep_tests.csv">Download</a></li>
-      <li><span><code>semantic_anchor_inventory.csv</code></span><a href="/linearA/research/output/latest/semantic_anchor_inventory.csv">Download</a></li>
-      <li><span><code>semantic_anchor_inventory.json</code></span><a href="/linearA/research/output/latest/semantic_anchor_inventory.json">Download</a></li>
-      <li><span><code>formula_inventory.csv</code></span><a href="/linearA/research/output/latest/formula_inventory.csv">Download</a></li>
-      <li><span><code>LINEAR_A_RESEARCH_AUDIT.md</code></span><a href="/linearA/research/LINEAR_A_RESEARCH_AUDIT.md">Download</a></li>
-      <li><span><code>phonetic_claim_audit.md</code></span><a href="/linearA/research/phonetic_claim_audit.md">Download</a></li>
-    </ul>
-
-    <h2>External Corpus Ingestion Artifacts</h2>
-    <ul class="download-list">
-      <li><span><code>external_corpus_import_raw.csv</code></span><a href="/linearA/research/data/external_corpus_import_raw.csv">Download</a></li>
-      <li><span><code>external_corpus_validation_report.md</code></span><a href="/linearA/research/data/external_corpus_validation_report.md">Download</a></li>
-      <li><span><code>external_corpus.csv</code></span><a href="/linearA/research/data/external_corpus.csv">Download</a></li>
-      <li><span><code>source_acquisition_notes.md</code></span><a href="/linearA/research/data/source_acquisition_notes.md">Download</a></li>
-      <li><span><code>source_registry.json</code></span><a href="/linearA/research/data/source_registry.json">Download</a></li>
-      <li><span><code>normalized_inscription_metadata.csv</code></span><a href="/linearA/research/data/metadata/normalized_inscription_metadata.csv">Download</a></li>
-      <li><span><code>metadata_coverage_summary.json</code></span><a href="/linearA/research/data/metadata/metadata_coverage_summary.json">Download</a></li>
-      <li><span><code>metadata_provenance_report.md</code></span><a href="/linearA/research/data/metadata/metadata_provenance_report.md">Download</a></li>
-    </ul>
-  </div>
+    <header class="la-hero">
+      <h1>Research files</h1>
+      <p class="muted">Start with the tablet notes to check a reading. The other files contain the numbers behind the computer tests.</p>
+    </header>
+<h2>Tablet notes</h2><p><a href="/linearA/research/data/reviewed_tablets.csv">Open the spreadsheet of nine tablets and their sources (CSV)</a>.</p>
+<h2>November 2026 test</h2><ul>
+  <li><a href="/linearA/research/output/review-2026-11-26/run_summary.json">Results in numbers (JSON)</a></li>
+  <li><a href="/linearA/research/output/review-2026-11-26/phase5_adversarial_suite.csv">What changed when we shuffled the signs (CSV)</a></li>
+  <li><a href="/linearA/research/output/review-2026-11-26/phase5_model_bakeoff_scores.csv">Scores for each model (CSV)</a></li>
+</ul><h2>Older research files</h2><p>The May 2026 files include readings that we later corrected. <a href="/linearA/analysis.html">See why we repeated the test</a>.</p><details class="block"><summary>Earlier reports</summary>
+<ul>
+  <li><a href="/linearA/research/output/latest/run_summary.json">run_summary.json</a></li>
+  <li><a href="/linearA/research/output/latest/research_log.md">research_log.md</a></li>
+  <li><a href="/linearA/research/output/latest/final_confidence_statement.txt">final_confidence_statement.txt</a></li>
+  <li><a href="/linearA/research/output/latest/external_expansion_delta_report.md">external_expansion_delta_report.md</a></li>
+  <li><a href="/linearA/research/output/latest/plain_english_summary.html">plain_english_summary.html</a></li>
+  <li><a href="/linearA/research/output/latest/plain_english_summary.md">plain_english_summary.md</a></li>
+</ul>
+</details>
+<details class="block"><summary>Sign counts and patterns</summary>
+<ul>
+  <li><a href="/linearA/research/output/latest/phase1_corpus_manifest.csv">phase1_corpus_manifest.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_corpus_provenance_links.csv">phase1_corpus_provenance_links.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_normalization_mapping_log.csv">phase1_normalization_mapping_log.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_normalization_uncertainty_flags.csv">phase1_normalization_uncertainty_flags.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_variant_collisions.csv">phase1_variant_collisions.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_sign_frequency.csv">phase1_sign_frequency.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_bigram_frequency.csv">phase1_bigram_frequency.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_trigram_frequency.csv">phase1_trigram_frequency.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_initial_position_frequency.csv">phase1_initial_position_frequency.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_terminal_position_frequency.csv">phase1_terminal_position_frequency.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_prefix_patterns.csv">phase1_prefix_patterns.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase1_suffix_patterns.csv">phase1_suffix_patterns.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase2_morphological_clusters.csv">phase2_morphological_clusters.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase2_similarity_edges.csv">phase2_similarity_edges.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase2_structural_templates.csv">phase2_structural_templates.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase3_hypothesis_matrix.csv">phase3_hypothesis_matrix.csv</a></li>
+</ul>
+</details>
+<details class="block"><summary>Earlier model tests</summary>
+<ul>
+  <li><a href="/linearA/research/output/latest/phase5_model_bakeoff_scores.csv">phase5_model_bakeoff_scores.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase5_model_diagnostics.md">phase5_model_diagnostics.md</a></li>
+  <li><a href="/linearA/research/output/latest/phase5_adversarial_suite.csv">phase5_adversarial_suite.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase5_failure_modes.md">phase5_failure_modes.md</a></li>
+  <li><a href="/linearA/research/output/latest/phase5_confidence_components.csv">phase5_confidence_components.csv</a></li>
+  <li><a href="/linearA/research/output/latest/phase5_confidence_sensitivity.csv">phase5_confidence_sensitivity.csv</a></li>
+  <li><a href="/linearA/research/output/latest/confidence_scoring_matrix.csv">confidence_scoring_matrix.csv</a></li>
+</ul>
+</details>
+<details class="block"><summary>Extra checks and research notes</summary>
+<ul>
+  <li><a href="/linearA/research/output/latest/deep_validation_summary.json">deep_validation_summary.json</a></li>
+  <li><a href="/linearA/research/output/latest/confidence_tiers.csv">confidence_tiers.csv</a></li>
+  <li><a href="/linearA/research/output/latest/strict_model_comparison.csv">strict_model_comparison.csv</a></li>
+  <li><a href="/linearA/research/output/latest/adversarial_deep_tests.csv">adversarial_deep_tests.csv</a></li>
+  <li><a href="/linearA/research/output/latest/semantic_anchor_inventory.csv">semantic_anchor_inventory.csv</a></li>
+  <li><a href="/linearA/research/output/latest/semantic_anchor_inventory.json">semantic_anchor_inventory.json</a></li>
+  <li><a href="/linearA/research/output/latest/formula_inventory.csv">formula_inventory.csv</a></li>
+  <li><a href="/linearA/research/LINEAR_A_RESEARCH_AUDIT.md">LINEAR_A_RESEARCH_AUDIT.md</a></li>
+  <li><a href="/linearA/research/phonetic_claim_audit.md">phonetic_claim_audit.md</a></li>
+</ul>
+</details>
+<details class="block"><summary>Source records</summary>
+<ul>
+  <li><a href="/linearA/research/data/external_corpus_import_raw.csv">external_corpus_import_raw.csv</a></li>
+  <li><a href="/linearA/research/data/external_corpus_validation_report.md">external_corpus_validation_report.md</a></li>
+  <li><a href="/linearA/research/data/external_corpus.csv">external_corpus.csv</a></li>
+  <li><a href="/linearA/research/data/source_acquisition_notes.md">source_acquisition_notes.md</a></li>
+  <li><a href="/linearA/research/data/source_registry.json">source_registry.json</a></li>
+  <li><a href="/linearA/research/data/metadata/normalized_inscription_metadata.csv">normalized_inscription_metadata.csv</a></li>
+  <li><a href="/linearA/research/data/metadata/metadata_coverage_summary.json">metadata_coverage_summary.json</a></li>
+  <li><a href="/linearA/research/data/metadata/metadata_provenance_report.md">metadata_provenance_report.md</a></li>
+</ul>
+</details>
+  </main>
 </body>
 </html>

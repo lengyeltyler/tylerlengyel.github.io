@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Linear A — Analysis (Technical)</title>
-<meta name="description" content="Technical Linear A pipeline outputs: model bakeoff, adversarial suite, and confidence components." />
+<title>Can a computer spot the order of the signs? | Linear A</title>
+<meta name="description" content="We tested a program on Linear A records. Its best model gave the same result after we scrambled the signs within each entry. That makes it a poor guide to word order." />
 <link rel="canonical" href="https://tylerlengyel.com/linearA/analysis.html" />
 <meta name="theme-color" content="#EAE7DF" />
 <script src="/assets/site-shell.js?v=20261116-sitewide-theme"></script>
@@ -12,11 +12,18 @@
 {
   "@context": "https://schema.org",
   "@type": "ScholarlyArticle",
-  "headline": "Linear A — Analysis (Technical)",
-  "description": "Technical Linear A pipeline outputs: model bakeoff, adversarial suite, and confidence components.",
+  "headline": "Can a computer spot the order of the signs?",
+  "description": "We tested a program on Linear A records. Its best model gave the same result after we scrambled the signs within each entry. That makes it a poor guide to word order.",
   "url": "https://tylerlengyel.com/linearA/analysis.html",
-  "author": { "@type": "Person", "name": "Tyler Lengyel", "url": "https://tylerlengyel.com" },
-  "about": { "@type": "Thing", "name": "Linear A script" }
+  "author": {
+    "@type": "Person",
+    "name": "Tyler Lengyel",
+    "url": "https://tylerlengyel.com"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Linear A script"
+  }
 }
 </script>
 <link rel="stylesheet" href="/linearA/assets/linearA.css?v=20261116-sitewide-theme" />
@@ -24,174 +31,31 @@
 </head>
 <body>
   <header data-site-header="linear-a"></header>
-
-  <div class="site-shell">
-    <div class="la-top">
-      <div class="la-breadcrumb"><a href="/">Home</a> / <a href="/linearA/index.html">Linear A</a> / <strong>Analysis</strong></div>
-      
-    </div>
-
+  <main class="site-shell">
     <nav class="la-tabs" aria-label="Linear A navigation">
-      <a href="/linearA/index.html">Overview</a>
-      <a class="is-active" href="/linearA/analysis.html">Analysis (Technical)</a>
-      <a href="/linearA/findings.html">Findings (Plain English)</a>
-      <a href="/linearA/downloads.html">Data Downloads</a>
+      <a href="/linearA/index.html">Start here</a>
+      <a href="/linearA/findings.html">Tablet clues</a>
+      <a class="is-active" aria-current="page" href="/linearA/analysis.html">How we tested it</a>
+      <a href="/linearA/downloads.html">Research files</a>
     </nav>
-
-    <section class="la-hero"><h1>Technical analysis and data audit</h1><p>The numerical outputs below document the archived May 2026 experiment.</p></section><section class="block"><h2>Why the earlier score was retired</h2><p>The May 2026 run counted 2,901 observations. Of these, 2,698 came from the external import and 203 from local write-ups. HTML and Markdown versions repeated some of the same examples. HT 31 and HT 95 even shared purported grain and oil lines despite documenting different records. The 71.36-point score therefore cannot establish how well the model describes the surviving inscriptions.</p><p>The external import also mixes words, sign groups and parts of lines. Identifiers can distinguish two faces of a single object. The 2,593 normalized entries and 619 identifiers in the archived run are counts in that dataset. A new evaluation needs to group rows by physical object before splitting training and test sets. The previous outputs remain available for inspection.</p></section>
-    <section class="block"><h2>What changed after removing the write-ups?</h2><p>Running the same primary model with seed 20260224 on the 2,698 imported observations left 2,550 normalized entries and 610 identifiers. The weighted score moved from 71.36 to 71.40. Shuffling the signs within each entry produced exactly the same likelihood for the winning model. The pipeline also flagged a failed stress check. The score therefore gives us no basis for choosing a word order or assigning a translation probability.</p><p><a href="/linearA/research/output/review-2026-11-26/run_summary.json">Run summary</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_adversarial_suite.csv">Control results</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_model_bakeoff_scores.csv">Model comparison</a>.</p></section>    <h2>Archived run snapshot</h2>
-    <div data-tech-summary class="embed-box">
-      <p class="muted" style="padding: 12px;">Loading run summary…</p>
-    </div>
-
-    <h2>Deep Validation Snapshot</h2>
-    <div data-deep-summary class="embed-box">
-      <p class="muted" style="padding: 12px;">Loading supplemental validation…</p>
-    </div>
-
-    <h2>Confidence Breakdown</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Component</th>
-            <th>Score</th>
-            <th>Weight</th>
-            <th>Contribution</th>
-            <th>Interpretation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Corpus adequacy</td>
-            <td>1.0000</td>
-            <td>25%</td>
-            <td>25.00</td>
-            <td>Expanded corpus is large enough for structural testing.</td>
-          </tr>
-          <tr>
-            <td>Normalization stability</td>
-            <td>0.9780</td>
-            <td>20%</td>
-            <td>19.56</td>
-            <td>Variant mapping is stable under strict normalization.</td>
-          </tr>
-          <tr>
-            <td>Template predictability</td>
-            <td>0.2264</td>
-            <td>20%</td>
-            <td>4.53</td>
-            <td>This is the largest drag on confidence; recurring templates are not yet predictive enough.</td>
-          </tr>
-          <tr>
-            <td>Out-of-sample performance</td>
-            <td>0.5000</td>
-            <td>20%</td>
-            <td>10.00</td>
-            <td>Generalization is provisional rather than decisive.</td>
-          </tr>
-          <tr>
-            <td>Adversarial robustness</td>
-            <td>0.8180</td>
-            <td>15%</td>
-            <td>12.27</td>
-            <td>Some stress tests hold, but not all expected falsification checks degrade the model.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
+    <header class="la-hero">
+      <h1>Can a computer spot the order of the signs?</h1>
+      <p class="muted">We tested a program on Linear A records. Its best model gave the same result after we scrambled the signs within each entry. That makes it a poor guide to word order.</p>
+    </header>
     <section class="block">
-      <h2>Interpretation of the score</h2><p>Changing the weights cannot repair source attribution or a split that treats two faces as independent objects. These scores are retained for replication only.</p></section>
-
-    <h2>Core Technical Outputs</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Output</th>
-            <th>Purpose</th>
-            <th>Latest Link</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>phase1_corpus_manifest.csv</code></td>
-            <td>Canonical corpus lines with origin counts and provenance tags.</td>
-            <td><a href="/linearA/research/output/latest/phase1_corpus_manifest.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>phase1_normalization_mapping_log.csv</code></td>
-            <td>Reversible token-by-token variant normalization log.</td>
-            <td><a href="/linearA/research/output/latest/phase1_normalization_mapping_log.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>phase5_model_bakeoff_scores.csv</code></td>
-            <td>Cross-validated model comparison across three competing structure hypotheses.</td>
-            <td><a href="/linearA/research/output/latest/phase5_model_bakeoff_scores.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>phase5_adversarial_suite.csv</code></td>
-            <td>Falsification controls and stress-test effects.</td>
-            <td><a href="/linearA/research/output/latest/phase5_adversarial_suite.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>phase5_confidence_components.csv</code></td>
-            <td>Confidence decomposition (corpus, normalization, OOS, robustness).</td>
-            <td><a href="/linearA/research/output/latest/phase5_confidence_components.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>phase5_confidence_sensitivity.csv</code></td>
-            <td>Sensitivity analysis under weight variation scenarios.</td>
-            <td><a href="/linearA/research/output/latest/phase5_confidence_sensitivity.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>external_expansion_delta_report.md</code></td>
-            <td>Before/after comparison of corpus expansion impact on fit and confidence.</td>
-            <td><a href="/linearA/research/output/latest/external_expansion_delta_report.md">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>research_log.md</code></td>
-            <td>Structured run log and confidence statement context.</td>
-            <td><a href="/linearA/research/output/latest/research_log.md">Open</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2>External Ingestion Controls</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Artifact</th>
-            <th>Purpose</th>
-            <th>Link</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>external_corpus_import_raw.csv</code></td>
-            <td>Raw harvested rows from authoritative external archives before validation.</td>
-            <td><a href="/linearA/research/data/external_corpus_import_raw.csv">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>external_corpus_validation_report.md</code></td>
-            <td>Validation gate output (duplicates, malformed rows, unknown signs, merge decision).</td>
-            <td><a href="/linearA/research/data/external_corpus_validation_report.md">Open</a></td>
-          </tr>
-          <tr>
-            <td><code>external_corpus.csv</code></td>
-            <td>Merged external corpus with provenance URL and ingestion timestamp fields.</td>
-            <td><a href="/linearA/research/data/external_corpus.csv">Open</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p class="table-note">
-      For all files in one place, use <a href="/linearA/downloads.html">Data Downloads</a>.
-    </p>
-  </div>
+      <h2>What went into the test?</h2>
+      <p>The first test used 2,901 entries. Of these, 203 came from our own write-ups. Some examples appeared twice, and some notes assigned the same lines to two different tablets. We ran the test again using only the 2,698 entries from outside sources.</p>
+      <p>An entry can be a word, a group of signs or part of a line. Several entries can come from the same piece of clay.</p>
+    </section>
+    <section class="block">
+      <h2>What did the score tell us?</h2>
+      <p>Removing the write-ups barely changed the program’s score. It went from 71.36 to 71.40 points. These points measure how the program did on our chosen tests. They cannot tell us the chance that a translation is right.</p>
+      <p>A better test would set whole tablets aside before training the program. That way, it could never learn from the front of a tablet and earn points for recognizing the back.</p>
+    </section>
+<details class="block"><summary>Numbers for repeating the test</summary>
+<p>The November 2026 run used seed 20260224. After standardizing spellings, it had 2,550 entries and 610 identifiers. The May run had 2,593 entries and 619 identifiers. An identifier can refer to one side of a tablet. The best model gave the original and shuffled entries identical likelihoods.</p>
+</details>
+    <p><a href="/linearA/downloads.html">Get the data and test results</a>.</p>
+  </main>
 </body>
 </html>
