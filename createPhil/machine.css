@@ -18,7 +18,7 @@
 .phil-display { position:relative; aspect-ratio:1; overflow:hidden; border:2px solid #56646d; background:repeating-conic-gradient(#161a1e 0 25%,#1b2024 0 50%) 50%/22px 22px; display:grid; place-items:center; }
 .phil-art { width:100%; height:100%; object-fit:contain; display:block; }
 .phil-art[hidden],.display-idle[hidden],.trait-window [hidden] { display:none; }
-.idle-disclaimer { position:absolute; bottom:1.9%; right:1.9%; padding:5px 8px; border:1px solid #f2f0ea; border-radius:3px; background:#10151b; color:#fff; text-align:right; font:700 .65rem/1.35 Arial,Helvetica,sans-serif; pointer-events:none; }
+.idle-disclaimer { position:absolute; bottom:1.9%; right:1.9%; color:#fff; text-align:right; font:700 .325rem/1.35 Arial,Helvetica,sans-serif; text-shadow:0 0 1px #10151b; pointer-events:none; }
 .idle-disclaimer[hidden] { display:none; }
 .display-idle { display:grid; place-items:center; gap:8px; text-align:center; padding:16px; color:#a9c6d7; font-size:.75rem; }
 .display-idle strong { font-size:1.3rem; letter-spacing:.18em; }
