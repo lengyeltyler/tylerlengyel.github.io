@@ -1,241 +1,117 @@
-(() => {
-  const ENGINE_URL = "https://lengyeltyler.github.io/createPhil/";
-  const ENGINE_ORIGIN = "https://lengyeltyler.github.io";
-  const TRAIT_ORDER = ["bg", "wings", "phil", "spikes", "eyes", "nose", "teeth", "top"];
-  const TRAIT_NAMES = {
-    bg: "Background",
-    wings: "Wings",
-    phil: "Phil",
-    spikes: "Spikes",
-    eyes: "Eyes",
-    nose: "Nose",
-    teeth: "Teeth",
-    top: "Top"
-  };
+(function () {
+  'use strict';
+  const C=window.PhilCatalog;
+  const $=(selector)=>document.querySelector(selector);
+  const grid=$('[data-lever-grid]'), display=$('[data-phil-display]'), idle=$('[data-display-idle]');
+  const status=$('[data-machine-status]'), count=$('[data-generation-count]');
+  const exportButton=$('[data-export]'), resetButton=$('[data-reset-all]'), rollButton=$('[data-roll-all]');
+  const selection=Object.fromEntries(C.ORDER.map(k=>[k,[]]));
+  const stations=new Map();
+  let groups,reader,runs=0,assembled='';
+  const img=document.createElement('img');img.alt='';img.className='phil-art';img.hidden=true;display.append(img);
+  const svgURI=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  const name=id=>reader.label(id).name.replaceAll('&amp;','&');
+  const randomIndex=n=>{const a=new Uint32Array(1),limit=2**32-(2**32%n);do{crypto.getRandomValues(a);}while(a[0]>=limit);return a[0]%n;};
+  const choose=items=>items[randomIndex(items.length)];
+  const ids=()=>C.ORDER.flatMap(k=>selection[k]);
 
-  const frame = document.querySelector("[data-engine-frame]");
-  const display = document.querySelector("[data-phil-display]");
-  const status = document.querySelector("[data-machine-status]");
-  const counter = document.querySelector("[data-generation-count]");
-  const exportButton = document.querySelector("[data-export]");
-  const resetButton = document.querySelector("[data-reset-all]");
-  const levers = Array.from(document.querySelectorAll("[data-trait]"));
-  const traitSvgs = new Map();
-  const traitUrls = new Map();
-
-  let pendingTrait = null;
-  let runCount = 0;
-  let compositeUrl = "";
-  let requestTimer = 0;
-
-  function setStatus(message) {
-    if (status) status.textContent = message;
-  }
-
-  function setBusy(busy) {
-    levers.forEach((lever) => {
-      lever.disabled = busy;
-    });
-    document.querySelector(".machine-cabinet")?.setAttribute("aria-busy", String(busy));
-  }
-
-  function encodeSvg(svg) {
-    const bytes = new TextEncoder().encode(svg);
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    return `data:image/svg+xml;base64,${btoa(binary)}`;
-  }
-
-  function buildCompositeSvg() {
-    const layers = TRAIT_ORDER
-      .filter((trait) => traitSvgs.has(trait))
-      .map((trait) => {
-        const href = encodeSvg(traitSvgs.get(trait));
-        return `<image data-trait="${trait}" href="${href}" x="0" y="0" width="420" height="420"/>`;
-      })
-      .join("");
-
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420">${layers}</svg>`;
-  }
-
-  function replaceImage(container, url, alt) {
-    if (!container) return;
-    const image = document.createElement("img");
-    image.src = url;
-    image.alt = alt;
-    container.replaceChildren(image);
-  }
-
-  function updateComposite() {
-    const hasTraits = traitSvgs.size > 0;
-    exportButton.disabled = !hasTraits;
-    resetButton.disabled = !hasTraits;
-
-    if (!hasTraits) {
-      if (compositeUrl) URL.revokeObjectURL(compositeUrl);
-      compositeUrl = "";
-      display.setAttribute("aria-label", "Generated Phil preview; no traits loaded");
-      display.innerHTML = `
-        <div class="display-idle" data-display-idle>
-          <span class="crosshair" aria-hidden="true"></span>
-          <strong>READY</strong>
-          <span>Pull a trait lever to begin.</span>
-        </div>`;
-      return;
+  function buildStations(){
+    for(const [i,key] of C.ORDER.entries()){
+      const variants=groups[key],category=reader.label(variants[0]).category;
+      const station=document.createElement('article');station.className='trait-station';station.dataset.station=key;
+      const plate=document.createElement('div');plate.className='trait-plate';
+      const number=document.createElement('span');number.textContent=String(i+1).padStart(2,'0');
+      const title=document.createElement('strong');title.textContent=category;plate.append(number,title);
+      const meta=document.createElement('p');meta.className='trait-meta';meta.textContent=`${variants.length} variants · ${C.REQUIRED.has(key)?'required':C.MULTI.has(key)?'up to 9':'optional'}`;
+      const windowEl=document.createElement('div');windowEl.className='trait-window';
+      const preview=document.createElement('img');preview.alt='';preview.hidden=true;
+      const empty=document.createElement('span');empty.textContent='EMPTY';windowEl.append(preview,empty);
+      const label=document.createElement('p');label.className='trait-name';label.textContent='No trait selected';
+      const lever=document.createElement('button');lever.className='lever';lever.type='button';lever.dataset.trait=key;
+      lever.setAttribute('aria-label',`Pull ${category} lever`);
+      lever.innerHTML='<span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span><span class="lever-caption">PULL</span>';
+      lever.addEventListener('click',()=>{
+        lever.classList.remove('pulled');void lever.offsetWidth;lever.classList.add('pulled');
+        const pool=variants.filter(id=>!selection[key].includes(id));
+        applyTrait(key,choose(pool.length?pool:variants));
+      });
+      const select=document.createElement('select');select.className='trait-select';select.setAttribute('aria-label',`Choose ${category} variant`);
+      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose variant…';select.append(placeholder);
+      for(const id of variants){const option=document.createElement('option');option.value=String(id);option.textContent=name(id);select.append(option);}
+      select.addEventListener('change',()=>{if(select.value!=='')applyTrait(key,Number(select.value));select.value='';});
+      const clear=document.createElement('button');clear.className='eject-button';clear.type='button';clear.textContent='Clear layer';clear.disabled=true;
+      clear.addEventListener('click',()=>{selection[key]=[];render(`${category} cleared.`);});
+      station.append(plate,meta,windowEl,label,lever,select,clear);grid.append(station);
+      stations.set(key,{preview,empty,label,clear,category});
     }
-
-    if (compositeUrl) URL.revokeObjectURL(compositeUrl);
-    const svg = buildCompositeSvg();
-    compositeUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-    replaceImage(display, compositeUrl, "Assembled Phil preview");
-    display.setAttribute("aria-label", `Generated Phil preview with ${traitSvgs.size} loaded traits`);
   }
 
-  function updateTraitPreview(trait, svg) {
-    const station = document.querySelector(`[data-station="${trait}"]`);
-    const preview = document.querySelector(`[data-trait-preview="${trait}"]`);
-    const clearButton = document.querySelector(`[data-clear-trait="${trait}"]`);
-    const oldUrl = traitUrls.get(trait);
-    if (oldUrl) URL.revokeObjectURL(oldUrl);
-
-    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-    traitUrls.set(trait, url);
-    replaceImage(preview, url, `${TRAIT_NAMES[trait]} trait preview`);
-    station?.classList.add("is-loaded");
-    if (clearButton) clearButton.disabled = false;
+  function applyTrait(key,id){
+    if(!groups[key].includes(id))return;
+    const notes=[];
+    if(key==='nebula'&&selection.spiral.length){selection.spiral=[];notes.push('BgSpiral cleared');}
+    if(key==='spiral'&&selection.nebula.length){selection.nebula=[];notes.push('BgNebula cleared');}
+    if(key==='top'&&groups.hoodie.includes(id)&&selection.spikes.some(s=>!groups.hoodieSpikes.includes(s))){selection.spikes=[];notes.push('incompatible Spikes cleared');}
+    if(key==='spikes'&&!groups.hoodieSpikes.includes(id)&&selection.top.some(t=>groups.hoodie.includes(t))){selection.top=[];notes.push('incompatible hoodie cleared');}
+    if(C.MULTI.has(key)){
+      const next=selection[key];
+      if(!next.includes(id)){
+        if(next.length===9){next.splice(randomIndex(next.length),1);notes.push('replaced one of 9 layers');}
+        next.push(id);next.sort((a,b)=>a-b);
+      }
+    }else selection[key]=[id];
+    runs++;render(`${name(id)} selected${notes.length?' · '+notes.join(' · '):''}.`);
   }
 
-  function finishRequest(trait, svg) {
-    window.clearTimeout(requestTimer);
-    traitSvgs.set(trait, svg);
-    updateTraitPreview(trait, svg);
-    updateComposite();
-    runCount += 1;
-    counter.value = String(runCount).padStart(4, "0");
-    pendingTrait = null;
-    setBusy(false);
-    setStatus(`${TRAIT_NAMES[trait]} generated and loaded. Pull it again for a new variation.`);
-  }
-
-  function requestTrait(trait) {
-    if (!frame || pendingTrait || !TRAIT_ORDER.includes(trait)) return;
-
-    pendingTrait = trait;
-    setBusy(true);
-    setStatus(`Loading ${TRAIT_NAMES[trait]} generator…`);
-    document.querySelector(`[data-station="${trait}"]`)?.classList.add("is-pulled");
-    window.setTimeout(() => {
-      document.querySelector(`[data-station="${trait}"]`)?.classList.remove("is-pulled");
-    }, 520);
-
-    frame.src = `${ENGINE_URL}?machineRun=${Date.now()}`;
-    requestTimer = window.setTimeout(() => {
-      if (pendingTrait !== trait) return;
-      pendingTrait = null;
-      setBusy(false);
-      setStatus(`${TRAIT_NAMES[trait]} did not return in time. Check the connection and pull again.`);
-    }, 30000);
-  }
-
-  frame?.addEventListener("load", () => {
-    if (!pendingTrait || !frame.contentWindow) {
-      setStatus("Machine ready. Pull any trait lever.");
-      return;
+  function rollAll(){
+    for(const key of C.ORDER)selection[key]=[];
+    for(const key of C.REQUIRED)selection[key]=[choose(groups[key])];
+    const background=choose(['nebula','spiral',null]);if(background)selection[background]=[choose(groups[background])];
+    for(const key of ['dust','body','teeth','top'])if(randomIndex(2))selection[key]=[choose(groups[key])];
+    for(const key of C.MULTI){const pool=[...groups[key]],n=randomIndex(4);for(let i=0;i<n;i++)selection[key].push(pool.splice(randomIndex(pool.length),1)[0]);selection[key].sort((a,b)=>a-b);}
+    if(randomIndex(5000)===0)selection.wings=[choose(groups.wings)];
+    if(randomIndex(2)){
+      const pool=selection.top.some(id=>groups.hoodie.includes(id))?groups.hoodieSpikes:groups.spikes;
+      selection.spikes=[choose(pool)];
     }
+    runs++;render('New complete Genesis composition.');
+  }
 
-    setStatus(`Generating ${TRAIT_NAMES[pendingTrait]}…`);
-    frame.contentWindow.postMessage(
-      { source: "parent", kind: "save", trait: pendingTrait },
-      ENGINE_ORIGIN
-    );
-  });
-
-  window.addEventListener("message", (event) => {
-    if (event.origin !== ENGINE_ORIGIN || event.source !== frame?.contentWindow) return;
-    const message = event.data || {};
-
-    if (
-      message.source === "createPhil" &&
-      message.kind === "preview-layer" &&
-      message.trait === pendingTrait &&
-      typeof message.svg === "string"
-    ) {
-      finishRequest(message.trait, message.svg);
+  function render(message){
+    if(!C.validSelection(groups,selection))throw Error('Invalid trait combination');
+    const selected=ids();assembled=selected.length?reader.render(selected):'';
+    img.hidden=!assembled;idle.hidden=!!assembled;
+    if(assembled)img.src=svgURI(assembled);else img.removeAttribute('src');
+    display.setAttribute('aria-label',selected.length?`Phil preview: ${selected.map(name).join(', ')}`:'Generated Phil preview; no traits loaded');
+    for(const [key,station] of stations){
+      const current=selection[key],active=current.length>0;
+      station.preview.hidden=!active;station.empty.hidden=active;station.clear.disabled=!active;
+      if(active)station.preview.src=svgURI(reader.render(current));else station.preview.removeAttribute('src');
+      station.label.textContent=active?current.map(name).join(' · '):'No trait selected';
+      station.label.title=active?station.label.textContent:'';
     }
+    exportButton.disabled=!assembled;resetButton.disabled=!selected.length;
+    count.textContent=String(runs).padStart(4,'0');
+    const complete=C.validSelection(groups,selection,true);
+    status.textContent=`${message} ${selected.length} artwork layer${selected.length===1?'':'s'} selected${complete?' · complete composition':''}`;
+  }
 
-    if (
-      message.source === "createPhil" &&
-      message.kind === "download-svg" &&
-      typeof message.data === "string"
-    ) {
-      const url = URL.createObjectURL(new Blob([message.data], {
-        type: message.mime || "image/svg+xml;charset=utf-8"
-      }));
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = message.filename || "phil.svg";
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    }
+  exportButton.addEventListener('click',()=>{
+    if(!assembled)return;
+    const url=URL.createObjectURL(new Blob([assembled],{type:'image/svg+xml'}));
+    const a=document.createElement('a');a.href=url;a.download='phil-genesis-composition.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
+  resetButton.addEventListener('click',()=>{for(const key of C.ORDER)selection[key]=[];render('Machine reset.');});
+  rollButton.addEventListener('click',rollAll);
 
-  levers.forEach((lever) => {
-    lever.addEventListener("click", () => requestTrait(lever.dataset.trait));
-    lever.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      requestTrait(lever.dataset.trait);
-    });
-  });
-
-  document.querySelectorAll("[data-clear-trait]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const trait = button.dataset.clearTrait;
-      const preview = document.querySelector(`[data-trait-preview="${trait}"]`);
-      const url = traitUrls.get(trait);
-      if (url) URL.revokeObjectURL(url);
-      traitUrls.delete(trait);
-      traitSvgs.delete(trait);
-      preview?.replaceChildren(Object.assign(document.createElement("span"), { textContent: "EMPTY" }));
-      document.querySelector(`[data-station="${trait}"]`)?.classList.remove("is-loaded");
-      button.disabled = true;
-      updateComposite();
-      setStatus(`${TRAIT_NAMES[trait]} removed from the assembly.`);
-    });
-  });
-
-  exportButton?.addEventListener("click", () => {
-    if (!traitSvgs.size) return;
-    const url = URL.createObjectURL(new Blob([buildCompositeSvg()], {
-      type: "image/svg+xml;charset=utf-8"
-    }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "createphil-assembly.svg";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    setStatus("Assembled Phil exported as SVG.");
-  });
-
-  resetButton?.addEventListener("click", () => {
-    traitSvgs.clear();
-    traitUrls.forEach((url) => URL.revokeObjectURL(url));
-    traitUrls.clear();
-    document.querySelectorAll("[data-trait-preview]").forEach((preview) => {
-      preview.replaceChildren(Object.assign(document.createElement("span"), { textContent: "EMPTY" }));
-    });
-    document.querySelectorAll("[data-station]").forEach((station) => station.classList.remove("is-loaded"));
-    document.querySelectorAll("[data-clear-trait]").forEach((button) => {
-      button.disabled = true;
-    });
-    updateComposite();
-    setStatus("Machine reset. Pull any trait lever to start again.");
-  });
-
-  window.addEventListener("pagehide", () => {
-    if (compositeUrl) URL.revokeObjectURL(compositeUrl);
-    traitUrls.forEach((url) => URL.revokeObjectURL(url));
-  });
+  async function boot(){
+    try{
+      const [art,metadata]=await Promise.all([fetch('/createPhil/catalog.bin'),fetch('/createPhil/groups.json')]);
+      if(!art.ok||!metadata.ok)throw Error('Unable to load Genesis catalog');
+      const bytes=await art.arrayBuffer();await C.verify(bytes);
+      groups=await metadata.json();C.validateGroups(groups);reader=C.createReader(bytes);
+      buildStations();rollButton.disabled=false;render('Genesis catalog verified. Pull any lever to begin.');
+    }catch(error){status.textContent=`Artwork unavailable: ${error.message}. Try refreshing on HTTPS or localhost.`;console.error(error);}
+  }
+  boot();
 })();

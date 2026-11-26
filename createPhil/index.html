@@ -24,8 +24,8 @@
       <p class="eyebrow">Phil experimental works · machine no. 01</p>
       <h1>createPhil</h1>
       <p class="lede">
-        Build a Phil one layer at a time. Every lever operates its labeled trait generator;
-        the machine keeps the pieces in their original stacking order as you work.
+        Build a Phil from the 896 original Genesis traits used by the live Ethereum dApp.
+        Pull each lever to discover actual artwork, assembled in the official layer order.
       </p>
     </section>
 
@@ -33,7 +33,7 @@
       <div class="machine-marquee">
         <div>
           <p class="machine-kicker">Trait assembly terminal</p>
-          <h2 id="machine-heading">Phil Mk I</h2>
+          <h2 id="machine-heading">Phil Genesis</h2>
         </div>
         <div class="mechanical-counter" role="group" aria-label="Successful generation count">
           <span>RUNS</span>
@@ -66,6 +66,7 @@
           </p>
 
           <div class="output-controls" role="group" aria-label="Assembly controls">
+            <button class="machine-button" type="button" data-roll-all disabled>Roll all traits</button>
             <button class="machine-button" type="button" data-export disabled>
               Export assembled SVG
             </button>
@@ -73,123 +74,37 @@
               Reset machine
             </button>
           </div>
+          <p class="machine-note">Manual experiments only. No minting, wallet connection, or blockchain transaction.</p>
         </section>
 
         <section class="control-bank" aria-labelledby="controls-heading">
           <div class="control-bank-heading">
             <div>
-              <p class="machine-kicker">Independent generators</p>
+              <p class="machine-kicker">Verified artwork catalog · 896 variants</p>
               <h3 id="controls-heading">Trait levers</h3>
             </div>
-            <p>One lever, one layer.</p>
+            <p>14 layer categories</p>
           </div>
 
-          <div class="lever-grid">
-            <article class="trait-station" data-station="bg">
-              <div class="trait-plate"><span>01</span><strong>Background</strong></div>
-              <div class="trait-window" data-trait-preview="bg"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="bg" aria-label="Generate Background trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="bg" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="wings">
-              <div class="trait-plate"><span>02</span><strong>Wings</strong></div>
-              <div class="trait-window" data-trait-preview="wings"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="wings" aria-label="Generate Wings trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="wings" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="phil">
-              <div class="trait-plate"><span>03</span><strong>Phil</strong></div>
-              <div class="trait-window" data-trait-preview="phil"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="phil" aria-label="Generate Phil body trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="phil" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="spikes">
-              <div class="trait-plate"><span>04</span><strong>Spikes</strong></div>
-              <div class="trait-window" data-trait-preview="spikes"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="spikes" aria-label="Generate Spikes trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="spikes" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="eyes">
-              <div class="trait-plate"><span>05</span><strong>Eyes</strong></div>
-              <div class="trait-window" data-trait-preview="eyes"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="eyes" aria-label="Generate Eyes trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="eyes" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="nose">
-              <div class="trait-plate"><span>06</span><strong>Nose</strong></div>
-              <div class="trait-window" data-trait-preview="nose"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="nose" aria-label="Generate Nose trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="nose" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="teeth">
-              <div class="trait-plate"><span>07</span><strong>Teeth</strong></div>
-              <div class="trait-window" data-trait-preview="teeth"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="teeth" aria-label="Generate Teeth trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="teeth" disabled>Clear layer</button>
-            </article>
-
-            <article class="trait-station" data-station="top">
-              <div class="trait-plate"><span>08</span><strong>Top</strong></div>
-              <div class="trait-window" data-trait-preview="top"><span>EMPTY</span></div>
-              <button class="lever" type="button" data-trait="top" aria-label="Generate Top trait">
-                <span class="lever-slot" aria-hidden="true"><span class="lever-arm"><span class="lever-knob"></span></span></span>
-                <span class="lever-caption">PULL</span>
-              </button>
-              <button class="eject-button" type="button" data-clear-trait="top" disabled>Clear layer</button>
-            </article>
-          </div>
+          <div class="lever-grid" data-lever-grid aria-label="Genesis trait levers"></div>
         </section>
       </div>
 
       <footer class="machine-footer">
         <span>TYLER LENGYEL · PHIL EXPERIMENTAL WORKS</span>
-        <a href="https://lengyeltyler.github.io/createPhil/" target="_blank" rel="noopener noreferrer">
-          Open engine service panel
+        <a href="https://phil.tylerlengyel.com/" target="_blank" rel="noopener noreferrer">
+          Open live Genesis dApp ↗
         </a>
+        <a href="https://etherscan.io/address/0x9732F84C54407cd846B3e987594417BcFA30644E#code" target="_blank" rel="noopener noreferrer">Ethereum collection ↗</a>
       </footer>
     </section>
-
-    <iframe
-      class="engine-frame"
-      data-engine-frame
-      src="https://lengyeltyler.github.io/createPhil/"
-      title="createPhil generation engine"
-      tabindex="-1"
-      aria-hidden="true"
-    ></iframe>
 
     <noscript>
       <p class="notice">JavaScript is required to operate the createPhil machine.</p>
     </noscript>
   </main>
 
+  <script src="/createPhil/catalog.js"></script>
   <script src="/createPhil/machine.js"></script>
 </body>
 </html>

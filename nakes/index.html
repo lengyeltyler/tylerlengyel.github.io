@@ -10,8 +10,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <meta charset="utf-8" />
-  <title>nakes</title>
-  <meta name="description" content="Retro nakes - keyboard, swipe, and D-pad." />
+  <title>Snake</title>
+  <meta name="description" content="Retro Snake - keyboard, swipe, and D-pad." />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -44,8 +44,8 @@
       --accent:#b1e6ff;
 
       --size:20;
-      --desktop-max:560px;
-      --gap:14px;
+      --desktop-max:1440px;
+      --gap:8px;
 
       --safe-top: env(safe-area-inset-top);
       --safe-right: env(safe-area-inset-right);
@@ -60,7 +60,6 @@
       background:var(--surface-canvas);
       color:var(--ink);
       font-family:"SF Pro Text","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-      touch-action:none;
       -webkit-user-select:none;
       user-select:none;
       overflow:hidden;
@@ -78,21 +77,20 @@
       padding:calc(var(--safe-top) + 10px) calc(var(--safe-right) + 10px)
               calc(var(--safe-bottom) + 10px) calc(var(--safe-left) + 10px);
       display:grid;
-      grid-template-rows:1fr auto;
+      grid-template-rows:minmax(0,1fr) auto;
       gap:var(--gap);
       max-width:min(100vw,100svw);
       max-height:100%;
     }
 
     .hud{
-      position:absolute;
-      left:0;
-      right:0;
-      top:10px;
-      padding:0 10px;
+      position:static;
+      width:100%;
+      max-width:var(--desktop-max);
+      padding:0;
       display:flex;
       justify-content:space-between;
-      gap:10px;
+      gap:6px;
       flex-wrap:wrap;
       pointer-events:none;
     }
@@ -131,6 +129,8 @@
       position:relative;
       display:grid;
       place-items:center;
+      grid-template-rows:auto minmax(0,1fr);
+      gap:8px;
       min-height:0;
     }
 
@@ -139,7 +139,7 @@
       width:100%;
       height:auto;
       max-width:var(--desktop-max);
-      aspect-ratio:1/1;
+      aspect-ratio:27/16;
       border:1px solid rgba(250,247,240,.14);
       border-radius:0;
       background:linear-gradient(
@@ -149,15 +149,16 @@
         var(--panel-dark-2) 100%
       );
       box-shadow:0 24px 60px rgba(0,0,0,.34);
-      image-rendering:pixelated;
+      image-rendering:auto;
       touch-action:none;
     }
 
     .controls{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:8px;
-      max-width:var(--desktop-max);
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:4px;
+      max-width:850px;
       margin:0 auto;
       padding-bottom:2px;
     }
@@ -165,7 +166,9 @@
     .btn{
       border:1px solid rgba(250,247,240,.16);
       border-radius:0;
-      padding:14px 12px;
+      padding:3px 7px;
+      min-height:24px;
+      line-height:1.2;
       text-align:center;
       background:linear-gradient(
         135deg,
@@ -178,7 +181,7 @@
       cursor:pointer;
       transition:transform .04s ease, background .1s ease, box-shadow .1s ease, opacity .1s ease;
       touch-action:manipulation;
-      font-size:17px;
+      font-size:12px;
       box-shadow:0 12px 28px rgba(0,0,0,.24);
     }
 
@@ -196,18 +199,26 @@
       outline-offset:3px;
     }
 
-    .grid-spacer{visibility:hidden}
-    .controls .full { grid-column: 1 / -1; }
+    .grid-spacer{display:none}
+    .controls .utility { font-size:11px; padding:3px 7px; }
+    .board-wrap { position:relative; min-height:0; width:100%; height:100%; display:grid; place-items:center; }
+    .game-message { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
+    .game-message[hidden] { display:none; }
+    .game-message span { max-width:85%; padding:14px 22px; background:#101c15eb; border:1px solid #92b979; color:#f2f0ea; text-align:center; font-weight:700; line-height:1.5; white-space:pre-line; }
 
     .extras{
-      max-width:var(--desktop-max);
-      margin:10px auto 0;
+      max-width:850px;
+      margin:4px auto 0;
+      font-size:12px;
+      text-align:center;
     }
+    .extras summary{cursor:pointer; color:var(--muted); font-size:12px;}
+    .extras[open]{text-align:left; max-height:140px; overflow:auto;}
 
     .help{
       font-size:13px;
       color:var(--muted);
-      margin-bottom:8px;
+      margin:4px 0;
     }
 
     #prize-root {
@@ -241,18 +252,35 @@
       }
 
       .btn{
-        padding:12px;
-        font-size:15px;
+        padding:5px 7px;
+        font-size:13px;
         border-radius:0;
       }
 
       .controls{
-        gap:6px;
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        max-width:320px;
+        gap:4px;
       }
+      .grid-spacer{display:block;visibility:hidden;}
 
-      .extras{
-        display:none;
-      }
+      .app { gap:6px; }
+      .controls .utility{padding:5px 3px;font-size:11px;}
+    }
+    @media (pointer:coarse){
+      .controls .btn{min-height:44px;}
+    }
+    @media (orientation:landscape) and (max-height:640px){
+      .app{grid-template-columns:minmax(0,1fr) minmax(200px,300px);grid-template-rows:minmax(0,1fr);align-items:center;}
+      .stage{height:100%;}
+      .hud{display:block;padding:0;}
+      .stats{gap:4px;}
+      .pill{font-size:11px;padding:3px 6px;}
+      .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-width:280px;}
+      .grid-spacer{display:block;visibility:hidden;}
+      .btn{padding:5px;font-size:13px;}
+      .extras{display:none;}
     }
   </style>
 </head>
@@ -269,11 +297,14 @@
           <div class="pill">High: <span id="high">0</span></div>
           <div class="pill">Level: <span id="level">1</span>/69</div>
           <div class="pill">Speed: <span id="speedLabel">Normal</span></div>
-          <div class="pill" id="stateLabel">Playing</div>
+          <div class="pill" id="stateLabel">Ready</div>
         </div>
       </div>
 
-      <canvas id="board" aria-label="nakes game area" role="img"></canvas>
+      <div class="board-wrap">
+        <canvas id="board" aria-label="Snake game area" role="img"></canvas>
+        <div class="game-message" id="gameMessage" hidden><span></span></div>
+      </div>
 
       <div id="a11y-announce" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"></div>
     </div>
@@ -285,36 +316,38 @@
         <div class="grid-spacer"></div>
 
         <button class="btn" data-dir="left">◀ Left</button>
-        <button class="btn" id="pauseBtn">⏸ / ▶</button>
+        <button class="btn" id="pauseBtn">Start</button>
         <button class="btn" data-dir="right">▶ Right</button>
 
         <div class="grid-spacer"></div>
         <button class="btn" data-dir="down">▼ Down</button>
         <div class="grid-spacer"></div>
 
-        <button class="btn full" id="speedBtn" aria-label="Change speed">
+        <button class="btn utility" id="speedBtn" aria-label="Change speed">
           Speed: <span id="speedBtnLabel">Normal</span>
         </button>
 
-        <a class="btn full" id="scoresBtn" href="/nakes/leaderboard.html" role="button" style="display:inline-block; text-decoration:none; text-align:center;">
-          🏆 Leaderboard
+        <button class="btn utility" id="restartBtn">Restart</button>
+        <a class="btn utility" id="scoresBtn" href="/nakes/leaderboard.html" style="display:inline-block; text-decoration:none; text-align:center;">
+          Leaderboard
         </a>
       </div>
 
-      <div class="extras">
+      <details class="extras">
+        <summary>Game help &amp; Prize Mode</summary>
         <div class="help">
           Keys: Arrows/WASD. Space/P = Pause. R = Restart. + / – = Speed.
           Wrap edges • 69 levels • Top-10 scoreboard • Offline PWA.
         </div>
 
         <div id="prize-root" style="margin:8px 0"></div>
-      </div>
+      </details>
     </div>
   </div>
 
   <script>
     // ====== Config ======
-    const BASE_SIZE=16, MAX_LEVEL=69, CELLS_PER_LEVEL=1, CELLS_PER_FOOD_FOR_LEVEL=5;
+    const BASE_SIZE=16, BOARD_RATIO=27/16, MAX_LEVEL=69, CELLS_PER_LEVEL=1, CELLS_PER_FOOD_FOR_LEVEL=5;
     const SPEEDS=[{label:"Chill",ms:160},{label:"Normal",ms:120},{label:"Snappy",ms:90},{label:"Turbo",ms:65}];
     let speedIndex = matchMedia("(pointer: coarse)").matches ? 0 : 1;
 
@@ -336,10 +369,20 @@
     function announce(msg){ if(announceEl) announceEl.textContent = msg; }
 
     // ====== Game State ======
-    let SIZE, nakes, direction, nextDirection, food, score, high, alive, paused, lastTick, level, foodsThisLevel;
-    let LOGICAL_PX=480, DPR=1;
-    function getVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
-    function cellPx(){ return Math.floor(LOGICAL_PX / SIZE); }
+    let SIZE, COLS, nakes, previous, direction, food, score, high, alive, paused, ready, lastTick, level, foodsThisLevel;
+    let turns=[], frame=0, progress=1;
+    let LOGICAL_W=810, LOGICAL_H=480, DPR=1;
+    const background=document.createElement('canvas');
+    const bg=background.getContext('2d');
+    const wrap=(n,size)=>((n%size)+size)%size;
+    const delta=(a,b,size)=>{const d=b-a; return d>size/2?d-size:d<-size/2?d+size:d;};
+    const message=document.getElementById('gameMessage');
+    function status(label, hint=''){
+      stateLabel.textContent=label;
+      pauseBtn.textContent=label==='Playing'?'Pause':label==='Game Over'?'Play again':label==='Ready'?'Start':'Resume';
+      message.hidden=!hint; message.firstElementChild.textContent=hint;
+    }
+    function wake(){ if(!frame && alive && !paused && !ready) frame=requestAnimationFrame(step); }
 
     // ====== Local scores (for offline) ======
     const STORAGE_HIGH="nakes_highscore_v1", STORAGE_BOARD="nakes_scoreboard_v1";
@@ -361,8 +404,8 @@
     }
 
     // ====== High score ======
-    function loadHigh(){ const v=parseInt(localStorage.getItem(STORAGE_HIGH)||"0",10); high=isNaN(v)?0:v; highEl.textContent=high; }
-    function saveHigh(){ if(score>high){ high=score; highEl.textContent=high; localStorage.setItem(STORAGE_HIGH, String(high)); } }
+    function loadHigh(){ try{high=Number(localStorage.getItem(STORAGE_HIGH))||0;}catch{high=0;} highEl.textContent=high; }
+    function saveHigh(){ if(score>high){ high=score; highEl.textContent=high; try{localStorage.setItem(STORAGE_HIGH, String(high));}catch{} } }
 
     // ====== Level / Size ======
     function sizeForLevel(lv){ return BASE_SIZE + (lv-1)*CELLS_PER_LEVEL; }
@@ -370,6 +413,7 @@
     function setLevel(lv){
       level=Math.max(1,Math.min(MAX_LEVEL,lv));
       SIZE=sizeForLevel(level);
+      COLS=Math.round(SIZE*BOARD_RATIO);
       applySizeVars();
       levelEl.textContent=level;
       speedLabel.textContent=SPEEDS[speedIndex].label;
@@ -380,7 +424,30 @@
     function maybeLevelUp(){
       if(level>=MAX_LEVEL) return;
       if(foodsThisLevel>=CELLS_PER_FOOD_FOR_LEVEL){
+        // Unwrap a seam-crossing body before expanding the arena. Translate it
+        // by whole old-board widths so adjacent segments remain adjacent.
+        const old=SIZE, oldCols=COLS;
+        const points=[{...nakes[0]}];
+        for(let i=1;i<nakes.length;i++) points.push({x:points[i-1].x+delta(nakes[i-1].x,nakes[i].x,oldCols),y:points[i-1].y+delta(nakes[i-1].y,nakes[i].y,old)});
         setLevel(level+1);
+        const seams={};
+        // Insert the new row/column away from the snake's occupied links.
+        for(const axis of ['x','y']){
+          const extent=axis==='x'?oldCols:old;
+          const used=new Set();
+          for(let i=1;i<points.length;i++) if(points[i][axis]!==points[i-1][axis]) used.add(wrap(Math.max(points[i][axis],points[i-1][axis]),extent));
+          let seam=0; while(seam<extent && used.has(seam)) seam++;
+          seams[axis]=seam;
+        }
+        SIZE=old; COLS=oldCols;
+        if(seams.x<oldCols && seams.y<old){
+          SIZE=old+1;
+          COLS=Math.round(SIZE*BOARD_RATIO);
+          for(const axis of ['x','y']) if(seams[axis]!==0) for(const s of nakes) if(s[axis]>=seams[axis]) s[axis]+=axis==='x'?COLS-oldCols:1;
+        }
+        applySizeVars();
+        previous=nakes.map(s=>({...s})); progress=1;
+        layout();
         if(level%4===0 && speedIndex<SPEEDS.length-1){
           speedIndex++; speedLabel.textContent=SPEEDS[speedIndex].label;
           if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
@@ -388,36 +455,18 @@
       }
     }
 
-    // ====== Layout: square canvas sized to available space, crisp on DPR
+    // ====== Layout: wide arena with square cells, crisp on DPR
     function layout(){
-      const app = document.querySelector('.app');
-      const controls = document.querySelector('.controls');
-      const extras = document.querySelector('.extras');
-      const hud = document.querySelector('.hud');
-
-      const appW = app.clientWidth;
-      const appH = app.clientHeight;
-
-      const ctrH = controls.offsetHeight + 8;
-      const extraH = extras && getComputedStyle(extras).display !== 'none'
-        ? extras.offsetHeight + 8
-        : 0;
-      const hudIsOverlay = getComputedStyle(hud).position === 'absolute';
-      const hudH = hudIsOverlay ? 0 : (hud.offsetHeight + 6);
-
-      const size = Math.min(appW, appH - ctrH - extraH - hudH);
-      const cssSize = Math.max(240, size);
-
-      canvas.style.width = cssSize + "px";
-      canvas.style.height = "";
-
-      const rectW = Math.floor(canvas.getBoundingClientRect().width);
-      LOGICAL_PX = rectW;
-
-      DPR = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width  = Math.floor(LOGICAL_PX * DPR);
-      canvas.height = Math.floor(LOGICAL_PX * DPR);
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const box=document.querySelector('.board-wrap');
+      const ratio=COLS&&SIZE?COLS/SIZE:BOARD_RATIO;
+      LOGICAL_H=Math.max(1,Math.min(box.clientWidth/ratio,box.clientHeight,1440/ratio));
+      LOGICAL_W=LOGICAL_H*ratio;
+      canvas.style.width=LOGICAL_W+'px'; canvas.style.height=LOGICAL_H+'px';
+      DPR = Math.min(2,Math.max(1, window.devicePixelRatio || 1));
+      canvas.width  = Math.max(1,Math.round(LOGICAL_W * DPR));
+      canvas.height = Math.max(1,Math.round(LOGICAL_H * DPR));
+      ctx.setTransform(canvas.width/LOGICAL_W, 0, 0, canvas.height/LOGICAL_H, 0, 0);
+      if(SIZE){buildBackground(); draw(progress);}
     }
     window.addEventListener('resize', layout, {passive:true});
     window.addEventListener('orientationchange', layout, {passive:true});
@@ -426,121 +475,164 @@
     function reset(){
       setLevel(1);
       nakes=[
-        {x:Math.floor(SIZE/2), y:Math.floor(SIZE/2)},
-        {x:Math.floor(SIZE/2)-1, y:Math.floor(SIZE/2)},
-        {x:Math.floor(SIZE/2)-2, y:Math.floor(SIZE/2)}
+        {x:Math.floor(COLS/2), y:Math.floor(SIZE/2)},
+        {x:Math.floor(COLS/2)-1, y:Math.floor(SIZE/2)},
+        {x:Math.floor(COLS/2)-2, y:Math.floor(SIZE/2)}
       ];
-      direction={x:1,y:0}; nextDirection={x:1,y:0};
-      score=0; alive=true; paused=false; lastTick=0;
-      placeFood(); scoreEl.textContent=score; stateLabel.textContent="Playing";
-      announce("New game started. Level 1.");
+      direction={x:1,y:0}; turns=[]; previous=nakes.map(s=>({...s})); progress=1;
+      score=0; alive=true; paused=false; ready=true; lastTick=0;
+      placeFood(); scoreEl.textContent=score;
+      layout(); status('Ready','Press Start or a direction\nto begin');
+      announce("Ready. Level 1.");
     }
 
     function placeFood(){
-      while(true){
-        const x=Math.floor(Math.random()*SIZE), y=Math.floor(Math.random()*SIZE);
-        if(!nakes.some(s=>s.x===x && s.y===y)){ food={x,y}; return; }
-      }
+      const occupied=new Set(nakes.map(s=>s.y*COLS+s.x));
+      if(occupied.size===COLS*SIZE){food=null; finishGame('Board cleared');return;}
+      let pick=Math.floor(Math.random()*(COLS*SIZE-occupied.size));
+      for(let i=0;i<COLS*SIZE;i++) if(!occupied.has(i) && pick--===0){food={x:i%COLS,y:Math.floor(i/COLS)};return;}
     }
 
     function setDirection(dx,dy){
-      if(dx===-direction.x && dy===-direction.y) return;
-      nextDirection={x:dx,y:dy};
+      if(!alive || paused) return;
+      const last=turns.at(-1)||direction;
+      if(dx===-last.x && dy===-last.y) return;
+      if(dx!==last.x || dy!==last.y){if(turns.length<2) turns.push({x:dx,y:dy});}
+      if(ready){ready=false;status('Playing');wake();}
     }
 
-    function draw(){
-      const cp=cellPx(), px=cp*SIZE, offset=Math.floor((LOGICAL_PX - px)/2);
-      ctx.fillStyle=getVar('--bg');
-      ctx.fillRect(0,0,LOGICAL_PX,LOGICAL_PX);
-
-      ctx.strokeStyle=getVar('--grid');
-      ctx.lineWidth=1;
-      ctx.beginPath();
-
-      for(let i=1;i<SIZE;i++){
-        const g=offset+i*cp+0.5;
-        ctx.moveTo(g,offset);
-        ctx.lineTo(g,offset+px);
-        ctx.moveTo(offset,g);
-        ctx.lineTo(offset+px,g);
-      }
-
-      ctx.stroke();
-
-      fillCell(food.x,food.y,getVar('--food'),cp,offset);
-
-      for(let i=0;i<nakes.length;i++){
-        const seg=nakes[i];
-        fillCell(seg.x,seg.y, i===0?getVar('--nakesHead'):getVar('--nakes'),cp,offset);
+    function buildBackground(){
+      background.width=canvas.width; background.height=canvas.height;
+      bg.setTransform(canvas.width/LOGICAL_W,0,0,canvas.height/LOGICAL_H,0,0);
+      const w=LOGICAL_W,h=LOGICAL_H,c=h/SIZE;
+      const gradient=bg.createRadialGradient(w*.45,h*.4,0,w*.5,h*.5,w*.65);
+      gradient.addColorStop(0,'#293d29'); gradient.addColorStop(1,'#101b15');
+      bg.fillStyle=gradient; bg.fillRect(0,0,w,h);
+      bg.strokeStyle='#b2c9a015'; bg.lineWidth=.6; bg.beginPath();
+      for(let i=1;i<COLS;i++){bg.moveTo(i*c,0);bg.lineTo(i*c,h);}
+      for(let i=1;i<SIZE;i++){bg.moveTo(0,i*c);bg.lineTo(w,i*c);}
+      bg.stroke();
+      bg.fillStyle='#b5ca8b12';
+      for(let i=0;i<350;i++){
+        const x=((i*73.731)%100)/100*w,y=((i*39.137)%100)/100*h;
+        bg.fillRect(x,y,Math.max(1,c*.055),Math.max(1,c*.055));
       }
     }
 
-    function fillCell(x,y,color,cp,offset){
-      ctx.fillStyle=color;
-      ctx.fillRect(offset + x*cp, offset + y*cp, cp, cp);
+    // Render in cell units. Seam copies keep the snake continuous at wrap edges.
+    function copies(x,y,paint){
+      const xs=[x],ys=[y];
+      if(x<1.5) xs.push(x+COLS); if(x>COLS-1.5) xs.push(x-COLS);
+      if(y<1.5) ys.push(y+SIZE); if(y>SIZE-1.5) ys.push(y-SIZE);
+      for(const px of xs) for(const py of ys) paint(px,py);
+    }
+    function line(x,y,dx,dy,width,color){
+      ctx.lineWidth=width;ctx.strokeStyle=color;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dx,y+dy);ctx.stroke();
+    }
+    function oval(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();}
+    function draw(alpha=1){
+      ctx.drawImage(background,0,0,LOGICAL_W,LOGICAL_H);
+      const c=LOGICAL_H/SIZE;
+      ctx.save();ctx.scale(c,c);ctx.lineCap='round';ctx.lineJoin='round';
+      // Bright fruit stays readable even at the highest levels.
+      if(food){const fx=food.x+.5,fy=food.y+.5;
+      oval(fx,fy+.12,.42,.34,'#101410');oval(fx,fy,.35,.35,'#de4e42');
+      oval(fx-.1,fy-.12,.13,.09,'#ffab82');line(fx,fy-.26,.08,-.16,.075,'#dfc78c');
+      oval(fx+.16,fy-.33,.13,.06,'#a5d477');}
+      const pts=nakes.map((s,i)=>{
+        const from=previous[i]||s;
+        return {x:wrap(from.x+delta(from.x,s.x,COLS)*alpha+.5,COLS),y:wrap(from.y+delta(from.y,s.y,SIZE)*alpha+.5,SIZE)};
+      });
+      // Dark outline, overlapping tapered links, then a dorsal scale pattern.
+      for(let pass=0;pass<2;pass++) for(let i=pts.length-1;i>0;i--){
+        const a=pts[i],b=pts[i-1],dx=delta(a.x,b.x,COLS),dy=delta(a.y,b.y,SIZE);
+        const width=.25+.51*Math.min(1,(pts.length-i)/4);
+        copies(a.x,a.y,(x,y)=>line(x,y,dx,dy,width+(pass===0?.12:0),pass===0?'#111e13':'#779a48'));
+      }
+      for(let i=pts.length-1;i>0;i--){
+        const a=pts[i],b=pts[i-1];
+        copies(a.x,a.y,(x,y)=>{
+          const dx=delta(a.x,b.x,COLS),dy=delta(a.y,b.y,SIZE);
+          oval(x+dx*.4,y+dy*.4,.15,.15,'#3c6034');
+          if(c>=12) oval(x+dx*.4-.055,y+dy*.4-.055,.055,.055,'#a6bf6c');
+        });
+      }
+      const h=pts[0];
+      copies(h.x,h.y,(x,y)=>{
+        ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(direction.y,direction.x));
+        oval(0,0,.49,.38,'#142414');oval(.035,0,.43,.33,'#97b65b');
+        oval(.15,0,.25,.23,'#aac77a');
+        for(const side of [-1,1]){
+          oval(.15,side*.24,.095,.075,'#e9c46a');oval(.18,side*.24,.027,.058,'#111811');
+          oval(.35,side*.10,.025,.025,'#263b23');
+        }
+        ctx.restore();
+      });
+      ctx.restore();
+    }
+
+    function finishGame(title='Game over'){
+      alive=false;
+      status('Game Over',`${title} · Score ${score}\nPress Play again or R`);
+      saveHigh(); progress=1; draw(1);
+      announce(`${title}. Score: ${score}. Level: ${level}.`);
+      const finalScore=score, finalLevel=level;
+      setTimeout(()=>{
+        const name=prompt(`${title}! Enter your name for the leaderboard:`, '')||'Player';
+        addScoreToBoard(name, finalScore, finalLevel);
+        submitGlobalScore(name, finalScore, finalLevel);
+        window.__sendPrize?.(finalLevel);
+      },20);
     }
 
     function step(ts){
-      if(!alive){ draw(); return; }
-
-      if(paused){
-        draw();
-        requestAnimationFrame(step);
-        return;
-      }
-
-      if(!lastTick) lastTick=ts;
-
+      frame=0;
+      if(!alive || paused || ready) return;
+      if(!lastTick) lastTick=ts-progress*SPEEDS[speedIndex].ms;
       const interval=SPEEDS[speedIndex].ms;
-
       if(ts-lastTick>=interval){
-        lastTick=ts;
-        direction=nextDirection;
+        // Preserve normal frame timing, but never catch up a long stall with
+        // several unseen moves.
+        lastTick=ts-lastTick>=2*interval?ts:lastTick+interval;
+        direction=turns.shift()||direction;
 
         const head=nakes[0];
         let nx=head.x+direction.x, ny=head.y+direction.y;
 
-        if(nx<0) nx=SIZE-1; else if(nx>=SIZE) nx=0;
+        if(nx<0) nx=COLS-1; else if(nx>=COLS) nx=0;
         if(ny<0) ny=SIZE-1; else if(ny>=SIZE) ny=0;
 
-        if(nakes.some(s=>s.x===nx && s.y===ny)){
-          alive=false;
-          stateLabel.textContent="Game Over";
-          saveHigh();
-          draw();
-          announce("Game over. Score: " + score + ". Level: " + level + ".");
-
-          setTimeout(()=>{
-            const name=prompt("Game Over! Enter your name for the leaderboard:", "") || "Player";
-            addScoreToBoard(name, score, level);
-            submitGlobalScore(name, score, level);
-            window.__sendPrize?.(level);
-          }, 20);
-
-          requestAnimationFrame(step);
+        const eating=nx===food.x && ny===food.y;
+        if(nakes.some((s,i)=>s.x===nx && s.y===ny && (eating || i<nakes.length-1))){
+          finishGame();
           return;
         }
-
+        previous=nakes.slice();
         nakes.unshift({x:nx,y:ny});
-
-        if(nx===food.x && ny===food.y){
+        if(eating){
           score+=1;
           foodsThisLevel+=1;
           scoreEl.textContent=score;
-          placeFood();
+          saveHigh();
           maybeLevelUp();
+          placeFood();
+          if(!alive)return;
         }else{
           nakes.pop();
         }
       }
 
-      draw();
-      requestAnimationFrame(step);
+      progress=Math.min(1,(ts-lastTick)/SPEEDS[speedIndex].ms);
+      draw(progress);
+      wake();
     }
 
     // ====== Input (keys + buttons + swipe) ======
     window.addEventListener('keydown', (e)=>{
+      if(e.target.matches?.('input,textarea,select,[contenteditable]') || e.ctrlKey || e.metaKey || e.altKey) return;
       const k=e.key.toLowerCase();
+      if(e.repeat && [' ','p','r','+','=','-','_'].includes(k)) return;
+      if(k===' ' && e.target.matches?.('button,a')) return;
       let handled=false;
 
       if(k==='arrowup'||k==='w'){ setDirection(0,-1); handled=true; }
@@ -556,13 +648,15 @@
     }, {passive:false});
 
     document.querySelectorAll('[data-dir]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+      const turn=()=>{
         const d=btn.getAttribute('data-dir');
         if(d==='up') setDirection(0,-1);
         if(d==='down') setDirection(0,1);
         if(d==='left') setDirection(-1,0);
         if(d==='right') setDirection(1,0);
-      });
+      };
+      btn.addEventListener('pointerdown', e=>{if(e.button===0){e.preventDefault();turn();}});
+      btn.addEventListener('click', e=>{if(e.detail===0) turn();});
     });
 
     if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
@@ -580,13 +674,13 @@
         active=true;
       }, {passive:true});
 
-      el.addEventListener('touchend', e=>{
+      el.addEventListener('touchmove', e=>{
         if(!active) return;
-        active=false;
         const t=e.changedTouches[0];
         const dx=t.clientX-startX, dy=t.clientY-startY;
 
         if(Math.max(Math.abs(dx),Math.abs(dy))<minDist) return;
+        startX=t.clientX; startY=t.clientY;
 
         if(Math.abs(dx)>Math.abs(dy)){
           setDirection(dx>0?1:-1,0);
@@ -594,11 +688,17 @@
           setDirection(0,dy>0?1:-1);
         }
       }, {passive:true});
+      el.addEventListener('touchend', ()=>{active=false;}, {passive:true});
+      el.addEventListener('touchcancel', ()=>{active=false;}, {passive:true});
     })();
 
     function togglePause(){
+      if(!alive){reset();return;}
+      if(ready){ready=false;status('Playing');wake();return;}
       paused=!paused;
-      stateLabel.textContent=paused?"Paused":"Playing";
+      lastTick=0;
+      status(paused?'Paused':'Playing',paused?'Paused\nPress Resume or Space':'');
+      if(paused){cancelAnimationFrame(frame);frame=0;}else wake();
       announce(paused?"Game paused.":"Game resumed.");
     }
 
@@ -607,24 +707,25 @@
       speedIndex=Math.max(0,Math.min(SPEEDS.length-1,speedIndex+delta));
 
       if(speedIndex!==prev){
+        lastTick=0;
         speedLabel.textContent=SPEEDS[speedIndex].label;
         if (speedBtnLabel) speedBtnLabel.textContent = SPEEDS[speedIndex].label;
       }
     }
 
-    if (speedBtn) speedBtn.addEventListener('click', ()=> changeSpeed(1));
+    if (speedBtn) speedBtn.addEventListener('click', ()=>changeSpeed(speedIndex===SPEEDS.length-1?1-SPEEDS.length:1));
+    document.getElementById('restartBtn').addEventListener('click',reset);
 
     // ====== Boot ======
     function boot(){
       layout();
       loadHigh();
       reset();
-      draw();
-      requestAnimationFrame(step);
+      if(window.ResizeObserver) new ResizeObserver(layout).observe(document.querySelector('.board-wrap'));
     }
 
     window.addEventListener('load', boot, {passive:true});
-    document.addEventListener('visibilitychange', ()=>{ lastTick=0; }, {passive:true});
+    document.addEventListener('visibilitychange', ()=>{ if(document.hidden && alive && !paused && !ready) togglePause(); }, {passive:true});
     window.addEventListener('resize', ()=>{ lastTick=0; }, {passive:true});
 
     // ====== Service worker ======

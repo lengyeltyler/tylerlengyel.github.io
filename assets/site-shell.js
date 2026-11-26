@@ -67,7 +67,7 @@
       ["/", "Home", "home"],
       ["/linearA/", "Linear A", "linear-a"],
       ["/createPhil/", "createPhil", "create-phil"],
-      ["/nakes/", "nakes", "nakes"],
+      ["/nakes/", "Snake", "nakes"],
       ["/art/", "Art", "art"],
       ["/articles/", "Articles", "articles"],
       ["/svg-editor/", "SVG Editor", "svg-editor"]
