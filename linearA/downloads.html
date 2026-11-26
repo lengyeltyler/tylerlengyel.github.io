@@ -28,7 +28,7 @@
   <div class="site-shell">
     <div class="la-top">
       <div class="la-breadcrumb"><a href="/">Home</a> / <a href="/linearA/index.html">Linear A</a> / <strong>Data Downloads</strong></div>
-      <div class="latest-badge">Latest run: <span data-latest-run>loading…</span></div>
+      
     </div>
 
     <nav class="la-tabs" aria-label="Linear A navigation">
@@ -40,10 +40,10 @@
 
     <section class="la-hero">
       <h1>Data Downloads</h1>
-      <p class="muted">All links point to the latest run snapshot in <code>/linearA/research/output/latest/</code>.</p>
+      <p><a href="/linearA/research/data/reviewed_tablets.csv" download>Download the nine reviewed tablet notes and their source links (CSV)</a>.</p><p>The remaining files preserve the May 2026 analysis and its inputs. Some rows came from withdrawn local readings. <a href="/linearA/analysis.html">Read the data audit before reusing the historical files</a>.</p>
     </section>
 
-    <h2>Core Run Files</h2>
+<section class="block"><h2>What changed after removing the write-ups?</h2><p>Running the same primary model with seed 20260224 on the 2,698 imported observations left 2,550 normalized entries and 610 identifiers. The weighted score moved from 71.36 to 71.40. Shuffling the signs within each entry produced exactly the same likelihood for the winning model. The pipeline also flagged a failed stress check. The score therefore gives us no basis for choosing a word order or assigning a translation probability.</p><p><a href="/linearA/research/output/review-2026-11-26/run_summary.json">Run summary</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_adversarial_suite.csv">Control results</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_model_bakeoff_scores.csv">Model comparison</a>.</p></section>    <h2>Archived core run files</h2>
     <ul class="download-list">
       <li><span><code>run_summary.json</code></span><a href="/linearA/research/output/latest/run_summary.json">Download</a></li>
       <li><span><code>research_log.md</code></span><a href="/linearA/research/output/latest/research_log.md">Download</a></li>

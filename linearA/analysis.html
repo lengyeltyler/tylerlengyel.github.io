@@ -28,7 +28,7 @@
   <div class="site-shell">
     <div class="la-top">
       <div class="la-breadcrumb"><a href="/">Home</a> / <a href="/linearA/index.html">Linear A</a> / <strong>Analysis</strong></div>
-      <div class="latest-badge">Latest run: <span data-latest-run>loading…</span></div>
+      
     </div>
 
     <nav class="la-tabs" aria-label="Linear A navigation">
@@ -38,21 +38,8 @@
       <a href="/linearA/downloads.html">Data Downloads</a>
     </nav>
 
-    <section class="la-hero">
-      <h1>Analysis (Technical)</h1>
-      <p class="muted">
-        This page summarizes Phase 1-5 outputs from the reproducible pipeline. Structural confidence is evaluated with
-        cross-validation and falsification tests. No semantic decipherment is claimed.
-      </p>
-
-      <div class="key-takeaway">
-        <strong>Key takeaway</strong>
-        The expanded corpus ranks the syllabary-like structural model highest, while confidence remains capped by weak
-        template predictability and adversarial tests that do not all behave as expected.
-      </div>
-    </section>
-
-    <h2>Latest Run Snapshot</h2>
+    <section class="la-hero"><h1>Technical analysis and data audit</h1><p>The numerical outputs below document the archived May 2026 experiment.</p></section><section class="block"><h2>Why the earlier score was retired</h2><p>The May 2026 run counted 2,901 observations. Of these, 2,698 came from the external import and 203 from local write-ups. HTML and Markdown versions repeated some of the same examples. HT 31 and HT 95 even shared purported grain and oil lines despite documenting different records. The 71.36-point score therefore cannot establish how well the model describes the surviving inscriptions.</p><p>The external import also mixes words, sign groups and parts of lines. Identifiers can distinguish two faces of a single object. The 2,593 normalized entries and 619 identifiers in the archived run are counts in that dataset. A new evaluation needs to group rows by physical object before splitting training and test sets. The previous outputs remain available for inspection.</p></section>
+    <section class="block"><h2>What changed after removing the write-ups?</h2><p>Running the same primary model with seed 20260224 on the 2,698 imported observations left 2,550 normalized entries and 610 identifiers. The weighted score moved from 71.36 to 71.40. Shuffling the signs within each entry produced exactly the same likelihood for the winning model. The pipeline also flagged a failed stress check. The score therefore gives us no basis for choosing a word order or assigning a translation probability.</p><p><a href="/linearA/research/output/review-2026-11-26/run_summary.json">Run summary</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_adversarial_suite.csv">Control results</a> · <a href="/linearA/research/output/review-2026-11-26/phase5_model_bakeoff_scores.csv">Model comparison</a>.</p></section>    <h2>Archived run snapshot</h2>
     <div data-tech-summary class="embed-box">
       <p class="muted" style="padding: 12px;">Loading run summary…</p>
     </div>
@@ -115,19 +102,7 @@
     </div>
 
     <section class="block">
-      <h2>Can the Current Evidence Support 85%?</h2>
-      <p>
-        Not yet. The generated confidence matrix reaches <strong>71.36%</strong>, and random-weight
-        sensitivity runs cap below 85%. The path to 85% would require the weak components to improve,
-        especially template predictability and out-of-sample performance, not merely a more favorable
-        explanation of the same evidence.
-      </p>
-      <ul class="evidence-list">
-        <li><strong>For:</strong> corpus breadth, provenance tracking, normalization stability, and AB22 positional concentration.</li>
-        <li><strong>Against:</strong> semantic and phonetic claims remain low confidence; shuffled-sequence falsification currently shows no degradation under the winning model.</li>
-        <li><strong>Needed:</strong> independent inscriptions or held-out artifacts where the model predicts structure before inspection.</li>
-      </ul>
-    </section>
+      <h2>Interpretation of the score</h2><p>Changing the weights cannot repair source attribution or a split that treats two faces as independent objects. These scores are retained for replication only.</p></section>
 
     <h2>Core Technical Outputs</h2>
     <div class="table-wrap">

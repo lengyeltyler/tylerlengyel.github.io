@@ -2416,9 +2416,9 @@ def run_pipeline(
     ensure_dir(output_dir)
 
     variant_map = load_variant_map(variant_map_path)
-    internal_obs = collect_internal_observations()
-    external_obs = load_external_observations(external_corpus_path, start_id=len(internal_obs) + 1)
-    observations = internal_obs + external_obs
+    # Published interpretations are commentary, not independent inscription witnesses.
+    external_obs = load_external_observations(external_corpus_path, start_id=1)
+    observations = external_obs
 
     canonical_entries, normalization_info = normalize_and_manifest(
         observations=observations,

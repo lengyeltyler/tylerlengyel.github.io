@@ -1,33 +1,7 @@
----
-title: HT9 — Proto-translation
-permalink: /linearA/HT9
-layout: page
----
+# HT 9 · Seven entries and a total
 
-# HT9 — Proto-translation
+On side B the seven amounts are 3, 3, 8, 2, 2, 2 and 4. They add to 24, exactly the figure following KU-RO. Six of the seven labels also occur on side A.
 
-## Deciphered Text (hypothesis)
-wine in amphoraB ×51   [low]   (raw: VIN+TE 51)
-wine in amphoraB ×25   [low]   (raw: VIN+TE 25)
-wine in amphoraB ×87   [low]   (raw: VIN+TE 87)
-wine in amphoraB ×19   [low]   (raw: VIN+TE 19)
-wine in amphoraB ×18   [low]   (raw: VIN+TE 18)
-wine in amphoraB ×130  [low]   (raw: VIN+TE 130)
+The shared labels suggest two accounts drawn from a common register. The amounts and order can change. A comparable pair with readable headings could reveal whether the distinction concerns a commodity, a transaction, or its timing.
 
-## Original Tablet Text
-VIN+TE 51
-VIN+TE 25
-VIN+TE 87
-VIN+TE 19
-VIN+TE 18
-VIN+TE 130
-
-## Confidence Levels
-- All six lines are **low confidence** due to limited anchors.  
-
-## Notes
-- Entirely dominated by *wine amphoraB* tallies.  
-- One of the strongest single-commodity ledgers.  
-
-## Dictionary (local mapping)
-- `VIN+TE` → *wine in amphoraB* (tentative).  
+[HT-9B](https://www.andrewklong.com/ArianaLinearAProject/texts/ht-9b/) · [HT-9A](https://www.andrewklong.com/ArianaLinearAProject/texts/ht-9a/)

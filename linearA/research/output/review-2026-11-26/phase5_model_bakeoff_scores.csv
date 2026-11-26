@@ -1,0 +1,10 @@
+model_id,model_label,cv_scheme,folds,test_lines,test_tokens,mean_log_likelihood_per_token,perplexity,prediction_alignment_score,cv_rank_score,overall_goodness_score,is_best_model
+model_1_syllabary_like,Syllabary-like structure hypothesis,combined,615,5100,12936,-5.669717,289.982438,76.202309,94.086989,87.827351,1
+model_3_accounting_template,Accounting/notation template hypothesis,combined,615,5100,12936,-5.555262,258.595299,37.702309,100.000000,78.195808,0
+model_2_logophonetic_mix,Logographic + phonetic mix hypothesis,combined,615,5100,12936,-7.490551,1791.070246,55.202309,0.000000,19.320808,0
+model_1_syllabary_like,Syllabary-like structure hypothesis,kfold,5,2550,6468,-5.655373,285.823093,76.202309,94.698881,88.225081,0
+model_3_accounting_template,Accounting/notation template hypothesis,kfold,5,2550,6468,-5.552971,258.002938,37.702309,100.000000,78.195808,0
+model_2_logophonetic_mix,Logographic + phonetic mix hypothesis,kfold,5,2550,6468,-7.484678,1780.550857,55.202309,0.000000,19.320808,0
+model_1_syllabary_like,Syllabary-like structure hypothesis,leave_one_artifact_out,610,2550,6468,-5.684062,294.141782,76.202309,93.475096,87.429621,0
+model_3_accounting_template,Accounting/notation template hypothesis,leave_one_artifact_out,610,2550,6468,-5.557552,259.187659,37.702309,100.000000,78.195808,0
+model_2_logophonetic_mix,Logographic + phonetic mix hypothesis,leave_one_artifact_out,610,2550,6468,-7.496425,1801.589634,55.202309,0.000000,19.320808,0
