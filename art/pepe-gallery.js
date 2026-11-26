@@ -116,6 +116,10 @@ const pepeImages = [
     "title": "Pepe Dr"
   },
   {
+    "file": "pepe-first-blood.jpeg",
+    "title": "Pepe: First Blood"
+  },
+  {
     "file": "pepe-gump.jpeg",
     "title": "Pepe Gump"
   },
@@ -172,12 +176,20 @@ const pepeImages = [
     "title": "Pepe Unchained"
   },
   {
+    "file": "pepe-x.jpeg",
+    "title": "Pepe X"
+  },
+  {
     "file": "pepe42.png",
     "title": "Pepe42"
   },
   {
     "file": "pepes-in-the-outfield.jpeg",
     "title": "Pepes In The Outfield"
+  },
+  {
+    "file": "pepins.jpeg",
+    "title": "Pepins"
   },
   {
     "file": "planet-of-the-pepes.png",
@@ -198,6 +210,10 @@ const pepeImages = [
   {
     "file": "stand-by-pepe.jpeg",
     "title": "Stand By Pepe"
+  },
+  {
+    "file": "the-40-year-old-pepe.jpeg",
+    "title": "The 40-Year-Old Pepe"
   },
   {
     "file": "the-bad-news-pepes.jpeg",
