@@ -1,5 +1,3 @@
-import { SvgGeometryEngine } from "./geometry-engine.js";
-
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const TOOLS = {
@@ -7,39 +5,15 @@ const TOOLS = {
   RECT: "rect",
   ELLIPSE: "ellipse",
   PEN: "pen",
-  PENCIL: "pencil",
   DIRECT: "direct",
-  LINE: "line",
-  POLYGON: "polygon",
-  TEXT: "text",
-  HAND: "hand",
-  ZOOM: "zoom",
-  EYEDROPPER: "eyedropper"
+  LINE: "line", PENCIL: "pencil", TEXT: "text", HAND: "hand", ZOOM: "zoom", POLYGON:'polygon', STAR:'star'
 };
 
 const DEFAULT_STYLE = {
   fill: "#90caf955",
-  stroke: "#3a8cb3",
+  stroke: "#1976d2",
   strokeWidth: 2,
-  strokeJoin: "miter",
-  strokeCap: "butt",
-  strokeDasharray: "",
-  strokeMiterlimit: 4,
-  fillOpacity: 1,
-  strokeOpacity: 1,
-  opacity: 1,
-  fillRule: "nonzero"
-};
-
-const SVG_IMPORT_DEFAULT_STYLE = {
-  ...DEFAULT_STYLE,
-  color: "#000000",
-  fill: "#000000",
-  stroke: "none",
-  strokeWidth: 1,
-  fillOpacity: 1,
-  strokeOpacity: 1,
-  opacity: 1
+  opacity: 1, gradient:null, strokeCap:'butt',strokeJoin:'miter',strokeDash:''
 };
 
 const DEFAULT_TRANSFORM = {
@@ -52,23 +26,16 @@ const DEFAULT_TRANSFORM = {
 
 const STORAGE_LEGACY_KEY = "svg-editor:legacy-shapes:v2";
 const STORAGE_CANONICAL_KEY = "svg-editor:canonical-shapes:v2";
-const STORAGE_DRAFTS_KEY = "svg-editor:drafts:v1";
-const STORAGE_SETTINGS_KEY = "svg-editor:settings:v1";
 
 const dom = {
   toolGroup: document.getElementById("tool-group"),
   canvas: document.getElementById("editor-canvas"),
-  pasteboard: document.getElementById("pasteboard"),
-  artboardWrap: document.getElementById("artboard-wrap"),
   canvasBackground: document.getElementById("canvas-bg"),
-  gridBackground: document.getElementById("grid-bg"),
   scene: document.getElementById("scene-root"),
   overlay: document.getElementById("overlay-root"),
-  activeToolLabel: document.getElementById("active-tool-label"),
   layers: document.getElementById("layers-list"),
   layerForwardBtn: document.getElementById("layer-forward-btn"),
   layerBackwardBtn: document.getElementById("layer-backward-btn"),
-  addLayerBtn: document.getElementById("add-layer-btn"),
   groupBtn: document.getElementById("group-btn"),
   ungroupBtn: document.getElementById("ungroup-btn"),
   alignLeftBtn: document.getElementById("align-left-btn"),
@@ -82,60 +49,13 @@ const dom = {
   booleanUniteBtn: document.getElementById("boolean-unite-btn"),
   booleanSubtractBtn: document.getElementById("boolean-subtract-btn"),
   booleanIntersectBtn: document.getElementById("boolean-intersect-btn"),
-  booleanExcludeBtn: document.getElementById("boolean-exclude-btn"),
-  dividePathBtn: document.getElementById("divide-path-btn"),
-  reversePathBtn: document.getElementById("reverse-path-btn"),
-  simplifyPathBtn: document.getElementById("simplify-path-btn"),
-  outlineStrokeBtn: document.getElementById("outline-stroke-btn"),
-  expandAppearanceBtn: document.getElementById("expand-appearance-btn"),
-  joinPathsBtn: document.getElementById("join-paths-btn"),
-  convertAnchorBtn: document.getElementById("convert-anchor-btn"),
-  offsetPathInput: document.getElementById("offset-path-input"),
-  offsetPathBtn: document.getElementById("offset-path-btn"),
-  pathfinderNote: document.getElementById("pathfinder-note"),
-  addArtboardBtn: document.getElementById("add-artboard-btn"),
-  duplicateArtboardBtn: document.getElementById("duplicate-artboard-btn"),
-  renameArtboardBtn: document.getElementById("rename-artboard-btn"),
-  deleteArtboardBtn: document.getElementById("delete-artboard-btn"),
-  fitArtboardBtn: document.getElementById("fit-artboard-btn"),
-  artboardsList: document.getElementById("artboards-list"),
-  artboardsNote: document.getElementById("artboards-note"),
-  duplicateSymbolBtn: document.getElementById("duplicate-symbol-btn"),
-  breakSymbolBtn: document.getElementById("break-symbol-btn"),
-  symbolNote: document.getElementById("symbol-note"),
   snapToggleBtn: document.getElementById("snap-toggle-btn"),
-  gridToggleBtn: document.getElementById("grid-toggle-btn"),
-  rulersToggleBtn: document.getElementById("rulers-toggle-btn"),
-  importSvgToolbarBtn: document.getElementById("import-svg-toolbar-btn"),
-  toggleCodeToolbarBtn: document.getElementById("toggle-code-toolbar-btn"),
-  zoomReadout: document.getElementById("zoom-readout"),
-  zoomInBtn: document.getElementById("zoom-in-btn"),
-  zoomOutBtn: document.getElementById("zoom-out-btn"),
-  fitScreenBtn: document.getElementById("fit-screen-btn"),
-  resetViewBtn: document.getElementById("reset-view-btn"),
   statusLeft: document.getElementById("status-left"),
-  documentNameInput: document.getElementById("document-name-input"),
-  artboardNameInput: document.getElementById("artboard-name-input"),
-  objectNameInput: document.getElementById("object-name-input"),
   docWidth: document.getElementById("doc-width-input"),
   docHeight: document.getElementById("doc-height-input"),
   fillInput: document.getElementById("fill-input"),
   strokeInput: document.getElementById("stroke-input"),
-  fillModeInput: document.getElementById("fill-mode-input"),
-  strokeModeInput: document.getElementById("stroke-mode-input"),
-  fillGradientStartInput: document.getElementById("fill-gradient-start-input"),
-  fillGradientEndInput: document.getElementById("fill-gradient-end-input"),
-  fillGradientAngleInput: document.getElementById("fill-gradient-angle-input"),
-  strokeGradientStartInput: document.getElementById("stroke-gradient-start-input"),
-  strokeGradientEndInput: document.getElementById("stroke-gradient-end-input"),
-  strokeGradientAngleInput: document.getElementById("stroke-gradient-angle-input"),
-  fillOpacityInput: document.getElementById("fill-opacity-input"),
-  strokeOpacityInput: document.getElementById("stroke-opacity-input"),
   strokeWidthInput: document.getElementById("stroke-width-input"),
-  strokeDashInput: document.getElementById("stroke-dash-input"),
-  miterLimitInput: document.getElementById("miter-limit-input"),
-  strokeJoinInput: document.getElementById("stroke-join-input"),
-  strokeCapInput: document.getElementById("stroke-cap-input"),
   opacityInput: document.getElementById("opacity-input"),
   transformXInput: document.getElementById("transform-x-input"),
   transformYInput: document.getElementById("transform-y-input"),
@@ -145,47 +65,19 @@ const dom = {
   selectionSummary: document.getElementById("selection-summary"),
   undoBtn: document.getElementById("undo-btn"),
   redoBtn: document.getElementById("redo-btn"),
-  undoToolbarBtn: document.getElementById("undo-toolbar-btn"),
-  redoToolbarBtn: document.getElementById("redo-toolbar-btn"),
-  duplicateBtn: document.getElementById("duplicate-btn"),
-  deleteBtn: document.getElementById("delete-btn"),
-  importSvgBtn: document.getElementById("import-svg-btn"),
-  importSvgInput: document.getElementById("import-svg-input"),
   downloadSvgBtn: document.getElementById("download-svg-btn"),
-  copySvgBtn: document.getElementById("copy-svg-btn"),
-  exportPresetInput: document.getElementById("export-preset-input"),
-  pencilSmoothingInput: document.getElementById("pencil-smoothing-input"),
-  newProjectBtn: document.getElementById("new-project-btn"),
-  clearCanvasBtn: document.getElementById("clear-canvas-btn"),
-  saveDraftBtn: document.getElementById("save-draft-btn"),
-  resetEditorBtn: document.getElementById("reset-editor-btn"),
-  draftsSelect: document.getElementById("drafts-select"),
-  autosaveToggle: document.getElementById("autosave-toggle"),
-  addFillSwatchBtn: document.getElementById("add-fill-swatch-btn"),
-  addGradientSwatchBtn: document.getElementById("add-gradient-swatch-btn"),
-  swatchesList: document.getElementById("swatches-list"),
-  toggleCodeBtn: document.getElementById("toggle-code-btn"),
-  codeDrawer: document.getElementById("code-drawer"),
-  svgCodeInput: document.getElementById("svg-code-input"),
-  svgValidationMessage: document.getElementById("svg-validation-message"),
-  applySvgCodeBtn: document.getElementById("apply-svg-code-btn"),
-  refreshSvgCodeBtn: document.getElementById("refresh-svg-code-btn")
+  copySvgBtn: document.getElementById("copy-svg-btn")
 };
 
 const requiredDomKeys = [
   "toolGroup",
   "canvas",
-  "pasteboard",
-  "artboardWrap",
   "canvasBackground",
-  "gridBackground",
   "scene",
   "overlay",
-  "activeToolLabel",
   "layers",
   "layerForwardBtn",
   "layerBackwardBtn",
-  "addLayerBtn",
   "groupBtn",
   "ungroupBtn",
   "alignLeftBtn",
@@ -199,60 +91,13 @@ const requiredDomKeys = [
   "booleanUniteBtn",
   "booleanSubtractBtn",
   "booleanIntersectBtn",
-  "booleanExcludeBtn",
-  "dividePathBtn",
-  "reversePathBtn",
-  "simplifyPathBtn",
-  "outlineStrokeBtn",
-  "expandAppearanceBtn",
-  "joinPathsBtn",
-  "convertAnchorBtn",
-  "offsetPathInput",
-  "offsetPathBtn",
-  "pathfinderNote",
-  "addArtboardBtn",
-  "duplicateArtboardBtn",
-  "renameArtboardBtn",
-  "deleteArtboardBtn",
-  "fitArtboardBtn",
-  "artboardsList",
-  "artboardsNote",
-  "duplicateSymbolBtn",
-  "breakSymbolBtn",
-  "symbolNote",
   "snapToggleBtn",
-  "gridToggleBtn",
-  "rulersToggleBtn",
-  "importSvgToolbarBtn",
-  "toggleCodeToolbarBtn",
-  "zoomReadout",
-  "zoomInBtn",
-  "zoomOutBtn",
-  "fitScreenBtn",
-  "resetViewBtn",
   "statusLeft",
-  "documentNameInput",
-  "artboardNameInput",
-  "objectNameInput",
   "docWidth",
   "docHeight",
   "fillInput",
   "strokeInput",
-  "fillModeInput",
-  "strokeModeInput",
-  "fillGradientStartInput",
-  "fillGradientEndInput",
-  "fillGradientAngleInput",
-  "strokeGradientStartInput",
-  "strokeGradientEndInput",
-  "strokeGradientAngleInput",
-  "fillOpacityInput",
-  "strokeOpacityInput",
   "strokeWidthInput",
-  "strokeDashInput",
-  "miterLimitInput",
-  "strokeJoinInput",
-  "strokeCapInput",
   "opacityInput",
   "transformXInput",
   "transformYInput",
@@ -262,31 +107,8 @@ const requiredDomKeys = [
   "selectionSummary",
   "undoBtn",
   "redoBtn",
-  "undoToolbarBtn",
-  "redoToolbarBtn",
-  "duplicateBtn",
-  "deleteBtn",
-  "importSvgBtn",
-  "importSvgInput",
   "downloadSvgBtn",
-  "copySvgBtn",
-  "exportPresetInput",
-  "pencilSmoothingInput",
-  "newProjectBtn",
-  "clearCanvasBtn",
-  "saveDraftBtn",
-  "resetEditorBtn",
-  "draftsSelect",
-  "autosaveToggle",
-  "addFillSwatchBtn",
-  "addGradientSwatchBtn",
-  "swatchesList",
-  "toggleCodeBtn",
-  "codeDrawer",
-  "svgCodeInput",
-  "svgValidationMessage",
-  "applySvgCodeBtn",
-  "refreshSvgCodeBtn"
+  "copySvgBtn"
 ];
 
 for (const key of requiredDomKeys) {
@@ -297,34 +119,13 @@ for (const key of requiredDomKeys) {
 
 const state = {
   doc: {
-    name: "Untitled SVG",
-    artboardName: "Artboard 1",
     width: 1200,
-    height: 800,
-    defs: "",
-    activeArtboardId: "artboard-1",
-    artboards: [
-      {
-        id: "artboard-1",
-        name: "Artboard 1",
-        x: 0,
-        y: 0,
-        width: 1200,
-        height: 800
-      }
-    ]
+    height: 800
   },
   tool: TOOLS.SELECT,
   objects: [],
   selection: [],
-  activeLayerId: null,
   activePathId: null,
-  autosave: true,
-  swatches: [
-    { type: "solid", name: "Phil Blue", color: "#2f6fec" },
-    { type: "solid", name: "Warm Gold", color: "#ffd166" },
-    { type: "solid", name: "Ink", color: "#111111" }
-  ],
   directSelection: {
     pathId: null,
     anchorIndex: null
@@ -340,19 +141,7 @@ const state = {
     marqueeCurrent: null,
     marqueeAdditive: false,
     snapGuides: [],
-    startSelectionBounds: null,
-    pencilPoints: null,
-    penDragPathId: null,
-    penDragAnchorIndex: null,
-    hoverAnchor: null,
-    penHistoryPathId: null,
-    dragStartLocal: null,
-    dragAnchorSnapshot: null,
-    dragHandleSnapshot: null,
-    activeHandle: null,
-    livePreviewPoint: null,
-    rafPending: false,
-    lastCursorPoint: null
+    startSelectionBounds: null
   },
   history: {
     undo: [],
@@ -362,17 +151,35 @@ const state = {
     enabled: true,
     threshold: 6
   },
-  view: {
-    zoom: 0.62,
-    panX: 0,
-    panY: 0,
-    grid: true,
-    rulers: true,
-    fitted: false
-  }
+  view:{zoom:1,cx:600,cy:400,fit:true},
+  paint:deepClone(DEFAULT_STYLE),grid:{visible:false,snap:false,size:20},shapeSides:5,alignTarget:'selection',boards:[],activeBoard:0
 };
 
 let idCounter = 0;
+let spaceDown=false,clipboardObjects=[],saveTimer=0,textEditing=false;
+const expandedLayerGroups=new Set(),layerThumbnailCache=new Map();
+const $=id=>document.getElementById(id);
+
+function renderView(){
+  const w=dom.canvas.clientWidth||1,h=dom.canvas.clientHeight||1;
+  const v=state.view;
+  if(v.fit){v.zoom=Math.max(.01,Math.min((w-32)/state.doc.width,(h-32)/state.doc.height));v.cx=state.doc.width/2;v.cy=state.doc.height/2;}
+  const vw=w/v.zoom,vh=h/v.zoom;
+  dom.canvas.setAttribute('viewBox',`${v.cx-vw/2} ${v.cy-vh/2} ${vw} ${vh}`);
+  $('zoom-label').textContent=`${Math.round(v.zoom*100)}%`;
+  $('artboard-size').textContent=`${state.doc.width} × ${state.doc.height} px`;
+}
+function fitArtboard(){state.view.fit=true;renderView();drawSelectionOutline();}
+function zoomAt(factor,point={x:state.view.cx,y:state.view.cy}){
+  const v=state.view,old=v.zoom,next=clamp(old*factor,.01,32);
+  v.fit=false;v.cx=point.x+(v.cx-point.x)*old/next;v.cy=point.y+(v.cy-point.y)*old/next;v.zoom=next;renderView();drawSelectionOutline();
+}
+function syncBoards(){if(!state.boards.length)state.boards=[{name:'Artboard 1',document:state.doc,objects:state.objects}];const b=state.boards[state.activeBoard];b.document=state.doc;b.objects=state.objects;return state.boards;}
+function selectBoard(index){syncBoards();if(!Number.isInteger(index)||index<0||index>=state.boards.length)return;state.activeBoard=index;const board=state.boards[index];state.doc=board.document;state.objects=board.objects;deselectAll();state.interaction.mode=null;state.view.fit=true;render();setStatus(board.name);}
+function addBoard(duplicate=false){syncBoards();if(state.boards.length>=16){setStatus('Maximum 16 artboards per project');return;}pushHistory();const source=state.boards[state.activeBoard],copy=duplicate?deepClone(source.objects):[];const idClone=objects=>objects.forEach(s=>{s.id=nextId();if(s.children)idClone(s.children);});if(duplicate)idClone(copy);let n=state.boards.length+1;while(state.boards.some(b=>b.name===`Artboard ${n}`))n++;state.boards.push({name:duplicate?`${source.name} copy`:`Artboard ${n}`,document:{...source.document},objects:copy});selectBoard(state.boards.length-1);}
+function renameBoard(){syncBoards();const b=state.boards[state.activeBoard],name=prompt('Artboard name',b.name);if(name?.trim()){pushHistory();b.name=name.trim().slice(0,100);render();}}
+function removeBoard(){syncBoards();if(state.boards.length<=1)return;const i=state.activeBoard,b=state.boards[i];if(!confirm(`Delete ${b.name}? You can undo this.`))return;pushHistory();state.boards.splice(i,1);state.activeBoard=Math.min(i,state.boards.length-1);const next=state.boards[state.activeBoard];state.doc=next.document;state.objects=next.objects;deselectAll();state.view.fit=true;render();}
+function renderBoardControls(){const boards=syncBoards(),select=$('artboard-select');select.replaceChildren();boards.forEach((b,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=b.name;select.append(opt);});select.value=state.activeBoard;$('delete-artboard-btn').disabled=boards.length<=1;$('add-artboard-btn').disabled=boards.length>=16;$('duplicate-artboard-btn').disabled=boards.length>=16;}
 
 const SCALE_HANDLE_CONFIG = {
   nw: { x: 0, y: 0, cursor: "nwse-resize" },
@@ -386,159 +193,13 @@ function nextId(prefix = "obj") {
   return `${prefix}_${Date.now().toString(36)}_${idCounter.toString(36)}`;
 }
 
-function defaultArtboard(width = 1200, height = 800, name = "Artboard 1") {
-  return {
-    id: nextId("artboard"),
-    name,
-    x: 0,
-    y: 0,
-    width: clamp(Number(width) || 1200, 64, 10000),
-    height: clamp(Number(height) || 800, 64, 10000)
-  };
-}
-
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function clampNumber(value, min, max, fallback) {
-  const number = Number(value);
-  return Number.isFinite(number) ? clamp(number, min, max) : fallback;
 }
 
 function round(value, precision = 3) {
   const m = 10 ** precision;
   return Math.round(value * m) / m;
-}
-
-function matrixIdentity() {
-  return [1, 0, 0, 1, 0, 0];
-}
-
-function matrixMultiply(left, right) {
-  const [a1, b1, c1, d1, e1, f1] = left || matrixIdentity();
-  const [a2, b2, c2, d2, e2, f2] = right || matrixIdentity();
-  return [
-    a1 * a2 + c1 * b2,
-    b1 * a2 + d1 * b2,
-    a1 * c2 + c1 * d2,
-    b1 * c2 + d1 * d2,
-    a1 * e2 + c1 * f2 + e1,
-    b1 * e2 + d1 * f2 + f1
-  ];
-}
-
-function matrixTranslate(x = 0, y = 0) {
-  return [1, 0, 0, 1, Number(x) || 0, Number(y) || 0];
-}
-
-function matrixScale(x = 1, y = x) {
-  const sx = Number.isFinite(Number(x)) ? Number(x) : 1;
-  const sy = Number.isFinite(Number(y)) ? Number(y) : sx;
-  return [sx, 0, 0, sy, 0, 0];
-}
-
-function matrixRotate(angle = 0, cx = 0, cy = 0) {
-  const radians = ((Number(angle) || 0) * Math.PI) / 180;
-  const cos = Math.cos(radians);
-  const sin = Math.sin(radians);
-  const rotation = [cos, sin, -sin, cos, 0, 0];
-  if (!cx && !cy) {
-    return rotation;
-  }
-  return matrixMultiply(matrixMultiply(matrixTranslate(cx, cy), rotation), matrixTranslate(-cx, -cy));
-}
-
-function matrixSkewX(angle = 0) {
-  return [1, 0, Math.tan(((Number(angle) || 0) * Math.PI) / 180), 1, 0, 0];
-}
-
-function matrixSkewY(angle = 0) {
-  return [1, Math.tan(((Number(angle) || 0) * Math.PI) / 180), 0, 1, 0, 0];
-}
-
-function matrixApplyPoint(matrix, point) {
-  const [a, b, c, d, e, f] = matrix || matrixIdentity();
-  return {
-    x: point.x * a + point.y * c + e,
-    y: point.x * b + point.y * d + f
-  };
-}
-
-function matrixInverse(matrix) {
-  const [a, b, c, d, e, f] = matrix || matrixIdentity();
-  const determinant = a * d - b * c;
-  if (Math.abs(determinant) < 0.0000001) {
-    console.warn("SVG editor: unsupported non-invertible transform matrix", matrix);
-    return matrixIdentity();
-  }
-  return [
-    d / determinant,
-    -b / determinant,
-    -c / determinant,
-    a / determinant,
-    (c * f - d * e) / determinant,
-    (b * e - a * f) / determinant
-  ];
-}
-
-function matrixIsIdentity(matrix) {
-  const m = matrix || matrixIdentity();
-  return (
-    Math.abs(m[0] - 1) < 0.000001 &&
-    Math.abs(m[1]) < 0.000001 &&
-    Math.abs(m[2]) < 0.000001 &&
-    Math.abs(m[3] - 1) < 0.000001 &&
-    Math.abs(m[4]) < 0.000001 &&
-    Math.abs(m[5]) < 0.000001
-  );
-}
-
-function matrixToString(matrix) {
-  return `matrix(${(matrix || matrixIdentity()).map((value) => round(value, 6)).join(" ")})`;
-}
-
-function gradientId(prefix = "gradient") {
-  return nextId(prefix).replace(/[^A-Za-z0-9_.:-]/g, "_");
-}
-
-function defaultGradient(kind = "linear", start = DEFAULT_STYLE.fill, end = "#7c3aed") {
-  return {
-    id: gradientId(kind === "radial" ? "radialGradient" : "linearGradient"),
-    type: kind === "radial" ? "radial" : "linear",
-    angle: 0,
-    stops: [
-      { offset: 0, color: colorToHex(start, "#90caf9"), opacity: 1 },
-      { offset: 1, color: colorToHex(end, "#7c3aed"), opacity: 1 }
-    ]
-  };
-}
-
-function normalizeGradient(gradient, fallbackStart = DEFAULT_STYLE.fill, fallbackEnd = "#7c3aed") {
-  if (!gradient || typeof gradient !== "object") {
-    return null;
-  }
-  const stops = Array.isArray(gradient.stops) && gradient.stops.length >= 2
-    ? gradient.stops.slice(0, 8)
-    : defaultGradient(gradient.type, fallbackStart, fallbackEnd).stops;
-  return {
-    id: typeof gradient.id === "string" && gradient.id ? gradient.id : gradientId(gradient.type === "radial" ? "radialGradient" : "linearGradient"),
-    type: gradient.type === "radial" ? "radial" : "linear",
-    angle: Number.isFinite(Number(gradient.angle)) ? Number(gradient.angle) : 0,
-    stops: stops.map((stop, index) => ({
-      offset: clampNumber(stop.offset, 0, 1, index / Math.max(1, stops.length - 1)),
-      color: stop.color || (index === 0 ? fallbackStart : fallbackEnd),
-      opacity: clampNumber(stop.opacity, 0, 1, 1)
-    }))
-  };
-}
-
-function transformToMatrix(transform) {
-  const t = normalizeTransform(transform);
-  if (Array.isArray(t.matrix)) {
-    return t.matrix;
-  }
-  return matrixMultiply(matrixMultiply(matrixTranslate(t.tx, t.ty), matrixRotate(t.rotation)), matrixScale(t.sx, t.sy));
 }
 
 const colorCanvas = document.createElement("canvas");
@@ -590,15 +251,6 @@ function deepClone(value) {
 }
 
 function normalizeTransform(transform) {
-  if (Array.isArray(transform?.matrix)) {
-    const matrix = transform.matrix.map(Number);
-    if (matrix.length === 6 && matrix.every(Number.isFinite)) {
-      return {
-        ...DEFAULT_TRANSFORM,
-        matrix
-      };
-    }
-  }
   return {
     ...DEFAULT_TRANSFORM,
     ...(transform || {})
@@ -606,32 +258,30 @@ function normalizeTransform(transform) {
 }
 
 function normalizeStyle(style) {
-  const next = {
+  const result={
     ...DEFAULT_STYLE,
     ...(style || {})
   };
-  next.fillOpacity = clampNumber(next.fillOpacity, 0, 1, DEFAULT_STYLE.fillOpacity);
-  next.strokeOpacity = clampNumber(next.strokeOpacity, 0, 1, DEFAULT_STYLE.strokeOpacity);
-  next.opacity = clampNumber(next.opacity, 0, 1, DEFAULT_STYLE.opacity);
-  if (!["miter", "round", "bevel"].includes(next.strokeJoin)) {
-    next.strokeJoin = DEFAULT_STYLE.strokeJoin;
-  }
-  if (!["butt", "round", "square"].includes(next.strokeCap)) {
-    next.strokeCap = DEFAULT_STYLE.strokeCap;
-  }
-  next.strokeDasharray = typeof next.strokeDasharray === "string" ? next.strokeDasharray.trim() : "";
-  next.strokeMiterlimit = Math.max(1, Number(next.strokeMiterlimit) || DEFAULT_STYLE.strokeMiterlimit);
-  next.fillRule = next.fillRule === "evenodd" ? "evenodd" : "nonzero";
-  next.fillGradient = normalizeGradient(next.fillGradient, next.fill || DEFAULT_STYLE.fill, "#7c3aed");
-  next.strokeGradient = normalizeGradient(next.strokeGradient, next.stroke || DEFAULT_STYLE.stroke, "#ff7a18");
-  return next;
+  result.gradient=normalizeGradient(result.gradient);
+  result.strokeCap=['butt','round','square'].includes(result.strokeCap)?result.strokeCap:'butt';
+  result.strokeJoin=['miter','round','bevel'].includes(result.strokeJoin)?result.strokeJoin:'miter';
+  result.strokeDash=normalizeDash(result.strokeDash);
+  return result;
 }
+
+function normalizeDash(value){const parts=String(value||'').trim().split(/[ ,]+/).filter(Boolean).map(Number);return parts.length<=24&&parts.every(n=>Number.isFinite(n)&&n>=0&&n<=10000)&&parts.some(n=>n>0)?parts.join(' '):'';}
+function normalizeGradient(g){
+  if(!g||!['linear','radial'].includes(g.type)||!Array.isArray(g.stops)||g.stops.length<2)return null;
+  const defaults=g.type==='linear'?{x1:0,y1:.5,x2:1,y2:.5}:{cx:.5,cy:.5,r:.5,fx:.5,fy:.5};
+  const coords=Object.fromEntries(Object.entries(defaults).map(([k,v])=>[k,Number.isFinite(Number(g.coords?.[k]))?clamp(Number(g.coords[k]),-100,100):v]));if(g.type==='radial')coords.r=Math.max(.001,coords.r);
+  return {type:g.type,angle:clamp(Number(g.angle)||0,-360,360),coords,stops:g.stops.slice(0,16).map(s=>({offset:clamp(Number(s.offset)||0,0,100),color:/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#000000',opacity:clamp(Number.isFinite(Number(s.opacity))?Number(s.opacity):1,0,1)})).sort((a,b)=>a.offset-b.offset)};
+}
+function gradientId(shape){return 'paint-'+String(shape.id).replace(/[^a-zA-Z0-9_-]/g,'_');}
+function gradientNode(shape,g){const el=createSvgElement(g.type==='radial'?'radialGradient':'linearGradient');el.setAttribute('id',gradientId(shape));for(const [k,v] of Object.entries(g.coords))el.setAttribute(k,v);if(g.angle)el.setAttribute('gradientTransform',`rotate(${g.angle} .5 .5)`);for(const s of g.stops){const stop=createSvgElement('stop');stop.setAttribute('offset',`${s.offset}%`);stop.setAttribute('stop-color',s.color);stop.setAttribute('stop-opacity',s.opacity);el.appendChild(stop);}return el;}
+function gradientMarkup(shape,g){const tag=g.type==='radial'?'radialGradient':'linearGradient',attrs=Object.entries(g.coords).map(([k,v])=>`${k}="${v}"`).join(' ')+(g.angle?` gradientTransform="rotate(${g.angle} .5 .5)"`:'');return `<${tag} id="${gradientId(shape)}" ${attrs}>${g.stops.map(s=>`<stop offset="${s.offset}%" stop-color="${s.color}" stop-opacity="${s.opacity}"/>`).join('')}</${tag}>`;}
 
 function transformToString(transform) {
   const t = normalizeTransform(transform);
-  if (Array.isArray(t.matrix)) {
-    return matrixIsIdentity(t.matrix) ? "" : matrixToString(t.matrix);
-  }
   const parts = [];
   if (t.tx || t.ty) {
     parts.push(`translate(${round(t.tx)} ${round(t.ty)})`);
@@ -643,59 +293,6 @@ function transformToString(transform) {
     parts.push(`scale(${round(t.sx)} ${round(t.sy)})`);
   }
   return parts.join(" ");
-}
-
-function parseTransformNumbers(value) {
-  return String(value || "")
-    .trim()
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .map(Number)
-    .filter((number) => Number.isFinite(number));
-}
-
-function parseSvgTransformMatrix(transform) {
-  let matrix = matrixIdentity();
-  const text = String(transform || "").trim();
-  if (!text) {
-    return matrix;
-  }
-
-  const transformPattern = /([a-zA-Z]+)\(([^)]*)\)/g;
-  let match;
-  let consumed = false;
-
-  while ((match = transformPattern.exec(text))) {
-    consumed = true;
-    const type = match[1];
-    const values = parseTransformNumbers(match[2]);
-    let next = matrixIdentity();
-
-    if (type === "matrix" && values.length >= 6) {
-      next = values.slice(0, 6);
-    } else if (type === "translate" && values.length >= 1) {
-      next = matrixTranslate(values[0], values.length >= 2 ? values[1] : 0);
-    } else if (type === "scale" && values.length >= 1) {
-      next = matrixScale(values[0], values.length >= 2 ? values[1] : values[0]);
-    } else if (type === "rotate" && values.length >= 1) {
-      next = matrixRotate(values[0], values.length >= 3 ? values[1] : 0, values.length >= 3 ? values[2] : 0);
-    } else if (type === "skewX" && values.length >= 1) {
-      next = matrixSkewX(values[0]);
-    } else if (type === "skewY" && values.length >= 1) {
-      next = matrixSkewY(values[0]);
-    } else {
-      console.warn(`SVG editor: unsupported transform '${type}' ignored during import`);
-      continue;
-    }
-
-    matrix = matrixMultiply(matrix, next);
-  }
-
-  if (!consumed && text) {
-    console.warn("SVG editor: could not parse transform during import", text);
-  }
-
-  return matrix;
 }
 
 function buildPathD(anchors, closed) {
@@ -751,24 +348,37 @@ function parseLegacyTransform(transform) {
     return deepClone(DEFAULT_TRANSFORM);
   }
 
-  const matrix = parseSvgTransformMatrix(transform);
-  return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
+  const result = deepClone(DEFAULT_TRANSFORM);
+  const translateMatch = transform.match(/translate\(([-\d.]+)[\s,]+([-\d.]+)\)/);
+  if (translateMatch) {
+    result.tx = Number(translateMatch[1]) || 0;
+    result.ty = Number(translateMatch[2]) || 0;
+  }
+
+  const rotateMatch = transform.match(/rotate\(([-\d.]+)/);
+  if (rotateMatch) {
+    result.rotation = Number(rotateMatch[1]) || 0;
+  }
+
+  const scaleMatch = transform.match(/scale\(([-\d.]+)(?:[\s,]+([-\d.]+))?\)/);
+  if (scaleMatch) {
+    const sx = Number(scaleMatch[1]);
+    const sy = Number(scaleMatch[2]);
+    result.sx = Number.isFinite(sx) ? sx : 1;
+    result.sy = Number.isFinite(sy) ? sy : result.sx;
+  }
+
+  return result;
 }
 
 function parseLegacyPathD(pathD) {
   if (!pathD || typeof pathD !== "string") {
-    return { anchors: [], closed: false, rawD: "" };
+    return { anchors: [], closed: false };
   }
 
-  const commandTokens = pathD.match(/[AaCcHhLlMmQqSsTtVvZz]/g) || [];
-  if (commandTokens.some((command) => !/[MLCZmlcz]/.test(command))) {
-    console.warn("SVG editor: preserving complex path data instead of converting unsupported commands", pathD.slice(0, 120));
-    return { anchors: [], closed: /[Zz]/.test(commandTokens[commandTokens.length - 1] || ""), rawD: pathD, preserved: true };
-  }
-
-  const tokens = pathD.match(/[MLCZmlcz]|[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/g);
+  const tokens = pathD.match(/[MLCZmlcz]|-?\d*\.?\d+(?:e[-+]?\d+)?/g);
   if (!tokens) {
-    return { anchors: [], closed: false, rawD: pathD };
+    return { anchors: [], closed: false };
   }
 
   const anchors = [];
@@ -842,7 +452,49 @@ function parseLegacyPathD(pathD) {
     i += 1;
   }
 
-  return { anchors, closed, rawD: pathD };
+  return { anchors, closed };
+}
+
+// Convert SVG path commands to editable cubic Bézier anchors; preserve each
+// subpath independently, including holes and relative coordinates.
+function parseEditableContours(d){
+  const tokens=String(d).match(/[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?\d+)?/g)||[];
+  if(!tokens.length||String(d).replace(/[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?\d+)?|[\s,]/g,'').length)throw Error('Invalid path data');
+  const contours=[];let i=0,cmd=null,pos={x:0,y:0},start=null,contour=null,lastC=null,lastQ=null,prev='';
+  const letter=t=>/^[a-zA-Z]$/.test(t||'');
+  const read=n=>{const values=tokens.slice(i,i+n).map(Number);if(values.length!==n||values.some(v=>!Number.isFinite(v)||Math.abs(v)>1e7))throw Error('Invalid path coordinates');i+=n;return values;};
+  const point=(x,y,rel)=>({x:x+(rel?pos.x:0),y:y+(rel?pos.y:0)});
+  const anchor=p=>({...p,inHandle:null,outHandle:null});
+  function line(p){if(!contour||contour.closed)throw Error('Missing move command');contour.anchors.push(anchor(p));pos=p;}
+  function cubic(c1,c2,p){if(!contour||contour.closed)throw Error('Missing move command');contour.anchors.at(-1).outHandle=c1;contour.anchors.push({...anchor(p),inHandle:c2});pos=p;lastC=c2;}
+  while(i<tokens.length){
+    if(letter(tokens[i]))cmd=tokens[i++];if(!cmd)throw Error('Missing path command');const upper=cmd.toUpperCase(),rel=cmd!==upper;
+    if(upper==='Z'){if(!contour||contour.closed)throw Error('Invalid close path');contour.closed=true;pos={...start};cmd=null;prev='Z';lastC=lastQ=null;continue;}
+    if(upper==='M'){const [x,y]=read(2);pos=point(x,y,rel);start={...pos};contour={anchors:[anchor(pos)],closed:false};contours.push(contour);cmd=rel?'l':'L';}
+    else if(upper==='L'){const [x,y]=read(2);line(point(x,y,rel));}
+    else if(upper==='H'){const [x]=read(1);line({x:x+(rel?pos.x:0),y:pos.y});}
+    else if(upper==='V'){const [y]=read(1);line({x:pos.x,y:y+(rel?pos.y:0)});}
+    else if(upper==='C'){const [x1,y1,x2,y2,x,y]=read(6);cubic(point(x1,y1,rel),point(x2,y2,rel),point(x,y,rel));}
+    else if(upper==='S'){const [x2,y2,x,y]=read(4),c1=['C','S'].includes(prev)&&lastC?{x:2*pos.x-lastC.x,y:2*pos.y-lastC.y}:{...pos};cubic(c1,point(x2,y2,rel),point(x,y,rel));}
+    else if(upper==='Q'||upper==='T'){let q,p;if(upper==='Q'){const [x1,y1,x,y]=read(4);q=point(x1,y1,rel);p=point(x,y,rel);}else{const [x,y]=read(2);q=['Q','T'].includes(prev)&&lastQ?{x:2*pos.x-lastQ.x,y:2*pos.y-lastQ.y}:{...pos};p=point(x,y,rel);}cubic({x:pos.x+2*(q.x-pos.x)/3,y:pos.y+2*(q.y-pos.y)/3},{x:p.x+2*(q.x-p.x)/3,y:p.y+2*(q.y-p.y)/3},p);lastQ=q;}
+    else if(upper==='A'){const [rx,ry,rotation,large,sweep,x,y]=read(7),p=point(x,y,rel);if(![0,1].includes(large)||![0,1].includes(sweep))throw Error('Invalid arc flags');const segments=arcCubics(pos,p,rx,ry,rotation,large,sweep);if(segments.length)for(const seg of segments)cubic(...seg);else if(pos.x!==p.x||pos.y!==p.y)line(p);}
+    else throw Error(`Unsupported path command ${cmd}`);
+    if(!['C','S'].includes(upper))lastC=null;if(!['Q','T'].includes(upper))lastQ=null;prev=upper;
+    if(contours.length>1000||contour?.anchors.length>20000)throw Error('Path too complex');
+  }
+  return contours.filter(c=>c.anchors.length>0);
+}
+function arcCubics(from,to,rx,ry,rotation,large,sweep){
+  rx=Math.abs(rx);ry=Math.abs(ry);if(!rx||!ry||(from.x===to.x&&from.y===to.y))return [];
+  const phi=rotation*Math.PI/180,c=Math.cos(phi),s=Math.sin(phi),dx=(from.x-to.x)/2,dy=(from.y-to.y)/2,xp=c*dx+s*dy,yp=-s*dx+c*dy;
+  const scale=Math.sqrt((xp/rx)**2+(yp/ry)**2);if(scale>1){rx*=scale;ry*=scale;}
+  const ratio=Math.max(0,(rx*rx*ry*ry-rx*rx*yp*yp-ry*ry*xp*xp)/(rx*rx*yp*yp+ry*ry*xp*xp));const k=(large===sweep?-1:1)*Math.sqrt(ratio),cxp=k*rx*yp/ry,cyp=-k*ry*xp/rx;
+  const cx=c*cxp-s*cyp+(from.x+to.x)/2,cy=s*cxp+c*cyp+(from.y+to.y)/2;
+  const a=Math.atan2((yp-cyp)/ry,(xp-cxp)/rx),end=Math.atan2((-yp-cyp)/ry,(-xp-cxp)/rx);let delta=end-a;if(sweep&&delta<0)delta+=Math.PI*2;if(!sweep&&delta>0)delta-=Math.PI*2;
+  const count=Math.max(1,Math.ceil(Math.abs(delta)/(Math.PI/2))),step=delta/count,out=[];
+  const transform=(x,y)=>({x:cx+c*rx*x-s*ry*y,y:cy+s*rx*x+c*ry*y});
+  for(let j=0;j<count;j++){const t=a+j*step,u=t+step,b=4/3*Math.tan(step/4);out.push([transform(Math.cos(t)-b*Math.sin(t),Math.sin(t)+b*Math.cos(t)),transform(Math.cos(u)+b*Math.sin(u),Math.sin(u)-b*Math.cos(u)),j===count-1?to:transform(Math.cos(u),Math.sin(u))]);}
+  if(out.some(seg=>seg.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y))))throw Error('Invalid arc geometry');return out;
 }
 
 function isCanonicalShape(raw) {
@@ -862,7 +514,6 @@ function normalizeCanonicalShape(raw, fallbackZ) {
     id: raw.id || nextId(),
     type: raw.type,
     name: raw.name || raw.type,
-    sourceId: typeof raw.sourceId === "string" ? raw.sourceId : null,
     zIndex: Number.isFinite(raw.zIndex) ? raw.zIndex : fallbackZ,
     visible: raw.visible !== false,
     locked: raw.locked === true,
@@ -894,36 +545,25 @@ function normalizeCanonicalShape(raw, fallbackZ) {
             ? { x: Number(anchor.outHandle.x), y: Number(anchor.outHandle.y) }
             : null
       })),
-      closed: geometry.closed === true,
-      rawD: typeof geometry.rawD === "string" ? geometry.rawD : ""
+      closed: geometry.closed === true
     };
+  }
+  if(normalized.type==='text'){
+    const g=normalized.geometry||{};normalized.geometry={x:Number(g.x)||0,y:Number(g.y)||0,text:String(g.text??'Type here'),fontSize:clamp(Number(g.fontSize)||36,6,500),fontFamily:String(g.fontFamily||'Arial'),fontWeight:Number(g.fontWeight)===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:clamp(Number(g.letterSpacing)||0,-20,100),lineHeight:clamp(Number(g.lineHeight)||1.2,.5,4)};
+  }
+  if(normalized.type==='compound'){
+    const g=normalized.geometry||{};normalized.geometry={contours:(g.contours||[]).map(c=>({anchors:(c.anchors||[]).map(a=>({x:Number(a.x)||0,y:Number(a.y)||0,inHandle:a.inHandle||null,outHandle:a.outHandle||null})),closed:c.closed===true})),fillRule:g.fillRule==='nonzero'?'nonzero':'evenodd'};
   }
 
   if (normalized.type === "boolean") {
     const geometry = normalized.geometry || {};
     normalized.geometry = {
       op:
-        geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite" || geometry.op === "exclude"
+        geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
           ? geometry.op
           : "unite",
       aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
       bPath: typeof geometry.bPath === "string" ? geometry.bPath : "",
-      bounds: geometry.bounds
-        ? {
-            x: Number(geometry.bounds.x) || 0,
-            y: Number(geometry.bounds.y) || 0,
-            width: Math.max(1, Number(geometry.bounds.width) || 1),
-            height: Math.max(1, Number(geometry.bounds.height) || 1)
-          }
-        : { x: 0, y: 0, width: 1, height: 1 }
-    };
-  }
-
-  if (normalized.type === "raw") {
-    const geometry = normalized.geometry || {};
-    normalized.geometry = {
-      markup: typeof geometry.markup === "string" ? geometry.markup : "",
-      symbolHref: typeof geometry.symbolHref === "string" ? geometry.symbolHref : "",
       bounds: geometry.bounds
         ? {
             x: Number(geometry.bounds.x) || 0,
@@ -951,7 +591,6 @@ function fromLegacyShape(raw, fallbackZ) {
     id: raw?.id || nextId(),
     type,
     name: raw?.name || type,
-    sourceId: typeof raw?.sourceId === "string" ? raw.sourceId : null,
     zIndex: Number.isFinite(raw?.zIndex) ? raw.zIndex : fallbackZ,
     visible: raw?.visible !== false,
     locked: raw?.locked === true,
@@ -967,43 +606,6 @@ function fromLegacyShape(raw, fallbackZ) {
         cy: Number(raw?.cy ?? raw?.y ?? 0),
         rx: Math.max(1, Number(raw?.rx ?? raw?.width ?? 1)),
         ry: Math.max(1, Number(raw?.ry ?? raw?.height ?? 1))
-      }
-    };
-  }
-
-  if (type === "line") {
-    return {
-      ...base,
-      geometry: {
-        x1: Number(raw?.x1 ?? 0),
-        y1: Number(raw?.y1 ?? 0),
-        x2: Number(raw?.x2 ?? 1),
-        y2: Number(raw?.y2 ?? 1)
-      }
-    };
-  }
-
-  if (type === "polygon") {
-    return {
-      ...base,
-      geometry: {
-        cx: Number(raw?.cx ?? 0),
-        cy: Number(raw?.cy ?? 0),
-        radius: Math.max(1, Number(raw?.radius ?? 1)),
-        sides: clamp(Number(raw?.sides ?? 6), 3, 12)
-      }
-    };
-  }
-
-  if (type === "text") {
-    return {
-      ...base,
-      geometry: {
-        x: Number(raw?.x ?? 0),
-        y: Number(raw?.y ?? 0),
-        text: String(raw?.text ?? "Text"),
-        fontSize: Math.max(4, Number(raw?.fontSize ?? 48)),
-        fontFamily: String(raw?.fontFamily ?? "Inter, Arial, sans-serif")
       }
     };
   }
@@ -1049,7 +651,7 @@ function fromLegacyShape(raw, fallbackZ) {
       type: "boolean",
       geometry: {
         op:
-          geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite" || geometry.op === "exclude"
+          geometry.op === "subtract" || geometry.op === "intersect" || geometry.op === "unite"
             ? geometry.op
             : "unite",
         aPath: typeof geometry.aPath === "string" ? geometry.aPath : "",
@@ -1140,54 +742,6 @@ function toLegacyShape(shape) {
     };
   }
 
-  if (shape.type === "line") {
-    return {
-      id: shape.id,
-      type: "line",
-      name: shape.name,
-      x1: shape.geometry.x1,
-      y1: shape.geometry.y1,
-      x2: shape.geometry.x2,
-      y2: shape.geometry.y2,
-      fill: { color: shape.style.fill },
-      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
-      opacity: shape.style.opacity,
-      transform: transformToString(shape.transform),
-      visible: shape.visible,
-      locked: shape.locked
-    };
-  }
-
-  if (shape.type === "polygon") {
-    return {
-      id: shape.id,
-      type: "polygon",
-      name: shape.name,
-      ...shape.geometry,
-      fill: { color: shape.style.fill },
-      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
-      opacity: shape.style.opacity,
-      transform: transformToString(shape.transform),
-      visible: shape.visible,
-      locked: shape.locked
-    };
-  }
-
-  if (shape.type === "text") {
-    return {
-      id: shape.id,
-      type: "text",
-      name: shape.name,
-      ...shape.geometry,
-      fill: { color: shape.style.fill },
-      stroke: { color: shape.style.stroke, width: shape.style.strokeWidth },
-      opacity: shape.style.opacity,
-      transform: transformToString(shape.transform),
-      visible: shape.visible,
-      locked: shape.locked
-    };
-  }
-
   if (shape.type === "group") {
     return {
       id: shape.id,
@@ -1198,39 +752,6 @@ function toLegacyShape(shape) {
       visible: shape.visible,
       locked: shape.locked
     };
-  }
-
-  if (shape.type === "line") {
-    const g = shape.geometry;
-    const length = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
-    if (length < 0.1) {
-      return Math.hypot(local.x - g.x1, local.y - g.y1) <= 6;
-    }
-    const t = clamp(((local.x - g.x1) * (g.x2 - g.x1) + (local.y - g.y1) * (g.y2 - g.y1)) / (length * length), 0, 1);
-    const px = g.x1 + (g.x2 - g.x1) * t;
-    const py = g.y1 + (g.y2 - g.y1) * t;
-    return Math.hypot(local.x - px, local.y - py) <= Math.max(6, normalizeStyle(shape.style).strokeWidth + 4);
-  }
-
-  if (shape.type === "polygon") {
-    const points = polygonPoints(shape.geometry);
-    let inside = false;
-    for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
-      const pi = points[i];
-      const pj = points[j];
-      const intersect = pi.y > local.y !== pj.y > local.y && local.x < ((pj.x - pi.x) * (local.y - pi.y)) / (pj.y - pi.y) + pi.x;
-      if (intersect) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
-  if (shape.type === "text") {
-    const g = shape.geometry;
-    const width = Math.max(1, String(g.text || "").length * g.fontSize * 0.58);
-    const height = Math.max(1, g.fontSize);
-    return local.x >= g.x && local.x <= g.x + width && local.y >= g.y - height && local.y <= g.y + height * 0.25;
   }
 
   if (shape.type === "boolean") {
@@ -1269,150 +790,28 @@ function toLegacyShape(shape) {
 
 function getSnapshot() {
   return JSON.stringify({
-    doc: state.doc,
-    objects: state.objects,
     selection: state.selection,
-    activeLayerId: state.activeLayerId,
-    activePathId: state.activePathId,
-    directSelection: state.directSelection
+    activePathId: state.activePathId,boards:syncBoards(),activeBoard:state.activeBoard,grid:state.grid
   });
 }
 
 function restoreSnapshot(snapshot) {
   const parsed = JSON.parse(snapshot);
-  state.doc = {
-    ...state.doc,
-    ...deepClone(parsed?.doc || {}),
-    name: sanitizeManualName(parsed?.doc?.name) || "Untitled SVG",
-    artboardName: sanitizeManualName(parsed?.doc?.artboardName) || "Artboard 1",
-    width: clamp(Number(parsed?.doc?.width ?? 1200), 64, 10000),
-    height: clamp(Number(parsed?.doc?.height ?? 800), 64, 10000),
-    defs: typeof parsed?.doc?.defs === "string" ? parsed.doc.defs : ""
-  };
-  normalizeArtboards(state.doc);
-  state.objects = adaptShapeArray(parsed?.objects || []);
+  const oldBoard=state.activeBoard,oldWidth=state.doc.width,oldHeight=state.doc.height;
+  if(Array.isArray(parsed.boards)&&parsed.boards.length){state.boards=parsed.boards.map(b=>({name:b.name,document:b.document,objects:adaptShapeArray(b.objects)}));state.activeBoard=clamp(parsed.activeBoard||0,0,state.boards.length-1);state.doc=state.boards[state.activeBoard].document;state.objects=state.boards[state.activeBoard].objects;}else{state.doc={width:clamp(Number(parsed?.doc?.width??1200),64,10000),height:clamp(Number(parsed?.doc?.height??800),64,10000)};state.objects=adaptShapeArray(parsed?.objects||[]);state.boards=[];state.activeBoard=0;}
+  if(parsed.grid)state.grid=parsed.grid;if(oldBoard!==state.activeBoard||oldWidth!==state.doc.width||oldHeight!==state.doc.height)state.view.fit=true;
   state.selection = Array.isArray(parsed?.selection) ? parsed.selection.filter(Boolean) : [];
-  state.activeLayerId = typeof parsed?.activeLayerId === "string" ? parsed.activeLayerId : null;
   state.activePathId = typeof parsed?.activePathId === "string" ? parsed.activePathId : null;
-  state.directSelection.pathId =
-    typeof parsed?.directSelection?.pathId === "string" ? parsed.directSelection.pathId : null;
-  state.directSelection.anchorIndex = Number.isInteger(parsed?.directSelection?.anchorIndex)
-    ? parsed.directSelection.anchorIndex
-    : null;
-  if (!getObjectById(state.activeLayerId)) {
-    state.activeLayerId = state.objects.find((shape) => shape.type === "group")?.id || null;
-  }
-  resetPathDragState();
-  state.interaction.livePreviewPoint = null;
   render();
 }
 
 function pushHistory() {
   state.history.undo.push(getSnapshot());
-  if (state.history.undo.length > 200) {
+  if (state.history.undo.length > 100) {
     state.history.undo.shift();
   }
   state.history.redo = [];
   updateHistoryButtons();
-}
-
-function currentDocumentPayload() {
-  return {
-    doc: deepClone(state.doc),
-    objects: deepClone(state.objects),
-    activeLayerId: state.activeLayerId,
-    savedAt: new Date().toISOString()
-  };
-}
-
-function readDrafts() {
-  try {
-    const drafts = JSON.parse(window.localStorage.getItem(STORAGE_DRAFTS_KEY) || "[]");
-    return Array.isArray(drafts) ? drafts : [];
-  } catch (error) {
-    console.warn("[svg-editor] Failed to read drafts", error);
-    return [];
-  }
-}
-
-function writeDrafts(drafts) {
-  window.localStorage.setItem(STORAGE_DRAFTS_KEY, JSON.stringify(drafts.slice(0, 12)));
-}
-
-function updateDraftsSelect() {
-  const drafts = readDrafts();
-  dom.draftsSelect.innerHTML = "";
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = drafts.length ? "Choose draft..." : "No saved drafts";
-  dom.draftsSelect.appendChild(placeholder);
-  for (const draft of drafts) {
-    const option = document.createElement("option");
-    option.value = draft.id;
-    const savedAt = draft.savedAt ? new Date(draft.savedAt).toLocaleString() : "saved";
-    option.textContent = `${draft.name || "Untitled SVG"} · ${savedAt}`;
-    dom.draftsSelect.appendChild(option);
-  }
-}
-
-function saveDraft({ quiet = false } = {}) {
-  const payload = currentDocumentPayload();
-  const id = payload.doc.id || nextId("draft");
-  payload.doc.id = id;
-  state.doc.id = id;
-  const drafts = readDrafts().filter((draft) => draft.id !== id);
-  drafts.unshift({
-    id,
-    name: state.doc.name || "Untitled SVG",
-    savedAt: payload.savedAt,
-    payload
-  });
-  writeDrafts(drafts);
-  updateDraftsSelect();
-  if (!quiet) {
-    setStatus(`Saved draft: ${state.doc.name || "Untitled SVG"}`);
-  }
-}
-
-function openDraft(id) {
-  const draft = readDrafts().find((entry) => entry.id === id);
-  if (!draft?.payload) {
-    setStatus("Draft not found");
-    return;
-  }
-  pushHistory();
-  const payload = draft.payload;
-  state.doc = { ...state.doc, ...deepClone(payload.doc || {}) };
-  state.objects = adaptShapeArray(payload.objects || []);
-  state.activeLayerId = typeof payload.activeLayerId === "string" ? payload.activeLayerId : null;
-  state.selection = [];
-  state.activePathId = null;
-  state.directSelection.pathId = null;
-  state.directSelection.anchorIndex = null;
-  setStatus(`Opened draft: ${state.doc.name || "Untitled SVG"}`);
-  render();
-}
-
-function saveSettings() {
-  window.localStorage.setItem(
-    STORAGE_SETTINGS_KEY,
-    JSON.stringify({
-      autosave: state.autosave,
-      swatches: state.swatches
-    })
-  );
-}
-
-function loadSettings() {
-  try {
-    const settings = JSON.parse(window.localStorage.getItem(STORAGE_SETTINGS_KEY) || "{}");
-    state.autosave = settings.autosave !== false;
-    if (Array.isArray(settings.swatches)) {
-      state.swatches = settings.swatches;
-    }
-  } catch (error) {
-    console.warn("[svg-editor] Failed to read settings", error);
-  }
 }
 
 function undo() {
@@ -1440,8 +839,6 @@ function redo() {
 function updateHistoryButtons() {
   dom.undoBtn.disabled = state.history.undo.length === 0;
   dom.redoBtn.disabled = state.history.redo.length === 0;
-  dom.undoToolbarBtn.disabled = state.history.undo.length === 0;
-  dom.redoToolbarBtn.disabled = state.history.redo.length === 0;
 }
 
 function getObjectById(id, objects = state.objects, parent = null) {
@@ -1464,122 +861,6 @@ function setStatus(message) {
   dom.statusLeft.textContent = message;
 }
 
-function normalizeArtboards(doc = state.doc) {
-  let artboards = Array.isArray(doc.artboards)
-    ? doc.artboards
-        .map((artboard, index) => ({
-          id: typeof artboard.id === "string" && artboard.id ? artboard.id : nextId("artboard"),
-          name: sanitizeManualName(artboard.name) || `Artboard ${index + 1}`,
-          x: Number(artboard.x) || 0,
-          y: Number(artboard.y) || 0,
-          width: clamp(Number(artboard.width) || Number(doc.width) || 1200, 64, 10000),
-          height: clamp(Number(artboard.height) || Number(doc.height) || 800, 64, 10000)
-        }))
-    : [];
-
-  if (artboards.length === 0) {
-    artboards = [defaultArtboard(doc.width, doc.height, sanitizeManualName(doc.artboardName) || "Artboard 1")];
-  }
-
-  const activeId = artboards.some((artboard) => artboard.id === doc.activeArtboardId)
-    ? doc.activeArtboardId
-    : artboards[0].id;
-  const active = artboards.find((artboard) => artboard.id === activeId) || artboards[0];
-  doc.artboards = artboards;
-  doc.activeArtboardId = active.id;
-  doc.artboardName = active.name;
-  doc.width = active.width;
-  doc.height = active.height;
-  return active;
-}
-
-function getActiveArtboard() {
-  return normalizeArtboards(state.doc);
-}
-
-function renderSoon() {
-  if (state.interaction.rafPending) {
-    return;
-  }
-  state.interaction.rafPending = true;
-  window.requestAnimationFrame(() => {
-    state.interaction.rafPending = false;
-    render();
-  });
-}
-
-function capturePointer(event) {
-  try {
-    dom.canvas.setPointerCapture(event.pointerId);
-  } catch (error) {
-    // Pointer capture is an interaction enhancement; the global listeners still finish drags.
-  }
-}
-
-function releasePointer(event) {
-  try {
-    if (dom.canvas.hasPointerCapture(event.pointerId)) {
-      dom.canvas.releasePointerCapture(event.pointerId);
-    }
-  } catch (error) {
-    // Ignore unsupported or already-released pointer capture states.
-  }
-}
-
-function updateWorkspaceClasses() {
-  document.body.classList.toggle("is-select-tool", state.tool === TOOLS.SELECT);
-  document.body.classList.toggle("is-direct-tool", state.tool === TOOLS.DIRECT);
-  document.body.classList.toggle("is-hand-tool", state.tool === TOOLS.HAND);
-  document.body.classList.toggle("is-zoom-tool", state.tool === TOOLS.ZOOM);
-  document.body.classList.toggle("is-eyedropper-tool", state.tool === TOOLS.EYEDROPPER);
-  document.body.classList.toggle("is-pencil-tool", state.tool === TOOLS.PENCIL);
-  document.body.classList.toggle("hide-grid", !state.view.grid);
-  document.body.classList.toggle("hide-rulers", !state.view.rulers);
-  document.body.classList.toggle("is-panning", state.interaction.mode === "panning");
-}
-
-function applyViewTransform() {
-  const renderedWidth = Math.max(1, state.doc.width * state.view.zoom);
-  const renderedHeight = Math.max(1, state.doc.height * state.view.zoom);
-  dom.artboardWrap.style.width = `${round(renderedWidth, 2)}px`;
-  dom.artboardWrap.style.height = `${round(renderedHeight, 2)}px`;
-  dom.artboardWrap.style.transform = `translate(${round(state.view.panX, 2)}px, ${round(state.view.panY, 2)}px) translate(-50%, -50%)`;
-  dom.zoomReadout.textContent = `${Math.round(state.view.zoom * 100)}%`;
-  dom.gridToggleBtn.classList.toggle("is-active", state.view.grid);
-  dom.rulersToggleBtn.classList.toggle("is-active", state.view.rulers);
-  updateWorkspaceClasses();
-}
-
-function fitArtboardToScreen() {
-  const rect = dom.pasteboard.getBoundingClientRect();
-  if (!rect.width || !rect.height) {
-    return;
-  }
-  const rulerInset = state.view.rulers ? 40 : 24;
-  const scaleX = Math.max(0.1, (rect.width - rulerInset * 2) / state.doc.width);
-  const scaleY = Math.max(0.1, (rect.height - rulerInset * 2) / state.doc.height);
-  state.view.zoom = clamp(Math.min(scaleX, scaleY), 0.08, 4);
-  state.view.panX = state.view.rulers ? 12 : 0;
-  state.view.panY = state.view.rulers ? 12 : 0;
-  state.view.fitted = true;
-  applyViewTransform();
-}
-
-function setZoom(nextZoom, anchorEvent = null) {
-  const previous = state.view.zoom;
-  state.view.zoom = clamp(nextZoom, 0.08, 16);
-  if (anchorEvent && previous !== state.view.zoom) {
-    const rect = dom.pasteboard.getBoundingClientRect();
-    const cx = anchorEvent.clientX - rect.left - rect.width / 2;
-    const cy = anchorEvent.clientY - rect.top - rect.height / 2;
-    const ratio = state.view.zoom / previous;
-    state.view.panX = cx - (cx - state.view.panX) * ratio;
-    state.view.panY = cy - (cy - state.view.panY) * ratio;
-  }
-  state.view.fitted = false;
-  applyViewTransform();
-}
-
 function svgPointFromEvent(event) {
   const point = dom.canvas.createSVGPoint();
   point.x = event.clientX;
@@ -1594,9 +875,6 @@ function svgPointFromEvent(event) {
 
 function applyInverseTransform(point, transform) {
   const t = normalizeTransform(transform);
-  if (Array.isArray(t.matrix)) {
-    return matrixApplyPoint(matrixInverse(t.matrix), point);
-  }
   let x = point.x - t.tx;
   let y = point.y - t.ty;
 
@@ -1618,9 +896,6 @@ function applyInverseTransform(point, transform) {
 
 function applyTransformToPoint(point, transform) {
   const t = normalizeTransform(transform);
-  if (Array.isArray(t.matrix)) {
-    return matrixApplyPoint(t.matrix, point);
-  }
   const sx = point.x * (t.sx || 1);
   const sy = point.y * (t.sy || 1);
   const radians = (t.rotation * Math.PI) / 180;
@@ -1675,43 +950,6 @@ function getEllipsePathCommands(shape) {
     { type: "C", x1: g.cx - ox, y1: g.cy + g.ry, x2: g.cx - g.rx, y2: g.cy + oy, x: g.cx - g.rx, y: g.cy },
     { type: "C", x1: g.cx - g.rx, y1: g.cy - oy, x2: g.cx - ox, y2: g.cy - g.ry, x: g.cx, y: g.cy - g.ry },
     { type: "C", x1: g.cx + ox, y1: g.cy - g.ry, x2: g.cx + g.rx, y2: g.cy - oy, x: g.cx + g.rx, y: g.cy },
-    { type: "Z" }
-  ];
-}
-
-function getLinePathCommands(shape) {
-  const g = shape.geometry;
-  return [
-    { type: "M", x: g.x1, y: g.y1 },
-    { type: "L", x: g.x2, y: g.y2 }
-  ];
-}
-
-function polygonPoints(geometry) {
-  if (Array.isArray(geometry.points) && geometry.points.length > 0) {
-    return geometry.points;
-  }
-  const sides = clamp(Math.round(Number(geometry.sides) || 6), 3, 12);
-  const radius = Math.max(1, Number(geometry.radius) || 1);
-  const points = [];
-  for (let i = 0; i < sides; i += 1) {
-    const angle = -Math.PI / 2 + (i / sides) * Math.PI * 2;
-    points.push({
-      x: geometry.cx + Math.cos(angle) * radius,
-      y: geometry.cy + Math.sin(angle) * radius
-    });
-  }
-  return points;
-}
-
-function getPolygonPathCommands(shape) {
-  const points = polygonPoints(shape.geometry);
-  if (points.length === 0) {
-    return [];
-  }
-  return [
-    { type: "M", x: points[0].x, y: points[0].y },
-    ...points.slice(1).map((point) => ({ type: "L", x: point.x, y: point.y })),
     { type: "Z" }
   ];
 }
@@ -1771,12 +1009,6 @@ function shapeToPathCommands(shape) {
   if (shape.type === "path") {
     return getPathShapeCommands(shape);
   }
-  if (shape.type === "line") {
-    return getLinePathCommands(shape);
-  }
-  if (shape.type === "polygon") {
-    return getPolygonPathCommands(shape);
-  }
   return null;
 }
 
@@ -1829,222 +1061,6 @@ function getCommandsBounds(commands) {
   };
 }
 
-function cubicPoint(p0, p1, p2, p3, t) {
-  const mt = 1 - t;
-  const mt2 = mt * mt;
-  const t2 = t * t;
-  return {
-    x: mt2 * mt * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t2 * t * p3.x,
-    y: mt2 * mt * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t2 * t * p3.y
-  };
-}
-
-function distancePointToLine(point, a, b) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const length = Math.hypot(dx, dy);
-  if (length < 0.000001) {
-    return Math.hypot(point.x - a.x, point.y - a.y);
-  }
-  return Math.abs(dy * point.x - dx * point.y + b.x * a.y - b.y * a.x) / length;
-}
-
-function flattenCubicAdaptive(p0, p1, p2, p3, tolerance = 0.75, depth = 0) {
-  const flatness = Math.max(distancePointToLine(p1, p0, p3), distancePointToLine(p2, p0, p3));
-  if (flatness <= tolerance || depth >= 10) {
-    return [p3];
-  }
-  const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-  const p01 = mid(p0, p1);
-  const p12 = mid(p1, p2);
-  const p23 = mid(p2, p3);
-  const p012 = mid(p01, p12);
-  const p123 = mid(p12, p23);
-  const p0123 = mid(p012, p123);
-  return [
-    ...flattenCubicAdaptive(p0, p01, p012, p0123, tolerance, depth + 1),
-    ...flattenCubicAdaptive(p0123, p123, p23, p3, tolerance, depth + 1)
-  ];
-}
-
-function cleanPolygonPoints(points, epsilon = 0.01) {
-  return SvgGeometryEngine.cleanPolygonPoints(points, epsilon);
-}
-
-function polygonArea(points) {
-  return SvgGeometryEngine.polygonArea(points);
-}
-
-function normalizePolygonWinding(points, clockwise = false) {
-  return SvgGeometryEngine.normalizeWinding(points, clockwise);
-}
-
-function commandsToPolyline(commands, tolerance = 0.75) {
-  const points = [];
-  let current = null;
-  let start = null;
-  for (const command of commands || []) {
-    if (command.type === "M") {
-      current = { x: command.x, y: command.y };
-      start = current;
-      points.push(current);
-    } else if (command.type === "L") {
-      current = { x: command.x, y: command.y };
-      points.push(current);
-    } else if (command.type === "C" && current) {
-      const end = { x: command.x, y: command.y };
-      points.push(...flattenCubicAdaptive(
-        current,
-        { x: command.x1, y: command.y1 },
-        { x: command.x2, y: command.y2 },
-        end,
-        tolerance
-      ));
-      current = end;
-    } else if (command.type === "Z" && start) {
-      current = start;
-    }
-  }
-  return cleanPolygonPoints(points);
-}
-
-function shapeToWorldPolygon(shape, tolerance = 0.75) {
-  const commands = shapeToPathCommands(shape);
-  if (!commands || commands.length === 0) {
-    return null;
-  }
-  const world = transformPathCommands(commands, shape.transform);
-  const points = commandsToPolyline(world, tolerance);
-  if (points.length < 3) {
-    return null;
-  }
-  return normalizePolygonWinding(points);
-}
-
-function polygonToPathShape(points, style, name = "Path") {
-  const cleaned = cleanPolygonPoints(points);
-  if (cleaned.length < 3 || Math.abs(polygonArea(cleaned)) < 0.01) {
-    return null;
-  }
-  return {
-    id: nextId("path"),
-    type: "path",
-    name,
-    zIndex: 0,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: normalizeStyle(style),
-    geometry: {
-      anchors: cleaned.map((point) => ({ x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null })),
-      closed: true
-    }
-  };
-}
-
-function smoothPolylineToPathShape(points, style, name = "Path", { closed = true, smoothing = 0.18 } = {}) {
-  const cleaned = SvgGeometryEngine.simplifyPolyline(points, closed ? 0.32 : 0.2, closed);
-  if (cleaned.length < (closed ? 3 : 2)) {
-    return null;
-  }
-  if (closed && Math.abs(polygonArea(cleaned)) < 0.01) {
-    return null;
-  }
-  const anchors = cleaned.map((point, index) => {
-    const previous = cleaned[(index - 1 + cleaned.length) % cleaned.length];
-    const next = cleaned[(index + 1) % cleaned.length];
-    const inVector = {
-      x: next.x - previous.x,
-      y: next.y - previous.y
-    };
-    if (!closed && (index === 0 || index === cleaned.length - 1)) {
-      return { x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null };
-    }
-    return {
-      x: round(point.x, 4),
-      y: round(point.y, 4),
-      inHandle: {
-        x: round(point.x - inVector.x * smoothing, 4),
-        y: round(point.y - inVector.y * smoothing, 4)
-      },
-      outHandle: {
-        x: round(point.x + inVector.x * smoothing, 4),
-        y: round(point.y + inVector.y * smoothing, 4)
-      }
-    };
-  });
-  return {
-    id: nextId("path"),
-    type: "path",
-    name,
-    zIndex: 0,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: normalizeStyle(style),
-    geometry: {
-      anchors,
-      closed
-    }
-  };
-}
-
-function isInsideClipEdge(point, edgeA, edgeB, clipClockwise) {
-  const cross = (edgeB.x - edgeA.x) * (point.y - edgeA.y) - (edgeB.y - edgeA.y) * (point.x - edgeA.x);
-  return clipClockwise ? cross <= 0.000001 : cross >= -0.000001;
-}
-
-function lineIntersection(a1, a2, b1, b2) {
-  const dax = a2.x - a1.x;
-  const day = a2.y - a1.y;
-  const dbx = b2.x - b1.x;
-  const dby = b2.y - b1.y;
-  const denominator = dax * dby - day * dbx;
-  if (Math.abs(denominator) < 0.000001) {
-    return a2;
-  }
-  const t = ((b1.x - a1.x) * dby - (b1.y - a1.y) * dbx) / denominator;
-  return { x: a1.x + t * dax, y: a1.y + t * day };
-}
-
-function clipPolygon(subjectPolygon, clipPolygonPoints) {
-  return SvgGeometryEngine.clipPolygon(subjectPolygon, clipPolygonPoints);
-}
-
-function hasSelfIntersections(points) {
-  return SvgGeometryEngine.hasSelfIntersections(points);
-}
-
-function isConvexPolygon(points) {
-  return SvgGeometryEngine.isConvexPolygon(points);
-}
-
-function pointInTriangle(point, a, b, c) {
-  const area = (p1, p2, p3) => (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
-  const s1 = area(point, a, b);
-  const s2 = area(point, b, c);
-  const s3 = area(point, c, a);
-  const hasNegative = s1 < -0.000001 || s2 < -0.000001 || s3 < -0.000001;
-  const hasPositive = s1 > 0.000001 || s2 > 0.000001 || s3 > 0.000001;
-  return !(hasNegative && hasPositive);
-}
-
-function triangulatePolygon(points) {
-  return SvgGeometryEngine.triangulatePolygon(points);
-}
-
-function intersectPolygonsToPieces(polygonA, polygonB) {
-  return SvgGeometryEngine.intersectPolygonsToPieces(polygonA, polygonB);
-}
-
-function booleanPolygonsToPieces(polygonA, polygonB, operation) {
-  return SvgGeometryEngine.booleanPolygonsToPieces(polygonA, polygonB, operation);
-}
-
-function dividePolygonsToRegions(polygonA, polygonB) {
-  return SvgGeometryEngine.dividePolygonsToRegions(polygonA, polygonB);
-}
-
 function shapeToWorldPathData(shape) {
   if (shape.type === "boolean") {
     if (shape.geometry?.op === "unite") {
@@ -2075,182 +1091,6 @@ function shapeToWorldPathData(shape) {
   };
 }
 
-function pathCommandsToAnchors(commands) {
-  const anchors = [];
-  let closed = false;
-  for (const command of commands) {
-    if (command.type === "M") {
-      anchors.push({ x: command.x, y: command.y, inHandle: null, outHandle: null });
-    } else if (command.type === "L") {
-      anchors.push({ x: command.x, y: command.y, inHandle: null, outHandle: null });
-    } else if (command.type === "C") {
-      const previous = anchors[anchors.length - 1];
-      if (previous) {
-        previous.outHandle = { x: command.x1, y: command.y1 };
-      }
-      anchors.push({
-        x: command.x,
-        y: command.y,
-        inHandle: { x: command.x2, y: command.y2 },
-        outHandle: null
-      });
-    } else if (command.type === "Z") {
-      closed = true;
-    }
-  }
-  return { anchors, closed };
-}
-
-function shapeToEditablePathShape(shape, name = shape.name || "Path") {
-  if (shape.type === "path" && !shape.geometry?.rawD) {
-    return {
-      ...deepClone(shape),
-      type: "path",
-      name,
-      transform: deepClone(DEFAULT_TRANSFORM),
-      geometry: {
-        anchors: (shape.geometry.anchors || []).map((anchor) => transformAnchor(anchor, transformToMatrix(shape.transform))),
-        closed: shape.geometry.closed === true
-      }
-    };
-  }
-
-  const commands = shapeToPathCommands(shape);
-  if (!commands || commands.length === 0) {
-    return null;
-  }
-  const world = transformPathCommands(commands, shape.transform);
-  const geometry = pathCommandsToAnchors(world);
-  return {
-    ...deepClone(shape),
-    type: "path",
-    name,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    geometry
-  };
-}
-
-function replaceShapeWithMany(id, replacements) {
-  const found = getObjectById(id);
-  if (!found) {
-    return false;
-  }
-  const target = found.parent?.children || state.objects;
-  target.splice(found.index, 1, ...replacements);
-  target.forEach((shape, index) => {
-    shape.zIndex = index;
-  });
-  return true;
-}
-
-function selectedTopLevelOrNestedObjects() {
-  return state.selection
-    .map((id) => getObjectById(id)?.object)
-    .filter(Boolean);
-}
-
-function getSameContainerSelectionRecords(limit = 2) {
-  const records = state.selection
-    .map((id) => {
-      const found = getObjectById(id);
-      return found ? { ...found, id } : null;
-    })
-    .filter(Boolean);
-  if (records.length !== limit) {
-    return null;
-  }
-  const firstContainer = records[0].parent?.id || "__root__";
-  if (!records.every((record) => (record.parent?.id || "__root__") === firstContainer)) {
-    return null;
-  }
-  return records;
-}
-
-function rectFromBounds(bounds, name, style) {
-  return {
-    id: nextId("rect"),
-    type: "rect",
-    name,
-    zIndex: 0,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: normalizeStyle(style),
-    geometry: {
-      x: round(bounds.x, 4),
-      y: round(bounds.y, 4),
-      width: Math.max(0.1, round(bounds.width, 4)),
-      height: Math.max(0.1, round(bounds.height, 4)),
-      rx: 0,
-      ry: 0
-    }
-  };
-}
-
-function boundsIntersection(a, b) {
-  const x1 = Math.max(a.x, b.x);
-  const y1 = Math.max(a.y, b.y);
-  const x2 = Math.min(a.x + a.width, b.x + b.width);
-  const y2 = Math.min(a.y + a.height, b.y + b.height);
-  if (x2 <= x1 || y2 <= y1) {
-    return null;
-  }
-  return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
-}
-
-function subtractRectBounds(source, cutter) {
-  const intersection = boundsIntersection(source, cutter);
-  if (!intersection) {
-    return [source];
-  }
-  const pieces = [];
-  const sx2 = source.x + source.width;
-  const sy2 = source.y + source.height;
-  const ix2 = intersection.x + intersection.width;
-  const iy2 = intersection.y + intersection.height;
-  if (intersection.y > source.y) {
-    pieces.push({ x: source.x, y: source.y, width: source.width, height: intersection.y - source.y });
-  }
-  if (iy2 < sy2) {
-    pieces.push({ x: source.x, y: iy2, width: source.width, height: sy2 - iy2 });
-  }
-  if (intersection.x > source.x) {
-    pieces.push({ x: source.x, y: intersection.y, width: intersection.x - source.x, height: intersection.height });
-  }
-  if (ix2 < sx2) {
-    pieces.push({ x: ix2, y: intersection.y, width: sx2 - ix2, height: intersection.height });
-  }
-  return pieces.filter((piece) => piece.width > 0.1 && piece.height > 0.1);
-}
-
-function offsetPolygon(points, amount, join = "miter", miterLimit = 4) {
-  return SvgGeometryEngine.offsetPolygon(points, amount, join, miterLimit);
-}
-
-function outlinePolyline(points, width, closed = false, style = DEFAULT_STYLE) {
-  return SvgGeometryEngine.outlinePolyline(points, width, closed, style);
-}
-
-function offsetOpenPolyline(points, amount) {
-  return SvgGeometryEngine.offsetOpenPolyline(points, amount);
-}
-
-function parseDashArray(value) {
-  const numbers = String(value || "")
-    .trim()
-    .split(/[\s,]+/)
-    .map(Number)
-    .filter((number) => Number.isFinite(number) && number > 0);
-  if (numbers.length === 0) {
-    return [];
-  }
-  return numbers.length % 2 === 0 ? numbers : [...numbers, ...numbers];
-}
-
-function dashedPolylineSegments(points, dashArray) {
-  return SvgGeometryEngine.dashedPolylineSegments(points, dashArray);
-}
-
 function collectObjectIds(shapes = state.objects, out = []) {
   for (const shape of shapes) {
     out.push(shape.id);
@@ -2259,24 +1099,6 @@ function collectObjectIds(shapes = state.objects, out = []) {
     }
   }
   return out;
-}
-
-function collectSelectedObjects() {
-  const selected = new Set(state.selection);
-  const out = [];
-  const walk = (shapes) => {
-    for (const shape of shapes) {
-      if (selected.has(shape.id)) {
-        out.push(deepClone(shape));
-        continue;
-      }
-      if (shape.type === "group" && Array.isArray(shape.children)) {
-        walk(shape.children);
-      }
-    }
-  };
-  walk(state.objects);
-  return out.length ? out : state.objects;
 }
 
 function collectSnapCandidates(excludedIds) {
@@ -2470,19 +1292,6 @@ function pointHitsShapeGeometry(shape, point) {
     );
   }
 
-  if (shape.type === "raw") {
-    const b = shape.geometry?.bounds;
-    if (!b) {
-      return false;
-    }
-    return (
-      local.x >= b.x &&
-      local.x <= b.x + b.width &&
-      local.y >= b.y &&
-      local.y <= b.y + b.height
-    );
-  }
-
   return false;
 }
 
@@ -2531,7 +1340,9 @@ function hitTestTopObject(event, point) {
     seen.add(objectId);
 
     const found = getObjectById(objectId);
-    if (found && found.object.visible !== false) {
+    if (found && found.object.visible !== false&&!found.object.locked) {
+      let target=found,blocked=false;while(target.parent){target=getObjectById(target.parent.id);if(target.object.locked||target.object.visible===false){blocked=true;break;}}if(blocked)continue;
+      if(state.tool===TOOLS.SELECT)return target.object.id;
       return objectId;
     }
   }
@@ -2543,46 +1354,13 @@ function createSvgElement(tagName) {
   return document.createElementNS(SVG_NS, tagName);
 }
 
-function gradientPaintValue(style, paintKey) {
-  const gradient = paintKey === "stroke" ? style.strokeGradient : style.fillGradient;
-  return gradient ? `url(#${gradient.id})` : style[paintKey];
-}
-
 function applyPaintAttributes(node, style, fillOverride = null) {
-  const fill = fillOverride ?? gradientPaintValue(style, "fill") ?? "none";
+  const fill = fillOverride ?? style.fill ?? "none";
   node.setAttribute("fill", fill);
-  node.setAttribute("stroke", gradientPaintValue(style, "stroke") || "none");
+  node.setAttribute("stroke", style.stroke || "none");
   node.setAttribute("stroke-width", String(round(style.strokeWidth || 0)));
-  node.setAttribute("stroke-linejoin", style.strokeJoin || "miter");
-  node.setAttribute("stroke-linecap", style.strokeCap || "butt");
-  if (style.strokeDasharray) {
-    node.setAttribute("stroke-dasharray", style.strokeDasharray);
-  }
-  if (style.strokeJoin === "miter") {
-    node.setAttribute("stroke-miterlimit", String(round(style.strokeMiterlimit || 4)));
-  }
-  if (style.fillRule === "evenodd") {
-    node.setAttribute("fill-rule", "evenodd");
-  }
-  if (style.fillOpacity !== 1) {
-    node.setAttribute("fill-opacity", String(round(style.fillOpacity)));
-  }
-  if (style.strokeOpacity !== 1) {
-    node.setAttribute("stroke-opacity", String(round(style.strokeOpacity)));
-  }
-  if (style.clipPath) {
-    node.setAttribute("clip-path", style.clipPath);
-  }
-  if (style.mask) {
-    node.setAttribute("mask", style.mask);
-  }
-  if (style.filter) {
-    node.setAttribute("filter", style.filter);
-  }
-  if (style.mixBlendMode) {
-    node.style.mixBlendMode = style.mixBlendMode;
-  }
   node.setAttribute("opacity", String(clamp(style.opacity, 0, 1)));
+  node.setAttribute('stroke-linecap',style.strokeCap);node.setAttribute('stroke-linejoin',style.strokeJoin);if(style.strokeDash)node.setAttribute('stroke-dasharray',style.strokeDash);
 }
 
 function renderShape(shape, parentNode) {
@@ -2605,6 +1383,7 @@ function renderShape(shape, parentNode) {
   }
 
   const style = normalizeStyle(shape.style);
+  if(style.gradient){$('paint-defs').appendChild(gradientNode(shape,style.gradient));style.fill=`url(#${gradientId(shape)})`;}
 
   if (shape.type === "rect") {
     const node = createSvgElement("rect");
@@ -2630,35 +1409,17 @@ function renderShape(shape, parentNode) {
     group.appendChild(node);
   } else if (shape.type === "path") {
     const node = createSvgElement("path");
-    node.setAttribute("d", shape.geometry.rawD || buildPathD(shape.geometry.anchors, shape.geometry.closed));
-    applyPaintAttributes(node, style, shape.geometry.rawD || shape.geometry.closed ? null : "none");
+    node.setAttribute("d", buildPathD(shape.geometry.anchors, shape.geometry.closed));
+    applyPaintAttributes(node, style, shape.geometry.closed ? style.fill || "none" : "none");
     group.appendChild(node);
-  } else if (shape.type === "line") {
-    const node = createSvgElement("line");
-    node.setAttribute("x1", String(round(shape.geometry.x1)));
-    node.setAttribute("y1", String(round(shape.geometry.y1)));
-    node.setAttribute("x2", String(round(shape.geometry.x2)));
-    node.setAttribute("y2", String(round(shape.geometry.y2)));
-    applyPaintAttributes(node, style, "none");
-    group.appendChild(node);
-  } else if (shape.type === "polygon") {
-    const node = createSvgElement("polygon");
-    node.setAttribute(
-      "points",
-      polygonPoints(shape.geometry)
-        .map((point) => `${round(point.x)},${round(point.y)}`)
-        .join(" ")
-    );
-    applyPaintAttributes(node, style);
-    group.appendChild(node);
-  } else if (shape.type === "text") {
-    const node = createSvgElement("text");
-    node.setAttribute("x", String(round(shape.geometry.x)));
-    node.setAttribute("y", String(round(shape.geometry.y)));
-    node.setAttribute("font-size", String(round(shape.geometry.fontSize)));
-    node.setAttribute("font-family", shape.geometry.fontFamily || "Inter, Arial, sans-serif");
-    node.textContent = shape.geometry.text || "Text";
-    applyPaintAttributes(node, style, style.fill || "#111111");
+  } else if(shape.type==='compound'){
+    const node=createSvgElement('path');node.setAttribute('d',shape.geometry.contours.map(c=>buildPathD(c.anchors,c.closed)).join(' '));node.setAttribute('fill-rule',shape.geometry.fillRule||'evenodd');applyPaintAttributes(node,style);group.appendChild(node);
+  } else if(shape.type==='text'){
+    const g=shape.geometry,node=createSvgElement('text');
+    node.setAttribute('x',g.x);node.setAttribute('y',g.y);node.setAttribute('font-size',g.fontSize);node.setAttribute('font-family',g.fontFamily);
+    node.setAttribute('font-weight',g.fontWeight||400);node.setAttribute('font-style',g.fontStyle||'normal');node.setAttribute('text-anchor',g.textAlign||'start');node.setAttribute('letter-spacing',g.letterSpacing||0);
+    applyPaintAttributes(node,style);
+    g.text.split('\n').forEach((line,i)=>{const span=createSvgElement('tspan');span.setAttribute('x',g.x);span.setAttribute('dy',i?`${g.lineHeight||1.2}em`:'0');span.textContent=line||' ';node.appendChild(span);});
     group.appendChild(node);
   } else if (shape.type === "boolean") {
     const op = shape.geometry?.op;
@@ -2672,12 +1433,6 @@ function renderShape(shape, parentNode) {
     if (op === "unite") {
       const node = createSvgElement("path");
       node.setAttribute("d", `${aPath} ${bPath}`);
-      applyPaintAttributes(node, style, style.fill || "none");
-      group.appendChild(node);
-    } else if (op === "exclude") {
-      const node = createSvgElement("path");
-      node.setAttribute("d", `${aPath} ${bPath}`);
-      node.setAttribute("fill-rule", "evenodd");
       applyPaintAttributes(node, style, style.fill || "none");
       group.appendChild(node);
     } else if (op === "intersect") {
@@ -2736,104 +1491,14 @@ function renderShape(shape, parentNode) {
       applyPaintAttributes(node, style, style.fill || "none");
       group.appendChild(node);
     }
-  } else if (shape.type === "raw") {
-    const rawNode = createSvgElement("g");
-    rawNode.setAttribute("class", "raw-vector-content");
-    rawNode.innerHTML = shape.geometry?.markup || "";
-    applyVectorRenderingHints(rawNode);
-    group.appendChild(rawNode);
   } else if (shape.type === "group") {
+    group.setAttribute('opacity',String(clamp(style.opacity,0,1)));
     for (const child of shape.children || []) {
       renderShape(child, group);
     }
   }
 
   parentNode.appendChild(group);
-}
-
-function applyVectorRenderingHints(root) {
-  const vectorSelector = "path,rect,circle,ellipse,line,polyline,polygon,text,g,use,symbol";
-  for (const element of root.querySelectorAll(vectorSelector)) {
-    if (!element.hasAttribute("shape-rendering")) {
-      element.setAttribute("shape-rendering", "geometricPrecision");
-    }
-    if (element.localName === "text" && !element.hasAttribute("text-rendering")) {
-      element.setAttribute("text-rendering", "geometricPrecision");
-    }
-  }
-  for (const image of root.querySelectorAll("image")) {
-    if (!image.hasAttribute("preserveAspectRatio")) {
-      image.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    }
-    image.setAttribute("data-raster-content", "true");
-  }
-}
-
-function gradientToSvgNode(gradient) {
-  const normalized = normalizeGradient(gradient);
-  if (!normalized) {
-    return null;
-  }
-  const node = createSvgElement(normalized.type === "radial" ? "radialGradient" : "linearGradient");
-  node.setAttribute("id", normalized.id);
-  node.setAttribute("gradientUnits", "objectBoundingBox");
-  if (normalized.type === "linear") {
-    const radians = ((normalized.angle || 0) * Math.PI) / 180;
-    const dx = Math.cos(radians) / 2;
-    const dy = Math.sin(radians) / 2;
-    node.setAttribute("x1", String(round(0.5 - dx, 4)));
-    node.setAttribute("y1", String(round(0.5 - dy, 4)));
-    node.setAttribute("x2", String(round(0.5 + dx, 4)));
-    node.setAttribute("y2", String(round(0.5 + dy, 4)));
-  } else {
-    node.setAttribute("cx", "0.5");
-    node.setAttribute("cy", "0.5");
-    node.setAttribute("r", "0.5");
-  }
-  for (const stop of normalized.stops) {
-    const stopNode = createSvgElement("stop");
-    stopNode.setAttribute("offset", `${round(stop.offset * 100, 2)}%`);
-    stopNode.setAttribute("stop-color", stop.color);
-    if (stop.opacity !== 1) {
-      stopNode.setAttribute("stop-opacity", String(round(stop.opacity)));
-    }
-    node.appendChild(stopNode);
-  }
-  return node;
-}
-
-function collectStyleGradients(shapes = state.objects, gradients = new Map()) {
-  for (const shape of shapes) {
-    const style = normalizeStyle(shape.style);
-    for (const gradient of [style.fillGradient, style.strokeGradient]) {
-      if (gradient && !gradients.has(gradient.id)) {
-        gradients.set(gradient.id, gradient);
-      }
-    }
-    if (shape.type === "group" && Array.isArray(shape.children)) {
-      collectStyleGradients(shape.children, gradients);
-    }
-  }
-  return gradients;
-}
-
-function appendDocumentDefs(parentNode) {
-  const hasImportedDefs = Boolean(state.doc.defs);
-  const gradients = collectStyleGradients();
-  if (!hasImportedDefs && gradients.size === 0) {
-    return;
-  }
-  const defs = createSvgElement("defs");
-  if (hasImportedDefs) {
-    defs.innerHTML = state.doc.defs;
-  }
-  for (const gradient of gradients.values()) {
-    const node = gradientToSvgNode(gradient);
-    if (node) {
-      defs.appendChild(node);
-    }
-  }
-  parentNode.appendChild(defs);
 }
 
 function rectFromPoints(start, end) {
@@ -2860,7 +1525,8 @@ function getNodeWorldBounds(node) {
   }
 
   const bbox = node.getBBox();
-  const matrix = node.getCTM();
+  const screen = node.getScreenCTM(),canvasMatrix=dom.canvas.getScreenCTM();
+  const matrix = screen&&canvasMatrix?canvasMatrix.inverse().multiply(screen):null;
   if (!matrix) {
     return null;
   }
@@ -2928,7 +1594,7 @@ function drawSelectionOutline() {
     rect.setAttribute("height", String(round(bounds.height)));
     dom.overlay.appendChild(rect);
 
-    const isTransformTool = state.tool === TOOLS.SELECT;
+    const isTransformTool = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
     if (isTransformTool) {
       const centerX = bounds.x + bounds.width / 2;
 
@@ -2937,14 +1603,14 @@ function drawSelectionOutline() {
       rotateLine.setAttribute("x1", String(round(centerX)));
       rotateLine.setAttribute("y1", String(round(bounds.y)));
       rotateLine.setAttribute("x2", String(round(centerX)));
-      rotateLine.setAttribute("y2", String(round(bounds.y - 24)));
+      rotateLine.setAttribute("y2", String(round(bounds.y - 24/state.view.zoom)));
       dom.overlay.appendChild(rotateLine);
 
       const rotateHandle = createSvgElement("circle");
       rotateHandle.setAttribute("class", "transform-handle transform-handle-rotate");
       rotateHandle.setAttribute("cx", String(round(centerX)));
-      rotateHandle.setAttribute("cy", String(round(bounds.y - 28)));
-      rotateHandle.setAttribute("r", "6");
+      rotateHandle.setAttribute("cy", String(round(bounds.y - 28/state.view.zoom)));
+      rotateHandle.setAttribute("r", String(5/state.view.zoom));
       rotateHandle.dataset.handleType = "rotate";
       rotateHandle.style.cursor = "crosshair";
       dom.overlay.appendChild(rotateHandle);
@@ -2954,21 +1620,20 @@ function drawSelectionOutline() {
         const y = bounds.y + bounds.height * config.y;
         const handle = createSvgElement("rect");
         handle.setAttribute("class", "transform-handle transform-handle-scale");
-        handle.setAttribute("x", String(round(x - 4.5)));
-        handle.setAttribute("y", String(round(y - 4.5)));
-        handle.setAttribute("width", "9");
-        handle.setAttribute("height", "9");
-        handle.setAttribute("rx", "1.5");
+        handle.setAttribute("x", String(round(x - 4/state.view.zoom)));
+        handle.setAttribute("y", String(round(y - 4/state.view.zoom)));
+        handle.setAttribute("width", String(8/state.view.zoom));
+        handle.setAttribute("height", String(8/state.view.zoom));
+        handle.setAttribute("rx", String(1/state.view.zoom));
         handle.dataset.handleType = name;
         handle.style.cursor = config.cursor;
         dom.overlay.appendChild(handle);
       }
     }
 
-  }
-
-  if (state.tool === TOOLS.DIRECT || (state.tool === TOOLS.PEN && state.activePathId)) {
-    drawDirectSelectionAnchors();
+    if (state.tool === TOOLS.DIRECT) {
+      drawDirectSelectionAnchors();
+    }
   }
 
   if (Array.isArray(state.interaction.snapGuides) && state.interaction.snapGuides.length > 0) {
@@ -3018,18 +1683,11 @@ function drawDirectSelectionAnchors() {
       node.setAttribute("class", "path-anchor-handle");
       node.setAttribute("cx", String(round(world.x)));
       node.setAttribute("cy", String(round(world.y)));
-      node.setAttribute("r", state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index ? "5.5" : "4.5");
+      node.setAttribute("r", String((state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index ? 5 : 4)/state.view.zoom));
       node.dataset.anchorPathId = path.id;
       node.dataset.anchorIndex = String(index);
       if (state.directSelection.pathId === path.id && state.directSelection.anchorIndex === index) {
         node.classList.add("is-active");
-      }
-      if (state.interaction.hoverAnchor?.pathId === path.id && state.interaction.hoverAnchor?.anchorIndex === index) {
-        node.classList.add("is-hovered");
-      }
-      if (state.tool === TOOLS.PEN && state.activePathId === path.id && index === 0 && anchors.length >= 3) {
-        node.classList.add("is-close-target");
-        node.setAttribute("r", "6");
       }
       dom.overlay.appendChild(node);
 
@@ -3063,128 +1721,62 @@ function drawDirectSelectionAnchors() {
         handleNode.setAttribute("class", "path-bezier-handle");
         handleNode.setAttribute("cx", String(round(worldHandle.x)));
         handleNode.setAttribute("cy", String(round(worldHandle.y)));
-        handleNode.setAttribute("r", "4");
+        handleNode.setAttribute("r", String(4/state.view.zoom));
         handleNode.dataset.handlePathId = path.id;
         handleNode.dataset.handleAnchorIndex = String(index);
         handleNode.dataset.handleKind = spec.kind;
-        if (
-          state.interaction.activeHandle?.pathId === path.id &&
-          state.interaction.activeHandle?.anchorIndex === index &&
-          state.interaction.activeHandle?.kind === spec.kind
-        ) {
-          handleNode.classList.add("is-active");
-        }
         dom.overlay.appendChild(handleNode);
       }
     }
   }
+}
 
-  if (state.tool === TOOLS.PEN && state.activePathId && state.interaction.livePreviewPoint) {
-    const found = getObjectById(state.activePathId);
-    const anchors = found?.object?.geometry?.anchors || [];
-    const last = anchors[anchors.length - 1];
-    if (found?.object?.type === "path" && last) {
-      const start = applyTransformToPoint(last, found.object.transform);
-      const end = state.interaction.livePreviewPoint;
-      const line = createSvgElement("line");
-      line.setAttribute("class", "path-preview-line");
-      line.setAttribute("x1", String(round(start.x)));
-      line.setAttribute("y1", String(round(start.y)));
-      line.setAttribute("x2", String(round(end.x)));
-      line.setAttribute("y2", String(round(end.y)));
-      dom.overlay.appendChild(line);
-    }
-  }
+const LAYER_ICONS={eye:'<path d="M1 8s2.5-4.5 7-4.5 7 4.5 7 4.5-2.5 4.5-7 4.5S1 8 1 8Z"/><circle cx="8" cy="8" r="2"/>',hidden:'<path d="M2 8s2.5-4 6-4 6 4 6 4M2 2l12 12"/>',lock:'<rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/>',disclose:'<path d="m6 4 4 4-4 4"/>',group:'<rect x="2" y="4" width="11" height="9"/><path d="M4 4V2h10v9"/>',rect:'<rect x="2.5" y="3" width="11" height="10"/>',ellipse:'<ellipse cx="8" cy="8" rx="5.5" ry="4.5"/>',path:'<path d="M2 12C4 1 11 14 14 4"/><rect x="1" y="11" width="2" height="2"/><rect x="13" y="3" width="2" height="2"/>',compound:'<path d="M2 2h12v12H2zM5 5h6v6H5z" fill-rule="evenodd"/>',text:'<path d="M3 3h10M8 3v10M5 13h6"/>',boolean:'<rect x="2" y="2" width="8" height="8"/><circle cx="10" cy="10" r="4"/>'};
+const layerIcon=key=>`<svg viewBox="0 0 16 16" aria-hidden="true">${LAYER_ICONS[key]||LAYER_ICONS.path}</svg>`;
+function layerDescendants(shape){return [shape.id,...(shape.children||[]).flatMap(layerDescendants)];}
+function setAllGroupsExpanded(expanded){const walk=objects=>{for(const shape of objects)if(shape.type==='group'){if(expanded)expandedLayerGroups.add(shape.id);else expandedLayerGroups.delete(shape.id);walk(shape.children||[]);}};walk(state.objects);updateLayersPanel();}
+function layerThumbnail(shape){
+  const wrapper=document.createElement('span');wrapper.className='layer-thumbnail';wrapper.setAttribute('aria-hidden','true');
+  try{
+    const signature=JSON.stringify([shape.type,shape.geometry,shape.style,shape.children]);const cached=layerThumbnailCache.get(shape.id);
+    let uri=cached?.signature===signature?cached.uri:null;
+    if(!uri){const node=dom.scene.querySelector(`[data-object-id="${CSS.escape(shape.id)}"]`);if(node){const box=node.getBBox(),w=Math.max(1,box.width),h=Math.max(1,box.height),pad=Math.max(w,h)*.12;const defs=[];const gather=s=>{const g=normalizeGradient(s.style?.gradient);if(g)defs.push(gradientMarkup(s,g));(s.children||[]).forEach(gather);};gather(shape);const art=shapeToSvgString({...shape,transform:DEFAULT_TRANSFORM,visible:true},'');const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box.x-pad} ${box.y-pad} ${w+2*pad} ${h+2*pad}"><defs>${defs.join('')}</defs>${art}</svg>`;if(svg.length<100000)uri='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);}
+      if(uri){layerThumbnailCache.set(shape.id,{signature,uri});if(layerThumbnailCache.size>256)layerThumbnailCache.delete(layerThumbnailCache.keys().next().value);}}
+    if(uri){const img=document.createElement('img');img.src=uri;img.alt='';wrapper.append(img);return wrapper;}
+  }catch{}
+  wrapper.innerHTML=layerIcon(shape.type);return wrapper;
 }
 
 function updateLayersPanel() {
-  dom.layers.innerHTML = "";
-
-  const rows = [];
-  const walk = (shapes, depth) => {
-    const ordered = [...shapes].sort((a, b) => b.zIndex - a.zIndex);
-    for (const shape of ordered) {
-      rows.push({ shape, depth });
-      if (shape.type === "group" && Array.isArray(shape.children) && shape.children.length > 0) {
-        walk(shape.children, depth + 1);
-      }
-    }
+  const scroll=dom.layers.scrollTop,focused=document.activeElement?.closest?.('.layer-item')?.dataset.layerId;
+  dom.layers.replaceChildren();
+  const selected=new Set(state.selection),rows=[];let total=0;
+  const walk=(shapes,depth,ancestorVisible=true,ancestorLocked=false)=>{
+    const ordered=[...shapes].sort((a,b)=>b.zIndex-a.zIndex);
+    for(const shape of ordered){const isGroup=shape.type==='group',open=expandedLayerGroups.has(shape.id),visible=ancestorVisible&&shape.visible!==false,locked=ancestorLocked||shape.locked;rows.push({shape,depth,isGroup,open,visible,locked,ancestorLocked,ancestorVisible});if(isGroup&&open)walk(shape.children||[],depth+1,visible,locked);}
   };
-  walk(state.objects, 0);
+  const count=objects=>{for(const shape of objects){total++;if(shape.children)count(shape.children);}};count(state.objects);walk(state.objects,0);
+  $('layer-count').textContent=`${total} object${total===1?'':'s'}${state.selection.length?` · ${state.selection.length} selected`:''}`;
+  if(!rows.length){const empty=document.createElement('p');empty.className='layers-empty';empty.textContent='Draw an object to begin.';dom.layers.append(empty);}
 
   for (const row of rows) {
-    const { shape, depth } = row;
-    const item = document.createElement("button");
-    item.type = "button";
+    const {shape,depth,isGroup,open,visible,locked,ancestorLocked,ancestorVisible}=row;
+    const item = document.createElement("div");
+    item.tabIndex=0;item.setAttribute('role','treeitem');item.setAttribute('aria-label',`${shape.name||shape.type} ${isGroup?'group':'layer'}`);item.setAttribute('aria-level',String(depth+1));item.setAttribute('aria-selected',String(selected.has(shape.id)));if(isGroup)item.setAttribute('aria-expanded',String(open));
     item.className = "layer-item";
     item.dataset.layerId = shape.id;
-    item.style.paddingLeft = `${8 + depth * 14}px`;
-    if (state.selection.includes(shape.id)) {
-      item.classList.add("is-selected");
+    item.classList.toggle('is-selected',selected.has(shape.id));item.classList.toggle('is-hidden-layer',!visible);item.classList.toggle('is-locked-layer',locked);item.classList.toggle('is-group',isGroup);
+    const descendants=layerDescendants(shape),hasSelection=descendants.some(id=>selected.has(id));
+    for(const [prop,label,icon] of [['visible','Visibility',shape.visible!==false?'eye':'hidden'],['locked','Lock',shape.locked?'lock':'']]){
+      const button=document.createElement('button');button.type='button';button.className=`layer-icon layer-${prop}`;button.title=`${label}: ${shape.name}`;button.setAttribute('aria-label',button.title);button.setAttribute('aria-pressed',String(prop==='visible'?shape.visible!==false:!!shape.locked));button.innerHTML=icon?layerIcon(icon):'';button.disabled=ancestorLocked;
+      button.addEventListener('click',event=>{event.stopPropagation();pushHistory();shape[prop]=prop==='visible'?shape.visible===false:!shape.locked;if(shape.locked||shape.visible===false){const ids=new Set(descendants);state.selection=state.selection.filter(id=>!ids.has(id));if(ids.has(state.activePathId))state.activePathId=null;if(ids.has(state.directSelection.pathId))state.directSelection={pathId:null,anchorIndex:null};}render();});item.append(button);
     }
-    if (state.activeLayerId === shape.id || getTopLevelLayerForId(shape.id)?.id === state.activeLayerId) {
-      item.classList.add("is-active-layer");
-    }
-    item.classList.toggle("is-hidden", shape.visible === false);
-    item.classList.toggle("is-locked", shape.locked === true);
-
-    const left = document.createElement("span");
-    left.className = "layer-name-wrap";
-
-    const name = document.createElement("span");
-    name.className = "layer-name";
-    name.textContent = shape.name || shape.type;
-
-    const type = document.createElement("span");
-    type.className = "layer-type";
-    type.textContent = shape.type;
-
-    left.appendChild(name);
-    left.appendChild(type);
-    item.appendChild(left);
-
-    const visibilityBtn = document.createElement("span");
-    visibilityBtn.className = "layer-mini-button";
-    visibilityBtn.title = shape.visible === false ? "Show layer" : "Hide layer";
-    visibilityBtn.textContent = shape.visible === false ? "○" : "●";
-    visibilityBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      pushHistory();
-      shape.visible = shape.visible === false;
-      if (shape.visible === false) {
-        state.selection = state.selection.filter((id) => id !== shape.id);
-      }
-      render();
-    });
-    item.appendChild(visibilityBtn);
-
-    const lockBtn = document.createElement("span");
-    lockBtn.className = "layer-mini-button";
-    lockBtn.title = shape.locked ? "Unlock layer" : "Lock layer";
-    lockBtn.textContent = shape.locked ? "⌧" : "□";
-    lockBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      pushHistory();
-      shape.locked = !shape.locked;
-      if (shape.locked) {
-        state.selection = state.selection.filter((id) => id !== shape.id);
-      }
-      render();
-    });
-    item.appendChild(lockBtn);
-
-    item.addEventListener("dblclick", (event) => {
-      event.stopPropagation();
-      const nextName = window.prompt("Layer name", shape.name || shape.type);
-      const cleanedName = sanitizeManualName(nextName);
-      if (cleanedName) {
-        pushHistory();
-        shape.name = cleanedName;
-        render();
-      }
-    });
-
-    if (depth === 0) {
+    const left=document.createElement('span');left.className='layer-name-wrap';left.style.setProperty('--layer-indent',`${Math.min(depth,6)*9}px`);
+    if(isGroup){const disclosure=document.createElement('button');disclosure.type='button';disclosure.className='layer-icon layer-disclosure';disclosure.title=`${open?'Collapse':'Expand'} ${shape.name}`;disclosure.setAttribute('aria-label',disclosure.title);disclosure.setAttribute('aria-expanded',String(open));disclosure.innerHTML='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5L13 8 5 13.5Z" fill="currentColor" stroke="none"/></svg>';disclosure.addEventListener('click',event=>{event.stopPropagation();open?expandedLayerGroups.delete(shape.id):expandedLayerGroups.add(shape.id);updateLayersPanel();});left.append(disclosure);}else{const space=document.createElement('span');space.className='layer-disclosure-spacer';left.append(space);}
+    left.append(layerThumbnail(shape));const name=document.createElement('span');name.className='layer-name';name.textContent=shape.name||shape.type;name.title=shape.name||shape.type;left.append(name);item.append(left);
+    const target=document.createElement('span');target.className='layer-target';target.classList.toggle('is-targeted',selected.has(shape.id));target.classList.toggle('has-selection',hasSelection);target.setAttribute('aria-hidden','true');item.append(target);
+    const marker=document.createElement('span');marker.className='layer-selection-marker';marker.classList.toggle('has-selection',hasSelection);marker.setAttribute('aria-hidden','true');item.append(marker);
+    if (!locked) {
       item.draggable = true;
       item.addEventListener("dragstart", (event) => {
         event.dataTransfer.effectAllowed = "move";
@@ -3221,6 +1813,7 @@ function updateLayersPanel() {
     }
 
     item.addEventListener("click", (event) => {
+      if(locked||!visible)return;
       if (event.shiftKey) {
         if (state.selection.includes(shape.id)) {
           state.selection = state.selection.filter((id) => id !== shape.id);
@@ -3229,10 +1822,6 @@ function updateLayersPanel() {
         }
       } else {
         state.selection = [shape.id];
-      }
-      const layer = shape.type === "group" && depth === 0 ? shape : getTopLevelLayerForId(shape.id);
-      if (layer) {
-        state.activeLayerId = layer.id;
       }
       state.activePathId = shape.type === "path" ? shape.id : null;
       if (state.tool === TOOLS.DIRECT && shape.type === "path") {
@@ -3244,6 +1833,8 @@ function updateLayersPanel() {
       }
       render();
     });
+    item.addEventListener('dblclick',event=>{if(event.target.closest('button')||locked)return;event.stopPropagation();const next=prompt('Layer name',shape.name);if(next?.trim()){pushHistory();shape.name=next.trim().slice(0,100);render();}});
+    item.addEventListener('keydown',event=>{if(event.target!==item)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();item.click();}else if(isGroup&&['ArrowRight','ArrowLeft'].includes(event.key)){event.preventDefault();event.stopPropagation();event.key==='ArrowRight'?expandedLayerGroups.add(shape.id):expandedLayerGroups.delete(shape.id);updateLayersPanel();}});
 
     dom.layers.appendChild(item);
   }
@@ -3251,88 +1842,30 @@ function updateLayersPanel() {
   const topLevelSelection = state.selection.filter((id) =>
     state.objects.some((shape) => shape.id === id)
   );
-  const hasGroupSelection = state.selection.some((id) => {
+  const hasGroupSelection = topLevelSelection.some((id) => {
     const found = getObjectById(id);
     return found?.object.type === "group";
   });
 
   dom.groupBtn.disabled = topLevelSelection.length < 2;
   dom.ungroupBtn.disabled = !hasGroupSelection;
-  dom.layerForwardBtn.disabled = topLevelSelection.length === 0;
-  dom.layerBackwardBtn.disabled = topLevelSelection.length === 0;
+  dom.layerForwardBtn.disabled = state.selection.length === 0;
+  dom.layerBackwardBtn.disabled = state.selection.length === 0;
+  $('rename-layer-btn').disabled=state.selection.length!==1;$('delete-layer-btn').disabled=state.selection.length===0;
+  dom.layers.scrollTop=scroll;if(focused)dom.layers.querySelector(`[data-layer-id="${CSS.escape(focused)}"]`)?.focus({preventScroll:true});
 }
 
-function updateSwatchesPanel() {
-  dom.swatchesList.innerHTML = "";
-  for (const swatch of state.swatches) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "swatch-button";
-    button.title = swatch.name || "Swatch";
-    if (swatch.type === "gradient") {
-      button.classList.add("is-gradient");
-      const stops = swatch.gradient?.stops || [];
-      button.style.setProperty("--swatch-a", stops[0]?.color || "#90caf9");
-      button.style.setProperty("--swatch-b", stops[stops.length - 1]?.color || "#7c3aed");
-    } else {
-      button.style.background = swatch.color || "#000000";
-    }
-    button.addEventListener("click", () => {
-      if (swatch.type === "gradient" && swatch.gradient) {
-        const gradient = normalizeGradient(deepClone(swatch.gradient));
-        applyStyleToSelection({ fill: `url(#${gradient.id})`, fillGradient: gradient });
-      } else {
-        applyStyleToSelection({ fill: swatch.color || "#000000", fillGradient: null });
-      }
-      setStatus(`Applied swatch: ${swatch.name || "Swatch"}`);
-    });
-    dom.swatchesList.appendChild(button);
-  }
-}
-
-function updateArtboardsPanel() {
-  const active = getActiveArtboard();
-  dom.artboardsList.innerHTML = "";
-  for (const artboard of state.doc.artboards) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "artboard-item";
-    if (artboard.id === active.id) {
-      button.classList.add("is-active");
-    }
-    button.textContent = artboard.name;
-    const meta = document.createElement("span");
-    meta.className = "artboard-meta";
-    meta.textContent = `${round(artboard.width)} x ${round(artboard.height)}`;
-    button.appendChild(meta);
-    button.addEventListener("click", () => switchArtboard(artboard.id));
-    button.addEventListener("dblclick", (event) => {
-      event.stopPropagation();
-      switchArtboard(artboard.id);
-      renameActiveArtboard();
-    });
-    dom.artboardsList.appendChild(button);
-  }
-  dom.deleteArtboardBtn.disabled = state.doc.artboards.length <= 1;
-  dom.artboardsNote.textContent = `${active.name} exports at ${round(active.width)} x ${round(active.height)}. Objects are shared across artboards in this foundational pass.`;
-}
-
-function render() {
-  normalizeArtboards(state.doc);
-  dom.canvas.setAttribute("viewBox", `0 0 ${state.doc.width} ${state.doc.height}`);
-  dom.canvas.setAttribute("width", String(state.doc.width));
-  dom.canvas.setAttribute("height", String(state.doc.height));
+function render(interactive=false) {
+  renderView();
   dom.canvasBackground.setAttribute("width", String(state.doc.width));
   dom.canvasBackground.setAttribute("height", String(state.doc.height));
-  dom.gridBackground.setAttribute("width", String(state.doc.width));
-  dom.gridBackground.setAttribute("height", String(state.doc.height));
-  applyViewTransform();
+  const grid=$('studio-grid'),pattern=$('studio-grid-pattern'),spacing=state.grid.size;
+  grid.setAttribute('width',state.doc.width);grid.setAttribute('height',state.doc.height);grid.setAttribute('visibility',state.grid.visible?'visible':'hidden');pattern.setAttribute('width',spacing);pattern.setAttribute('height',spacing);$('studio-grid-path').setAttribute('d',`M ${spacing} 0 H 0 V ${spacing}`);
+  $('paint-defs').replaceChildren();
 
   while (dom.scene.firstChild) {
     dom.scene.firstChild.remove();
   }
-
-  appendDocumentDefs(dom.scene);
 
   const shapes = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
   for (const shape of shapes) {
@@ -3340,98 +1873,48 @@ function render() {
   }
 
   drawSelectionOutline();
+  if(interactive)return;
+  renderBoardControls();
   updateLayersPanel();
-  updateSwatchesPanel();
-  updateArtboardsPanel();
 
-  const primary = getPrimarySelectedObject();
-  const activeAnchor = getActiveAnchorSelection();
-  if (activeAnchor) {
-    dom.selectionSummary.textContent = `Anchor ${activeAnchor.anchorIndex + 1} on ${activeAnchor.path.name || "Path"}`;
-  } else if (state.selection.length === 0) {
-    const activeLayer = state.activeLayerId ? getObjectById(state.activeLayerId)?.object : null;
-    dom.selectionSummary.textContent = activeLayer ? `Active layer: ${activeLayer.name}` : "No selection";
-  } else if (state.selection.length === 1 && primary) {
-    const layer = getTopLevelLayerForId(primary.id);
-    dom.selectionSummary.textContent = layer && layer.id !== primary.id
-      ? `${primary.name || primary.type} (${primary.type}) in ${layer.name}`
-      : `${primary.name || primary.type} (${primary.type})`;
+  if (state.selection.length === 0) {
+    dom.selectionSummary.textContent = "No selection";
   } else {
     dom.selectionSummary.textContent = `${state.selection.length} selected`;
   }
 
-  dom.objectNameInput.value = state.selection.length === 1 && primary ? primary.name || "" : "";
-  dom.objectNameInput.disabled = !(state.selection.length === 1 && primary);
-
-  const style = primary ? normalizeStyle(primary.style) : deepClone(DEFAULT_STYLE);
+  const primary = getPrimarySelectedObject();
+  const style = normalizeStyle(primary?.style||state.paint);
   dom.fillInput.value = colorToHex(style.fill, "#90caf9");
-  dom.strokeInput.value = colorToHex(style.stroke, "#3a8cb3");
-  dom.fillModeInput.value = style.fillGradient?.type || (style.fill === "none" ? "none" : "solid");
-  dom.strokeModeInput.value = style.strokeGradient?.type || (style.stroke === "none" ? "none" : "solid");
-  dom.fillOpacityInput.value = String(round(clampNumber(style.fillOpacity, 0, 1, 1), 2));
-  dom.strokeOpacityInput.value = String(round(clampNumber(style.strokeOpacity, 0, 1, 1), 2));
-  const fillGradient = style.fillGradient || defaultGradient("linear", style.fill, "#7c3aed");
-  const strokeGradient = style.strokeGradient || defaultGradient("linear", style.stroke, "#ff7a18");
-  dom.fillGradientStartInput.value = colorToHex(fillGradient.stops[0]?.color, "#90caf9");
-  dom.fillGradientEndInput.value = colorToHex(fillGradient.stops[fillGradient.stops.length - 1]?.color, "#7c3aed");
-  dom.fillGradientAngleInput.value = String(round(fillGradient.angle || 0, 1));
-  dom.strokeGradientStartInput.value = colorToHex(strokeGradient.stops[0]?.color, "#3a8cb3");
-  dom.strokeGradientEndInput.value = colorToHex(strokeGradient.stops[strokeGradient.stops.length - 1]?.color, "#ff7a18");
-  dom.strokeGradientAngleInput.value = String(round(strokeGradient.angle || 0, 1));
+  dom.strokeInput.value = colorToHex(style.stroke, "#1976d2");
   dom.strokeWidthInput.value = String(round(clamp(Number(style.strokeWidth) || 0, 0, 64), 2));
-  dom.strokeDashInput.value = style.strokeDasharray || "";
-  dom.miterLimitInput.value = String(round(style.strokeMiterlimit || 4, 2));
-  dom.strokeJoinInput.value = style.strokeJoin || DEFAULT_STYLE.strokeJoin;
-  dom.strokeCapInput.value = style.strokeCap || DEFAULT_STYLE.strokeCap;
-  dom.opacityInput.value = String(round(clamp(Number(style.opacity) || 1, 0, 1), 2));
-  dom.fillInput.disabled = false;
-  dom.strokeInput.disabled = false;
-  dom.fillModeInput.disabled = false;
-  dom.strokeModeInput.disabled = false;
-  dom.fillOpacityInput.disabled = false;
-  dom.strokeOpacityInput.disabled = false;
-  dom.fillGradientStartInput.disabled = dom.fillModeInput.value === "solid" || dom.fillModeInput.value === "none";
-  dom.fillGradientEndInput.disabled = dom.fillGradientStartInput.disabled;
-  dom.fillGradientAngleInput.disabled = dom.fillGradientStartInput.disabled;
-  dom.strokeGradientStartInput.disabled = dom.strokeModeInput.value === "solid" || dom.strokeModeInput.value === "none";
-  dom.strokeGradientEndInput.disabled = dom.strokeGradientStartInput.disabled;
-  dom.strokeGradientAngleInput.disabled = dom.strokeGradientStartInput.disabled;
-  dom.strokeWidthInput.disabled = false;
-  dom.strokeDashInput.disabled = false;
-  dom.miterLimitInput.disabled = false;
-  dom.strokeJoinInput.disabled = false;
-  dom.strokeCapInput.disabled = false;
-  dom.opacityInput.disabled = false;
+  dom.opacityInput.value = String(round(clamp(Number(style.opacity), 0, 1), 2));
+  renderGradientInspector(style);
+  $('stroke-cap-input').value=style.strokeCap;$('stroke-join-input').value=style.strokeJoin;$('stroke-dash-input').value=style.strokeDash;
+  $('grid-toggle-btn').classList.toggle('is-active',state.grid.visible);$('grid-snap-input').checked=state.grid.snap;$('grid-size-input').value=state.grid.size;
+  $('corner-properties').hidden=primary?.type!=='rect'||state.selection.length!==1;if(primary?.type==='rect')$('corner-radius-input').value=primary.geometry.rx||0;
+  $('fill-none-btn').classList.toggle('is-active',style.fill==='none'&&!style.gradient);
+  $('stroke-none-btn').classList.toggle('is-active',style.stroke==='none');
+  const text=primary?.type==='text'&&state.selection.length===1?primary:null;
+  $('text-properties').hidden=!text;
+  if(text){const g=text.geometry;if($('text-content-input').value!==g.text)$('text-content-input').value=g.text;$('font-size-input').value=g.fontSize;$('font-family-input').value=g.fontFamily;$('font-weight-input').value=g.fontWeight||400;$('font-style-input').value=g.fontStyle||'normal';$('text-align-input').value=g.textAlign||'start';$('letter-spacing-input').value=g.letterSpacing||0;$('line-height-input').value=g.lineHeight||1.2;}
 
   const singleSelection = state.selection.length === 1 ? primary : null;
   const singleBounds = state.selection.length === 1 ? getSelectionBounds() : null;
-  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
-    dom.transformXInput.value = String(round(activeAnchor.anchor.x, 2));
-    dom.transformYInput.value = String(round(activeAnchor.anchor.y, 2));
-    dom.transformWInput.value = "";
-    dom.transformHInput.value = "";
-    dom.transformRotateInput.value = "";
-    dom.transformXInput.disabled = false;
-    dom.transformYInput.disabled = false;
-    dom.transformWInput.disabled = true;
-    dom.transformHInput.disabled = true;
-    dom.transformRotateInput.disabled = true;
-  } else {
-    dom.transformXInput.value = String(round(singleBounds?.x ?? 0, 2));
-    dom.transformYInput.value = String(round(singleBounds?.y ?? 0, 2));
-    dom.transformWInput.value = String(round(Math.max(1, singleBounds?.width ?? 1), 2));
-    dom.transformHInput.value = String(round(Math.max(1, singleBounds?.height ?? 1), 2));
-    dom.transformRotateInput.value = String(round(singleSelection?.transform?.rotation ?? 0, 2));
-    const disableTransform = !singleSelection;
-    dom.transformXInput.disabled = disableTransform;
-    dom.transformYInput.disabled = disableTransform;
-    dom.transformWInput.disabled = disableTransform;
-    dom.transformHInput.disabled = disableTransform;
-    dom.transformRotateInput.disabled = disableTransform;
-  }
+  dom.transformXInput.value = String(round(singleBounds?.x ?? 0, 2));
+  dom.transformYInput.value = String(round(singleBounds?.y ?? 0, 2));
+  dom.transformWInput.value = String(round(Math.max(1, singleBounds?.width ?? 1), 2));
+  dom.transformHInput.value = String(round(Math.max(1, singleBounds?.height ?? 1), 2));
+  dom.transformRotateInput.value = String(round(singleSelection?.transform?.rotation ?? 0, 2));
+  const disableTransform = !singleSelection;
+  dom.transformXInput.disabled = disableTransform;
+  dom.transformYInput.disabled = disableTransform;
+  dom.transformWInput.disabled = disableTransform;
+  dom.transformHInput.disabled = disableTransform;
+  dom.transformRotateInput.disabled = disableTransform;
 
   const selectionCount = state.selection.length;
-  const disableArrange = selectionCount < 2;
+  const disableArrange = selectionCount < (state.alignTarget==='artboard'?1:2);
   dom.alignLeftBtn.disabled = disableArrange;
   dom.alignHCenterBtn.disabled = disableArrange;
   dom.alignRightBtn.disabled = disableArrange;
@@ -3440,46 +1923,21 @@ function render() {
   dom.alignBottomBtn.disabled = disableArrange;
   dom.distributeHBtn.disabled = selectionCount < 3;
   dom.distributeVBtn.disabled = selectionCount < 3;
-  const disableBoolean = !getSameContainerSelectionRecords(2);
+  const topLevelCount = getTopLevelSelectionIds().length;
+  const disableBoolean = topLevelCount !== 2;
   dom.booleanUniteBtn.disabled = disableBoolean;
   dom.booleanSubtractBtn.disabled = disableBoolean;
   dom.booleanIntersectBtn.disabled = disableBoolean;
-  dom.booleanExcludeBtn.disabled = disableBoolean;
-  dom.dividePathBtn.disabled = disableBoolean;
-  const selectedEditablePaths = getSelectedPathObjects();
-  const hasSelection = selectionCount > 0;
-  dom.reversePathBtn.disabled = selectedEditablePaths.length === 0;
-  dom.simplifyPathBtn.disabled = selectedEditablePaths.length === 0;
-  dom.offsetPathBtn.disabled = !hasSelection;
-  dom.outlineStrokeBtn.disabled = !hasSelection;
-  dom.expandAppearanceBtn.disabled = !hasSelection;
-  dom.joinPathsBtn.disabled = selectedEditablePaths.filter((path) => !path.geometry.closed).length !== 2;
-  dom.convertAnchorBtn.disabled = selectedEditablePaths.length === 0 && !getActiveAnchorSelection();
-  const symbol = selectedSymbolInstance();
-  dom.duplicateSymbolBtn.disabled = !symbol;
-  dom.breakSymbolBtn.disabled = !symbol;
-  dom.symbolNote.textContent = symbol
-    ? `${symbol.name || "Symbol instance"} remains linked to ${symbol.geometry.symbolHref}; transform it like any object or break it into editable contents.`
-    : "Select an imported symbol instance to edit or expand it.";
-  dom.pathfinderNote.textContent = disableBoolean
-    ? "Boolean and Divide need two top-level shapes. Offset/Outline/Expand work on supported selected vectors."
-    : "Rectangle Divide creates editable pieces; complex booleans use safe SVG fallbacks instead of corrupting paths.";
+  $('compound-btn').disabled=topLevelCount<2;$('release-compound-btn').disabled=primary?.type!=='compound'||state.selection.length!==1;
   dom.snapToggleBtn.classList.toggle("is-active", state.snap.enabled);
-  dom.activeToolLabel.textContent = getToolLabel(state.tool);
 
   dom.docWidth.value = String(state.doc.width);
   dom.docHeight.value = String(state.doc.height);
-  dom.documentNameInput.value = state.doc.name || "Untitled SVG";
-  dom.artboardNameInput.value = state.doc.artboardName || "Artboard 1";
-  dom.autosaveToggle.checked = state.autosave;
 
-  if (state.autosave) {
-    const legacySnapshot = state.objects.map(toLegacyShape);
-    window.localStorage.setItem(STORAGE_LEGACY_KEY, JSON.stringify(legacySnapshot));
-    window.localStorage.setItem(STORAGE_CANONICAL_KEY, JSON.stringify({ doc: state.doc, objects: state.objects, activeLayerId: state.activeLayerId }));
-  }
-  refreshCodePanelIfOpen();
+  clearTimeout(saveTimer);saveTimer=setTimeout(saveDocument,180);
 }
+
+function saveDocument(){try{window.localStorage.setItem('svg-editor:studio-project-v2',JSON.stringify(projectPayload()));}catch(error){console.warn('Unable to autosave document',error);setStatus('Autosave storage full; save the editable project manually');}}
 
 function deselectAll() {
   state.selection = [];
@@ -3493,8 +1951,6 @@ function applyToolButtonState() {
     const isActive = node.dataset.tool === state.tool;
     node.classList.toggle("is-active", isActive);
   }
-  dom.activeToolLabel.textContent = getToolLabel(state.tool);
-  updateWorkspaceClasses();
 }
 
 function sortAndReindexObjects() {
@@ -3503,237 +1959,7 @@ function sortAndReindexObjects() {
     .map((shape, index) => ({ ...shape, zIndex: index }));
 }
 
-function layerNameExists(name) {
-  return state.objects.some((shape) => shape.type === "group" && shape.name === name);
-}
-
-function nextLayerName() {
-  let index = 1;
-  while (layerNameExists(`Layer ${index}`)) {
-    index += 1;
-  }
-  return `Layer ${index}`;
-}
-
-function createLayerObject(name = nextLayerName()) {
-  return {
-    id: nextId("layer"),
-    type: "group",
-    name,
-    zIndex: state.objects.length,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: {
-      ...deepClone(DEFAULT_STYLE),
-      fill: "none"
-    },
-    geometry: { x: 0, y: 0, width: 0, height: 0 },
-    children: []
-  };
-}
-
-function addLayer({ recordHistory = true } = {}) {
-  if (recordHistory) {
-    pushHistory();
-  }
-  const layer = createLayerObject();
-  state.objects.push(layer);
-  sortAndReindexObjects();
-  state.activeLayerId = layer.id;
-  state.selection = [layer.id];
-  setStatus(`${layer.name} created`);
-  render();
-  return layer;
-}
-
-function resetDocumentState({ keepSettings = true, resetHistory = true } = {}) {
-  state.doc = {
-    name: "Untitled SVG",
-    artboardName: "Artboard 1",
-    width: 1200,
-    height: 800,
-    defs: "",
-    activeArtboardId: "artboard-1",
-    artboards: [
-      {
-        id: "artboard-1",
-        name: "Artboard 1",
-        x: 0,
-        y: 0,
-        width: 1200,
-        height: 800
-      }
-    ]
-  };
-  state.objects = [];
-  state.selection = [];
-  state.activeLayerId = null;
-  state.activePathId = null;
-  state.directSelection.pathId = null;
-  state.directSelection.anchorIndex = null;
-  if (resetHistory) {
-    state.history.undo = [];
-    state.history.redo = [];
-  }
-  if (!keepSettings) {
-    state.swatches = [
-      { type: "solid", name: "Phil Blue", color: "#2f6fec" },
-      { type: "solid", name: "Warm Gold", color: "#ffd166" },
-      { type: "solid", name: "Ink", color: "#111111" }
-    ];
-    state.autosave = true;
-  }
-  updateHistoryButtons();
-}
-
-function newProject() {
-  if (!window.confirm("Create a new blank project? Unsaved changes stay only if you saved a draft.")) {
-    return;
-  }
-  pushHistory();
-  resetDocumentState({ keepSettings: true, resetHistory: false });
-  addLayer({ recordHistory: false });
-  setStatus("New project created");
-  render();
-}
-
-function clearCanvas() {
-  if (!window.confirm("Clear all artwork from the current artboard?")) {
-    return;
-  }
-  pushHistory();
-  state.objects = [];
-  state.selection = [];
-  state.activeLayerId = null;
-  state.activePathId = null;
-  state.directSelection.pathId = null;
-  state.directSelection.anchorIndex = null;
-  setStatus("Canvas cleared");
-  render();
-}
-
-function resetEditorState() {
-  if (!window.confirm("Reset the SVG editor and remove local autosave/drafts?")) {
-    return;
-  }
-  for (const key of [STORAGE_CANONICAL_KEY, STORAGE_LEGACY_KEY, STORAGE_DRAFTS_KEY, STORAGE_SETTINGS_KEY]) {
-    window.localStorage.removeItem(key);
-  }
-  resetDocumentState({ keepSettings: false, resetHistory: true });
-  updateDraftsSelect();
-  saveSettings();
-  setStatus("Editor state reset");
-  render();
-}
-
-function switchArtboard(id) {
-  const artboard = state.doc.artboards.find((candidate) => candidate.id === id);
-  if (!artboard) {
-    return;
-  }
-  state.doc.activeArtboardId = artboard.id;
-  state.doc.artboardName = artboard.name;
-  state.doc.width = artboard.width;
-  state.doc.height = artboard.height;
-  setStatus(`Active artboard: ${artboard.name}`);
-  render();
-}
-
-function addArtboard() {
-  pushHistory();
-  const index = state.doc.artboards.length + 1;
-  const artboard = defaultArtboard(state.doc.width, state.doc.height, `Artboard ${index}`);
-  state.doc.artboards.push(artboard);
-  switchArtboard(artboard.id);
-}
-
-function duplicateArtboard() {
-  const active = getActiveArtboard();
-  pushHistory();
-  const copy = {
-    ...deepClone(active),
-    id: nextId("artboard"),
-    name: `${active.name} Copy`
-  };
-  state.doc.artboards.push(copy);
-  switchArtboard(copy.id);
-}
-
-function renameActiveArtboard() {
-  const active = getActiveArtboard();
-  const nextName = sanitizeManualName(window.prompt("Artboard name", active.name));
-  if (!nextName) {
-    return;
-  }
-  pushHistory();
-  active.name = nextName;
-  state.doc.artboardName = nextName;
-  setStatus(`Renamed artboard: ${nextName}`);
-  render();
-}
-
-function deleteArtboard() {
-  if (state.doc.artboards.length <= 1) {
-    setStatus("Keep at least one artboard");
-    return;
-  }
-  const active = getActiveArtboard();
-  pushHistory();
-  state.doc.artboards = state.doc.artboards.filter((artboard) => artboard.id !== active.id);
-  state.doc.activeArtboardId = state.doc.artboards[0]?.id || null;
-  normalizeArtboards(state.doc);
-  setStatus(`Deleted ${active.name}`);
-  render();
-}
-
-function resizeActiveArtboard(width = state.doc.width, height = state.doc.height) {
-  const active = getActiveArtboard();
-  active.width = clamp(Number(width), 64, 10000);
-  active.height = clamp(Number(height), 64, 10000);
-  state.doc.width = active.width;
-  state.doc.height = active.height;
-}
-
-function getTopLevelLayerForId(id) {
-  if (!id) {
-    return null;
-  }
-  for (const top of state.objects) {
-    if (top.id === id) {
-      return top.type === "group" ? top : null;
-    }
-    if (top.type === "group" && getObjectById(id, top.children || [], top)) {
-      return top;
-    }
-  }
-  return null;
-}
-
-function getUsableActiveLayer({ createIfMissing = true } = {}) {
-  let layer = state.activeLayerId ? getObjectById(state.activeLayerId)?.object : null;
-  if (!layer || layer.type !== "group" || layer.locked || layer.visible === false) {
-    layer = state.objects.find((shape) => shape.type === "group" && shape.visible !== false && !shape.locked) || null;
-  }
-  if (!layer && createIfMissing) {
-    layer = createLayerObject();
-    state.objects.push(layer);
-    sortAndReindexObjects();
-  }
-  if (layer) {
-    state.activeLayerId = layer.id;
-  }
-  return layer;
-}
-
-function addShape(shape, { useActiveLayer = true } = {}) {
-  const layer = useActiveLayer ? getUsableActiveLayer({ createIfMissing: true }) : null;
-  if (layer && layer.type === "group" && !layer.locked && layer.visible !== false) {
-    layer.children ??= [];
-    layer.children.push({ ...shape, zIndex: layer.children.length });
-    layer.children = layer.children.map((child, index) => ({ ...child, zIndex: index }));
-    return;
-  }
+function addShape(shape) {
   state.objects.push(shape);
   sortAndReindexObjects();
 }
@@ -3746,20 +1972,6 @@ function updateShape(id, updater) {
   updater(found.object);
 }
 
-function removeObjectsByIds(shapes, selected) {
-  return shapes
-    .filter((shape) => !selected.has(shape.id))
-    .map((shape) => {
-      if (shape.type !== "group" || !Array.isArray(shape.children)) {
-        return shape;
-      }
-      return {
-        ...shape,
-        children: removeObjectsByIds(shape.children, selected).map((child, index) => ({ ...child, zIndex: index }))
-      };
-    });
-}
-
 function getPrimarySelectedObject() {
   if (state.selection.length === 0) {
     return null;
@@ -3768,116 +1980,21 @@ function getPrimarySelectedObject() {
   return found ? found.object : null;
 }
 
-function getActiveAnchorSelection() {
-  const pathId = state.directSelection.pathId;
-  const anchorIndex = state.directSelection.anchorIndex;
-  const found = pathId ? getObjectById(pathId) : null;
-  if (!found || found.object.type !== "path" || !Number.isInteger(anchorIndex)) {
-    return null;
-  }
-  const anchor = found.object.geometry.anchors?.[anchorIndex];
-  if (!anchor) {
-    return null;
-  }
-  return {
-    path: found.object,
-    pathId,
-    anchor,
-    anchorIndex
-  };
-}
-
 function applyStyleToSelection(patch) {
+  state.paint={...state.paint,...patch};
   if (state.selection.length === 0) {
-    Object.assign(DEFAULT_STYLE, normalizeStyle({ ...DEFAULT_STYLE, ...patch }));
     render();
     return;
   }
 
   pushHistory();
   for (const id of state.selection) {
-    updateShape(id, (shape) => {
-      shape.style = {
-        ...shape.style,
-        ...patch
-      };
-    });
+    updateShape(id,shape=>{const apply=s=>{if(s.locked)return;if(s.type==='group')s.children.forEach(apply);else s.style={...s.style,...deepClone(patch)};};apply(shape);});
   }
   render();
 }
 
-function applyPaintMode(paintKey, mode) {
-  const isStroke = paintKey === "stroke";
-  const gradientKey = isStroke ? "strokeGradient" : "fillGradient";
-  if (mode === "none") {
-    applyStyleToSelection({ [paintKey]: "none", [gradientKey]: null });
-    return;
-  }
-  if (mode === "solid") {
-    const input = isStroke ? dom.strokeInput : dom.fillInput;
-    applyStyleToSelection({ [paintKey]: input.value, [gradientKey]: null });
-    return;
-  }
-  const start = isStroke ? dom.strokeGradientStartInput.value : dom.fillGradientStartInput.value;
-  const end = isStroke ? dom.strokeGradientEndInput.value : dom.fillGradientEndInput.value;
-  const angle = Number(isStroke ? dom.strokeGradientAngleInput.value : dom.fillGradientAngleInput.value);
-  const gradient = defaultGradient(mode, start, end);
-  gradient.angle = Number.isFinite(angle) ? angle : 0;
-  applyStyleToSelection({ [paintKey]: `url(#${gradient.id})`, [gradientKey]: gradient });
-}
-
-function updateGradientStyle(paintKey) {
-  const isStroke = paintKey === "stroke";
-  const gradientKey = isStroke ? "strokeGradient" : "fillGradient";
-  const mode = isStroke ? dom.strokeModeInput.value : dom.fillModeInput.value;
-  if (mode !== "linear" && mode !== "radial") {
-    return;
-  }
-  const start = isStroke ? dom.strokeGradientStartInput.value : dom.fillGradientStartInput.value;
-  const end = isStroke ? dom.strokeGradientEndInput.value : dom.fillGradientEndInput.value;
-  const angle = Number(isStroke ? dom.strokeGradientAngleInput.value : dom.fillGradientAngleInput.value);
-  const current = getPrimarySelectedObject()?.style?.[gradientKey];
-  const gradient = normalizeGradient(current, start, end) || defaultGradient(mode, start, end);
-  gradient.type = mode;
-  gradient.angle = Number.isFinite(angle) ? angle : 0;
-  gradient.stops[0].color = start;
-  gradient.stops[gradient.stops.length - 1].color = end;
-  applyStyleToSelection({ [paintKey]: `url(#${gradient.id})`, [gradientKey]: gradient });
-}
-
-function commitStrokeDashEdit() {
-  const value = dom.strokeDashInput.value.trim();
-  applyStyleToSelection({ strokeDasharray: value.toLowerCase() === "none" ? "" : value });
-}
-
 function applyTransformInputsToSelection() {
-  const activeAnchor = getActiveAnchorSelection();
-  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
-    const nextX = Number(dom.transformXInput.value);
-    const nextY = Number(dom.transformYInput.value);
-    if (!Number.isFinite(nextX) && !Number.isFinite(nextY)) {
-      return;
-    }
-
-    pushHistory();
-    const anchor = activeAnchor.anchor;
-    const dx = Number.isFinite(nextX) ? nextX - anchor.x : 0;
-    const dy = Number.isFinite(nextY) ? nextY - anchor.y : 0;
-    anchor.x += dx;
-    anchor.y += dy;
-    if (anchor.inHandle) {
-      anchor.inHandle.x += dx;
-      anchor.inHandle.y += dy;
-    }
-    if (anchor.outHandle) {
-      anchor.outHandle.x += dx;
-      anchor.outHandle.y += dy;
-    }
-    setStatus(`Anchor ${activeAnchor.anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
-    render();
-    return;
-  }
-
   const primary = getPrimarySelectedObject();
   if (!primary || state.selection.length !== 1) {
     return;
@@ -3949,12 +2066,12 @@ function getSelectionBoundsEntries() {
 
 function alignSelection(mode) {
   const entries = getSelectionBoundsEntries();
-  if (entries.length < 2) {
+  if (entries.length < (state.alignTarget==='artboard'?1:2)) {
     setStatus("Select at least two objects to align");
     return;
   }
 
-  const union = getBoundsForIds(entries.map((entry) => entry.id));
+  const union = state.alignTarget==='artboard'?{x:0,y:0,width:state.doc.width,height:state.doc.height}:getBoundsForIds(entries.map((entry) => entry.id));
   if (!union) {
     return;
   }
@@ -4038,15 +2155,14 @@ function distributeSelection(axis) {
 }
 
 function applyBooleanOperation(operation) {
-  const records = getSameContainerSelectionRecords(2);
-  if (!records) {
-    setStatus("Select exactly two objects in the same layer for boolean operations");
+  const selectedIds = getTopLevelSelectionIds();
+  if (selectedIds.length !== 2) {
+    setStatus("Select exactly two top-level objects for boolean operations");
     return;
   }
-  const selectedIds = records.map((record) => record.id);
 
-  const sourceA = records[0].object;
-  const sourceB = records[1].object;
+  const sourceA = getObjectById(selectedIds[0])?.object;
+  const sourceB = getObjectById(selectedIds[1])?.object;
   if (!sourceA || !sourceB) {
     return;
   }
@@ -4076,535 +2192,51 @@ function applyBooleanOperation(operation) {
   }
 
   const newId = nextId("bool");
-  const target = records[0].parent?.children || state.objects;
-  const minIndex = Math.min(records[0].index, records[1].index);
-  const polygonA = shapeToWorldPolygon(sourceA, 0.65);
-  const polygonB = shapeToWorldPolygon(sourceB, 0.65);
-  const intersectionPieces = polygonA && polygonB ? intersectPolygonsToPieces(polygonA, polygonB) : [];
-  const topologyPieces = polygonA && polygonB ? booleanPolygonsToPieces(polygonA, polygonB, operation) : [];
-  let result = null;
-  let statusSuffix = "safe SVG fallback";
-  if (topologyPieces.length > 0 && topologyPieces.length <= 96) {
-    const children = topologyPieces
-      .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `${operation === "subtract" ? "Minus" : operation === "exclude" ? "Exclude" : operation === "unite" ? "Unite" : "Intersect"} Region ${index + 1}`, { smoothing: operation === "intersect" ? 0.08 : 0.04 }))
-      .filter(Boolean)
-      .map((shape, index) => ({ ...shape, zIndex: index }));
-    if (children.length === 1) {
-      result = {
-        ...children[0],
-        id: nextId("path"),
-        name: operation === "subtract" ? "Minus Front" : operation === "exclude" ? "Exclude" : operation === "unite" ? "Unite" : "Intersect"
-      };
-    } else if (children.length > 1) {
-      result = {
-        id: nextId("group"),
-        type: "group",
-        name: operation === "subtract" ? "Minus Regions" : operation === "exclude" ? "Exclude Regions" : operation === "unite" ? "Unite Regions" : "Intersect Regions",
-        zIndex: minIndex,
-        visible: true,
-        locked: false,
-        transform: deepClone(DEFAULT_TRANSFORM),
-        style: normalizeStyle({ ...sourceA.style, fill: "none" }),
-        geometry: { x: 0, y: 0, width: 0, height: 0 },
-        children
-      };
-    }
-    statusSuffix = operation === "intersect" ? "editable triangulated regions" : "editable topology decomposition";
-  }
-  if (!result && intersectionPieces.length > 0) {
-    if (operation === "intersect") {
-      const children = intersectionPieces
-        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Intersect Region ${index + 1}`, { smoothing: 0.08 }))
-        .filter(Boolean)
-        .map((shape, index) => ({ ...shape, zIndex: index }));
-      if (children.length === 1) {
-        result = { ...children[0], id: nextId("path"), name: "Intersect" };
-      } else if (children.length > 1) {
-        result = {
-          id: nextId("group"),
-          type: "group",
-          name: "Intersect Regions",
-          zIndex: minIndex,
-          visible: true,
-          locked: false,
-          transform: deepClone(DEFAULT_TRANSFORM),
-          style: normalizeStyle({ ...sourceA.style, fill: "none" }),
-          geometry: { x: 0, y: 0, width: 0, height: 0 },
-          children
-        };
-      }
-      statusSuffix = "editable triangulated regions";
-    } else if (operation === "unite") {
-      if (intersectionPieces.length === 0) {
-        result = {
-          id: newId,
-          type: "boolean",
-          name: "Unite",
-          zIndex: minIndex,
-          visible: true,
-          locked: false,
-          transform: deepClone(DEFAULT_TRANSFORM),
-          style: normalizeStyle({ ...sourceA.style, fillRule: "evenodd" }),
-          geometry: {
-            op: "unite",
-            aPath: aData.d,
-            bPath: bData.d,
-            bounds: unionBounds
-          }
-        };
-        statusSuffix = "compound non-overlap";
-      }
-    }
-  } else if (polygonA && polygonB && operation === "unite") {
-    result = {
+  const minIndex = Math.min(
+    state.objects.findIndex((shape) => shape.id === selectedIds[0]),
+    state.objects.findIndex((shape) => shape.id === selectedIds[1])
+  );
+
+  pushHistory();
+
+  state.objects = state.objects.filter((shape) => !selectedIds.includes(shape.id));
+  state.objects.splice(
+    clamp(minIndex, 0, state.objects.length),
+    0,
+    {
       id: newId,
       type: "boolean",
-      name: "Unite",
+      name:
+        operation === "unite"
+          ? "Unite"
+          : operation === "subtract"
+            ? "Subtract"
+            : "Intersect",
       zIndex: minIndex,
       visible: true,
       locked: false,
       transform: deepClone(DEFAULT_TRANSFORM),
-      style: normalizeStyle({ ...sourceA.style, fillRule: "evenodd" }),
+      style: normalizeStyle(sourceA.style),
       geometry: {
-        op: "unite",
+        op: operation,
         aPath: aData.d,
         bPath: bData.d,
-        bounds: unionBounds
-      }
-    };
-    statusSuffix = "compound non-overlap";
-  }
-
-  pushHistory();
-
-  result ??= {
-    id: newId,
-    type: "boolean",
-    name:
-      operation === "unite"
-        ? "Unite"
-        : operation === "subtract"
-          ? "Subtract"
-          : operation === "exclude"
-            ? "Exclude"
-            : "Intersect",
-    zIndex: minIndex,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: normalizeStyle(operation === "exclude" ? { ...sourceA.style, fillRule: "evenodd" } : sourceA.style),
-    geometry: {
-      op: operation,
-      aPath: aData.d,
-      bPath: bData.d,
-      bounds: {
-        x: unionBounds.x,
-        y: unionBounds.y,
-        width: Math.max(1, unionBounds.width),
-        height: Math.max(1, unionBounds.height)
+        bounds: {
+          x: unionBounds.x,
+          y: unionBounds.y,
+          width: Math.max(1, unionBounds.width),
+          height: Math.max(1, unionBounds.height)
+        }
       }
     }
-  };
-  result.id = result.id || newId;
-  result.zIndex = minIndex;
-  for (const record of [...records].sort((a, b) => b.index - a.index)) {
-    target.splice(record.index, 1);
-  }
-  target.splice(
-    clamp(minIndex, 0, target.length),
-    0,
-    result
   );
-  target.forEach((shape, index) => {
-    shape.zIndex = index;
-  });
 
   sortAndReindexObjects();
-  state.selection = [result.id];
+  state.selection = [newId];
   state.activePathId = null;
   state.directSelection.pathId = null;
   state.directSelection.anchorIndex = null;
-  setStatus(`Boolean ${operation} applied (${statusSuffix})`);
-  render();
-}
-
-function divideSelection() {
-  const records = getSameContainerSelectionRecords(2);
-  if (!records) {
-    setStatus("Divide currently needs exactly two objects in the same layer");
-    return;
-  }
-  const selectedIds = records.map((record) => record.id);
-  const sourceA = records[0].object;
-  const sourceB = records[1].object;
-  const boundsA = getObjectWorldBoundsById(selectedIds[0]);
-  const boundsB = getObjectWorldBoundsById(selectedIds[1]);
-  if (!sourceA || !sourceB || !boundsA || !boundsB) {
-    setStatus("Divide could not read selected geometry");
-    return;
-  }
-  const intersection = boundsIntersection(boundsA, boundsB);
-  if (!intersection) {
-    setStatus("Divide needs overlapping shapes");
-    return;
-  }
-
-  pushHistory();
-  const target = records[0].parent?.children || state.objects;
-  const minIndex = Math.min(records[0].index, records[1].index);
-  const polygonA = shapeToWorldPolygon(sourceA, 0.65);
-  const polygonB = shapeToWorldPolygon(sourceB, 0.65);
-  const regions = polygonA && polygonB ? dividePolygonsToRegions(polygonA, polygonB) : { aOnly: [], bOnly: [], overlap: [] };
-  const intersectionShapes = regions.overlap.length > 0
-    ? regions.overlap
-        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Divide Piece Intersection ${index + 1}`, { smoothing: 0.08 }))
-        .filter(Boolean)
-    : [rectFromBounds(intersection, "Divide Piece Intersection", sourceA.style)];
-  const aOnlyShapes = regions.aOnly.length > 0
-    ? regions.aOnly
-        .map((piece, index) => smoothPolylineToPathShape(piece, sourceA.style, `Divide Piece ${index + 1}`, { smoothing: 0.04 }))
-        .filter(Boolean)
-    : subtractRectBounds(boundsA, boundsB).map((bounds, index) => rectFromBounds(bounds, `Divide Piece ${index + 1}`, sourceA.style));
-  const bOnlyShapes = regions.bOnly.length > 0
-    ? regions.bOnly
-        .map((piece, index) => smoothPolylineToPathShape(piece, sourceB.style, `Divide Piece ${aOnlyShapes.length + index + 1}`, { smoothing: 0.04 }))
-        .filter(Boolean)
-    : subtractRectBounds(boundsB, boundsA).map((bounds, index) => rectFromBounds(bounds, `Divide Piece ${aOnlyShapes.length + index + 1}`, sourceB.style));
-  const pieces = [
-    ...aOnlyShapes,
-    ...intersectionShapes,
-    ...bOnlyShapes
-  ].filter(Boolean).map((piece, index) => ({ ...piece, id: nextId("divide"), zIndex: index }));
-
-  for (const record of [...records].sort((a, b) => b.index - a.index)) {
-    target.splice(record.index, 1);
-  }
-  target.splice(clamp(minIndex, 0, target.length), 0, ...pieces);
-  target.forEach((shape, index) => {
-    shape.zIndex = index;
-  });
-  sortAndReindexObjects();
-  state.selection = pieces.map((piece) => piece.id);
-  setStatus(regions.overlap.length > 0 ? "Divide created editable topology regions with overlap pieces" : "Divide created editable rectangular pieces; complex curved divide is protected");
-  render();
-}
-
-function offsetShape(shape, amount) {
-  if (shape.type === "rect") {
-    const copy = deepClone(shape);
-    copy.id = nextId("offset");
-    copy.name = `${shape.name || "Rectangle"} Offset`;
-    copy.geometry.x -= amount;
-    copy.geometry.y -= amount;
-    copy.geometry.width = Math.max(1, copy.geometry.width + amount * 2);
-    copy.geometry.height = Math.max(1, copy.geometry.height + amount * 2);
-    copy.geometry.rx = Math.max(0, (copy.geometry.rx || 0) + amount);
-    copy.geometry.ry = Math.max(0, (copy.geometry.ry || 0) + amount);
-    return copy;
-  }
-  if (shape.type === "ellipse") {
-    const copy = deepClone(shape);
-    copy.id = nextId("offset");
-    copy.name = `${shape.name || "Ellipse"} Offset`;
-    copy.geometry.rx = Math.max(1, copy.geometry.rx + amount);
-    copy.geometry.ry = Math.max(1, copy.geometry.ry + amount);
-    return copy;
-  }
-  if (shape.type === "polygon" || (shape.type === "path" && !shape.geometry?.rawD)) {
-    if (shape.type === "path" && shape.geometry?.closed !== true) {
-      const commands = transformPathCommands(getPathShapeCommands(shape), shape.transform);
-      const polyline = commandsToPolyline(commands, 0.5);
-      const offsetLine = offsetOpenPolyline(polyline, amount);
-      if (!offsetLine || offsetLine.length < 2) {
-        return null;
-      }
-      return {
-        id: nextId("offset"),
-        type: "path",
-        name: `${shape.name || "Path"} Offset`,
-        zIndex: shape.zIndex,
-        visible: true,
-        locked: false,
-        transform: deepClone(DEFAULT_TRANSFORM),
-        style: normalizeStyle({ ...shape.style, fill: "none" }),
-        geometry: {
-          anchors: offsetLine.map((point) => ({ x: round(point.x, 4), y: round(point.y, 4), inHandle: null, outHandle: null })),
-          closed: false
-        }
-      };
-    }
-    const polygon = shapeToWorldPolygon(shape, 0.5);
-    if (!polygon) {
-      return null;
-    }
-    const offsetPaths = SvgGeometryEngine.offsetPolygonPaths(
-      polygon,
-      amount,
-      normalizeStyle(shape.style).strokeJoin,
-      normalizeStyle(shape.style).strokeMiterlimit
-    );
-    if (offsetPaths?.length > 1) {
-      const children = offsetPaths
-        .map((path, index) => smoothPolylineToPathShape(path, shape.style, `${shape.name || "Path"} Offset ${index + 1}`, { smoothing: 0.04 }))
-        .filter(Boolean)
-        .map((path, index) => ({ ...path, zIndex: index }));
-      if (children.length > 0) {
-        return {
-          id: nextId("offset"),
-          type: "group",
-          name: `${shape.name || "Path"} Offset`,
-          zIndex: shape.zIndex,
-          visible: true,
-          locked: false,
-          transform: deepClone(DEFAULT_TRANSFORM),
-          style: normalizeStyle({ ...shape.style, fill: "none" }),
-          geometry: { x: 0, y: 0, width: 0, height: 0 },
-          children
-        };
-      }
-    }
-    if (offsetPaths?.length === 1) {
-      return smoothPolylineToPathShape(offsetPaths[0], shape.style, `${shape.name || "Path"} Offset`, { smoothing: 0.04 });
-    }
-    const offset = offsetPolygon(polygon, amount, normalizeStyle(shape.style).strokeJoin, normalizeStyle(shape.style).strokeMiterlimit);
-    if (!offset || offset.length < 3 || Math.abs(polygonArea(offset)) < 0.01) {
-      return null;
-    }
-    return smoothPolylineToPathShape(offset, shape.style, `${shape.name || "Path"} Offset`, { smoothing: 0.08 });
-  }
-  return null;
-}
-
-function offsetSelectedPaths() {
-  const amount = Number(dom.offsetPathInput.value);
-  if (!Number.isFinite(amount) || amount === 0) {
-    setStatus("Enter a non-zero offset amount");
-    return;
-  }
-  const selected = selectedTopLevelOrNestedObjects();
-  if (selected.length === 0) {
-    setStatus("Select objects to offset");
-    return;
-  }
-  const created = [];
-  pushHistory();
-  for (const shape of selected) {
-    const offset = offsetShape(shape, amount);
-    if (!offset) {
-      continue;
-    }
-    const found = getObjectById(shape.id);
-    const target = found?.parent?.children || state.objects;
-    offset.zIndex = found ? found.index + 1 : target.length;
-    target.splice(offset.zIndex, 0, offset);
-    target.forEach((entry, index) => {
-      entry.zIndex = index;
-    });
-    created.push(offset.id);
-  }
-  if (created.length === 0) {
-    state.history.undo.pop();
-    updateHistoryButtons();
-    setStatus("Offset supports rectangles, ellipses, polygons, and editable simple paths");
-    return;
-  }
-  state.selection = created;
-  setStatus(`Created ${created.length} offset path(s)`);
-  render();
-}
-
-function outlineLineShape(shape) {
-  const g = shape.geometry;
-  const width = Math.max(0.1, normalizeStyle(shape.style).strokeWidth || 1);
-  const dx = g.x2 - g.x1;
-  const dy = g.y2 - g.y1;
-  const length = Math.max(0.0001, Math.hypot(dx, dy));
-  const nx = (-dy / length) * (width / 2);
-  const ny = (dx / length) * (width / 2);
-  return {
-    ...deepClone(shape),
-    id: nextId("outline"),
-    type: "path",
-    name: `${shape.name || "Line"} Outline`,
-    transform: deepClone(shape.transform),
-    style: normalizeStyle({
-      ...shape.style,
-      fill: shape.style.stroke || "#000000",
-      stroke: "none",
-      strokeWidth: 0
-    }),
-    geometry: {
-      closed: true,
-      anchors: [
-        { x: g.x1 + nx, y: g.y1 + ny, inHandle: null, outHandle: null },
-        { x: g.x2 + nx, y: g.y2 + ny, inHandle: null, outHandle: null },
-        { x: g.x2 - nx, y: g.y2 - ny, inHandle: null, outHandle: null },
-        { x: g.x1 - nx, y: g.y1 - ny, inHandle: null, outHandle: null }
-      ]
-    }
-  };
-}
-
-function outlineStrokeSelection() {
-  const selected = selectedTopLevelOrNestedObjects();
-  if (selected.length === 0) {
-    setStatus("Select stroked objects to outline");
-    return;
-  }
-  const outlined = [];
-  pushHistory();
-  for (const shape of selected) {
-    const style = normalizeStyle(shape.style);
-    if (!style.stroke || style.stroke === "none" || style.strokeWidth <= 0) {
-      continue;
-    }
-    let replacement = null;
-    if (shape.type === "line" && !style.strokeDasharray) {
-      replacement = outlineLineShape(shape);
-    } else {
-      const commands = shapeToPathCommands(shape);
-      const world = commands ? transformPathCommands(commands, shape.transform) : null;
-      const polyline = world ? commandsToPolyline(world, 0.5) : null;
-      if (polyline?.length >= 2) {
-        const closed = shape.geometry?.closed === true || shape.type === "rect" || shape.type === "ellipse" || shape.type === "polygon";
-        const dashSegments = style.strokeDasharray && !closed ? dashedPolylineSegments(polyline, style.strokeDasharray) : [polyline];
-        const outlines = dashSegments
-          .map((segment) => outlinePolyline(segment, style.strokeWidth, closed, style))
-          .map((outline, index) => outline
-            ? smoothPolylineToPathShape(outline, {
-                ...style,
-                fill: style.stroke,
-                stroke: "none",
-                strokeWidth: 0
-              }, `${shape.name || "Object"} Stroke Outline${dashSegments.length > 1 ? ` ${index + 1}` : ""}`, { smoothing: 0.06 })
-            : null)
-          .filter(Boolean);
-        if (outlines.length === 1) {
-          replacement = outlines[0];
-        } else if (outlines.length > 1) {
-          replacement = {
-            id: nextId("outline"),
-            type: "group",
-            name: `${shape.name || "Object"} Dashed Stroke Outline`,
-            zIndex: shape.zIndex,
-            visible: true,
-            locked: false,
-            transform: deepClone(DEFAULT_TRANSFORM),
-            style: normalizeStyle({ ...style, fill: "none", stroke: "none", strokeWidth: 0 }),
-            geometry: { x: 0, y: 0, width: 0, height: 0 },
-            children: outlines.map((outline, index) => ({ ...outline, zIndex: index }))
-          };
-        }
-      }
-      if (!replacement) {
-        const bounds = getObjectWorldBoundsById(shape.id);
-        replacement = bounds ? rectFromBounds({
-          x: bounds.x - style.strokeWidth / 2,
-          y: bounds.y - style.strokeWidth / 2,
-          width: bounds.width + style.strokeWidth,
-          height: bounds.height + style.strokeWidth
-        }, `${shape.name || "Object"} Stroke Outline`, {
-          ...style,
-          fill: style.stroke,
-          stroke: "none",
-          strokeWidth: 0
-        }) : null;
-      }
-    }
-    if (replacement && replaceShapeWithMany(shape.id, [replacement])) {
-      outlined.push(replacement.id);
-    }
-  }
-  if (outlined.length === 0) {
-    state.history.undo.pop();
-    updateHistoryButtons();
-    setStatus("Outline Stroke supports simple stroked vectors; complex curves are preserved");
-    return;
-  }
-  state.selection = outlined;
-  setStatus(`Outlined ${outlined.length} stroke(s)`);
-  render();
-}
-
-function expandAppearanceSelection() {
-  const selected = selectedTopLevelOrNestedObjects();
-  if (selected.length === 0) {
-    setStatus("Select objects to expand");
-    return;
-  }
-  const expanded = [];
-  pushHistory();
-  for (const shape of selected) {
-    if (shape.type === "raw") {
-      continue;
-    }
-    const path = shapeToEditablePathShape(shape, `${shape.name || "Object"} Expanded`);
-    if (path && replaceShapeWithMany(shape.id, [path])) {
-      expanded.push(path.id);
-    }
-  }
-  if (expanded.length === 0) {
-    state.history.undo.pop();
-    updateHistoryButtons();
-    setStatus("Expand Appearance supports editable vector shapes; raw SVG content stays preserved");
-    return;
-  }
-  state.selection = expanded;
-  setStatus(`Expanded ${expanded.length} object(s) into editable paths`);
-  render();
-}
-
-function selectedSymbolInstance() {
-  const shape = getPrimarySelectedObject();
-  if (!shape || shape.type !== "raw" || !shape.geometry?.symbolHref) {
-    return null;
-  }
-  return shape;
-}
-
-function breakSelectedSymbolInstance() {
-  const symbol = selectedSymbolInstance();
-  if (!symbol) {
-    setStatus("Select an imported symbol instance to break");
-    return;
-  }
-  const symbolId = symbol.geometry.symbolHref.replace(/^#/, "");
-  if (!symbolId || !state.doc.defs) {
-    setStatus("Selected symbol instance has no preserved symbol definition");
-    return;
-  }
-  const doc = new DOMParser().parseFromString(`<svg xmlns="${SVG_NS}"><defs>${state.doc.defs}</defs></svg>`, "image/svg+xml");
-  const symbolNode = doc.getElementById(symbolId);
-  if (!symbolNode) {
-    setStatus(`Symbol definition not found: ${symbolId}`);
-    return;
-  }
-  const counters = {};
-  const children = importChildrenFromSvgNode(symbolNode, counters, matrixIdentity(), SVG_IMPORT_DEFAULT_STYLE, {
-    cssRules: [],
-    defs: state.doc.defs
-  });
-  if (children.length === 0) {
-    setStatus("Symbol definition could not be expanded into editable objects");
-    return;
-  }
-  pushHistory();
-  const group = {
-    id: nextId("symbol"),
-    type: "group",
-    sourceId: symbol.sourceId,
-    name: `${symbol.name || "Symbol"} Expanded`,
-    zIndex: symbol.zIndex,
-    visible: symbol.visible !== false,
-    locked: symbol.locked === true,
-    transform: deepClone(symbol.transform),
-    style: normalizeStyle({ ...symbol.style, fill: "none" }),
-    geometry: { x: 0, y: 0, width: 0, height: 0 },
-    children
-  };
-  replaceShapeWithMany(symbol.id, [group]);
-  state.selection = [group.id];
-  setStatus(`Broke symbol instance: ${symbol.name || symbolId}`);
+  setStatus(`Boolean ${operation} applied`);
   render();
 }
 
@@ -4689,64 +2321,43 @@ function getTopLevelSelectionIds() {
 }
 
 function moveTopLevelObjectById(sourceId, targetId, placement) {
-  const fromIndex = state.objects.findIndex((shape) => shape.id === sourceId);
-  const targetIndex = state.objects.findIndex((shape) => shape.id === targetId);
+  const source=getObjectById(sourceId),target=getObjectById(targetId);
+  if(!source||!target||source.parent!==target.parent||source.object.locked||target.object.locked)return;
+  const siblings=source.parent?source.parent.children:state.objects;
+  const fromIndex=siblings.findIndex(s=>s.id===sourceId),targetIndex=siblings.findIndex(s=>s.id===targetId);
   if (fromIndex < 0 || targetIndex < 0) {
     return;
   }
 
-  const destination = placement === "before" ? targetIndex : targetIndex + 1;
+  // The panel displays topmost first, while the model is bottommost first.
+  const destination = placement === "before" ? targetIndex+1 : targetIndex;
   const adjustedDestination = fromIndex < destination ? destination - 1 : destination;
   if (adjustedDestination === fromIndex) {
     return;
   }
 
   pushHistory();
-  const [moved] = state.objects.splice(fromIndex, 1);
-  state.objects.splice(adjustedDestination, 0, moved);
-  sortAndReindexObjects();
+  const [moved] = siblings.splice(fromIndex, 1);
+  siblings.splice(adjustedDestination, 0, moved);
+  siblings.forEach((shape,index)=>shape.zIndex=index);
   render();
 }
 
 function moveSelectionInLayer(direction) {
-  const selectedIds = new Set(getTopLevelSelectionIds());
+  const selectedIds = new Set(state.selection);
   if (selectedIds.size === 0) {
     return;
   }
 
   pushHistory();
 
-  if (direction > 0) {
-    for (let i = state.objects.length - 2; i >= 0; i -= 1) {
-      const current = state.objects[i];
-      const next = state.objects[i + 1];
-      if (selectedIds.has(current.id) && !selectedIds.has(next.id)) {
-        state.objects[i] = next;
-        state.objects[i + 1] = current;
-      }
-    }
-  } else {
-    for (let i = 1; i < state.objects.length; i += 1) {
-      const current = state.objects[i];
-      const previous = state.objects[i - 1];
-      if (selectedIds.has(current.id) && !selectedIds.has(previous.id)) {
-        state.objects[i] = previous;
-        state.objects[i - 1] = current;
-      }
-    }
-  }
-
-  sortAndReindexObjects();
+  const reorder=objects=>{if(direction>0){for(let i=objects.length-2;i>=0;i--){if(selectedIds.has(objects[i].id)&&!objects[i].locked&&!selectedIds.has(objects[i+1].id))[objects[i],objects[i+1]]=[objects[i+1],objects[i]];}}else{for(let i=1;i<objects.length;i++){if(selectedIds.has(objects[i].id)&&!objects[i].locked&&!selectedIds.has(objects[i-1].id))[objects[i],objects[i-1]]=[objects[i-1],objects[i]];}}objects.forEach((shape,i)=>{shape.zIndex=i;if(shape.children&&!shape.locked)reorder(shape.children);});};reorder(state.objects);
   render();
 }
 
 function composeTransforms(parentTransform, childTransform) {
   const parent = normalizeTransform(parentTransform);
   const child = normalizeTransform(childTransform);
-  if (Array.isArray(parent.matrix) || Array.isArray(child.matrix)) {
-    const matrix = matrixMultiply(transformToMatrix(parent), transformToMatrix(child));
-    return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
-  }
   return {
     tx: parent.tx + child.tx,
     ty: parent.ty + child.ty,
@@ -4773,11 +2384,12 @@ function groupSelection() {
   const minIndex = state.objects.findIndex((shape) => selectedSet.has(shape.id));
   const remaining = state.objects.filter((shape) => !selectedSet.has(shape.id));
   const groupId = nextId("group");
+  let groupNumber=1;const usedNames=new Set();const collectNames=objects=>objects.forEach(o=>{usedNames.add(o.name);if(o.children)collectNames(o.children);});collectNames(state.objects);while(usedNames.has(`Group ${groupNumber}`))groupNumber++;
 
   const groupObject = {
     id: groupId,
     type: "group",
-    name: `Group ${groupId.slice(-4)}`,
+    name: `Group ${groupNumber}`,
     zIndex: minIndex,
     visible: true,
     locked: false,
@@ -4843,6 +2455,7 @@ function ungroupSelection() {
   }
 
   state.objects = nextObjects;
+  state.objects.forEach((shape,index)=>shape.zIndex=index);
   sortAndReindexObjects();
   state.selection = nextSelection;
   setStatus("Ungrouped selection");
@@ -4864,7 +2477,7 @@ function beginCreateShape(type, point) {
       visible: true,
       locked: false,
       transform: deepClone(DEFAULT_TRANSFORM),
-      style: deepClone(DEFAULT_STYLE),
+      style: deepClone(state.paint),
       geometry: {
         x: point.x,
         y: point.y,
@@ -4883,7 +2496,7 @@ function beginCreateShape(type, point) {
       visible: true,
       locked: false,
       transform: deepClone(DEFAULT_TRANSFORM),
-      style: deepClone(DEFAULT_STYLE),
+      style: deepClone(state.paint),
       geometry: {
         cx: point.x,
         cy: point.y,
@@ -4891,43 +2504,10 @@ function beginCreateShape(type, point) {
         ry: 1
       }
     });
-  } else if (type === TOOLS.LINE) {
-    addShape({
-      id,
-      type: "line",
-      name: "Line",
-      zIndex,
-      visible: true,
-      locked: false,
-      transform: deepClone(DEFAULT_TRANSFORM),
-      style: {
-        ...deepClone(DEFAULT_STYLE),
-        fill: "none"
-      },
-      geometry: {
-        x1: point.x,
-        y1: point.y,
-        x2: point.x + 1,
-        y2: point.y + 1
-      }
-    });
-  } else if (type === TOOLS.POLYGON) {
-    addShape({
-      id,
-      type: "polygon",
-      name: "Polygon",
-      zIndex,
-      visible: true,
-      locked: false,
-      transform: deepClone(DEFAULT_TRANSFORM),
-      style: deepClone(DEFAULT_STYLE),
-      geometry: {
-        cx: point.x,
-        cy: point.y,
-        radius: 1,
-        sides: 6
-      }
-    });
+  } else if(type===TOOLS.POLYGON||type===TOOLS.STAR){
+    addShape({id,type:'path',name:type===TOOLS.STAR?'Star':'Polygon',zIndex,visible:true,locked:false,transform:deepClone(DEFAULT_TRANSFORM),style:deepClone(state.paint),geometry:{anchors:radialAnchors(point,1,0,state.shapeSides,type===TOOLS.STAR),closed:true}});
+  } else if(type===TOOLS.LINE||type===TOOLS.PENCIL){
+    addShape({id,type:'path',name:type===TOOLS.LINE?'Line':'Pencil path',zIndex,visible:true,locked:false,transform:deepClone(DEFAULT_TRANSFORM),style:{...state.paint,gradient:null,fill:'none',stroke:state.paint.stroke==='none'?'#222222':state.paint.stroke,strokeWidth:Math.max(1,state.paint.strokeWidth)},geometry:{anchors:[{...point,inHandle:null,outHandle:null},{...point,inHandle:null,outHandle:null}],closed:false}});
   }
 
   state.selection = [id];
@@ -4937,7 +2517,10 @@ function beginCreateShape(type, point) {
   setStatus(`Creating ${type}`);
 }
 
-function continueCreateShape(point) {
+function radialAnchors(center,radius,angle,sides,star){const n=star?sides*2:sides;return Array.from({length:n},(_,i)=>{const a=angle+i*Math.PI*2/n,r=star&&i%2?radius*.45:radius;return{x:center.x+Math.cos(a)*r,y:center.y+Math.sin(a)*r,inHandle:null,outHandle:null};});}
+function snapPoint(point){const g=state.grid;return g.snap?{x:Math.round(point.x/g.size)*g.size,y:Math.round(point.y/g.size)*g.size}:point;}
+
+function continueCreateShape(point,constrain=false) {
   if (state.interaction.mode !== "creating" || !state.interaction.draftId) {
     return;
   }
@@ -4948,6 +2531,7 @@ function continueCreateShape(point) {
   if (!found) {
     return;
   }
+  if(constrain&&(found.object.type==='rect'||found.object.type==='ellipse')){const d=Math.max(Math.abs(point.x-start.x),Math.abs(point.y-start.y));point={x:start.x+(point.x<start.x?-d:d),y:start.y+(point.y<start.y?-d:d)};}
 
   if (found.object.type === "rect") {
     const x = Math.min(start.x, point.x);
@@ -4959,13 +2543,14 @@ function continueCreateShape(point) {
     found.object.geometry.width = width;
     found.object.geometry.height = height;
   } else if (found.object.type === "ellipse") {
-    found.object.geometry.rx = Math.max(1, Math.abs(point.x - start.x));
-    found.object.geometry.ry = Math.max(1, Math.abs(point.y - start.y));
-  } else if (found.object.type === "line") {
-    found.object.geometry.x2 = point.x;
-    found.object.geometry.y2 = point.y;
-  } else if (found.object.type === "polygon") {
-    found.object.geometry.radius = Math.max(1, Math.hypot(point.x - start.x, point.y - start.y));
+    found.object.geometry.cx=(start.x+point.x)/2;found.object.geometry.cy=(start.y+point.y)/2;
+    found.object.geometry.rx = Math.max(1, Math.abs(point.x - start.x)/2);
+    found.object.geometry.ry = Math.max(1, Math.abs(point.y - start.y)/2);
+  } else if(found.object.type==='path'){
+    const anchors=found.object.geometry.anchors;
+    if(state.tool===TOOLS.POLYGON||state.tool===TOOLS.STAR){const dx=point.x-start.x,dy=point.y-start.y;found.object.geometry.anchors=radialAnchors(start,Math.max(1,Math.hypot(dx,dy)),constrain?-Math.PI/2:Math.atan2(dy,dx),state.shapeSides,state.tool===TOOLS.STAR);}
+    else if(state.tool===TOOLS.LINE){if(constrain){const dx=point.x-start.x,dy=point.y-start.y,a=Math.round(Math.atan2(dy,dx)/(Math.PI/4))*Math.PI/4,r=Math.hypot(dx,dy);point={x:start.x+Math.cos(a)*r,y:start.y+Math.sin(a)*r};}anchors[1]={...point,inHandle:null,outHandle:null};}
+    else if(Math.hypot(point.x-anchors.at(-1).x,point.y-anchors.at(-1).y)>2/state.view.zoom){anchors.push({...point,inHandle:null,outHandle:null});}
   }
 }
 
@@ -4976,235 +2561,8 @@ function finishCreateShape() {
   state.interaction.mode = null;
   state.interaction.draftId = null;
   state.interaction.start = null;
+  state.interaction.pointerId=null;
   setStatus("Ready");
-  render();
-}
-
-function createTextObject(point) {
-  const text = window.prompt("Text", "Type");
-  if (text === null) {
-    return;
-  }
-
-  pushHistory();
-  const id = nextId("text");
-  addShape({
-    id,
-    type: "text",
-    name: text.trim() ? `Text: ${text.trim().slice(0, 18)}` : "Text",
-    zIndex: state.objects.length,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: {
-      ...deepClone(DEFAULT_STYLE),
-      fill: "#111111",
-      stroke: "none",
-      strokeWidth: 0
-    },
-    geometry: {
-      x: point.x,
-      y: point.y,
-      text: text || "Text",
-      fontSize: 48,
-      fontFamily: "Inter, Arial, sans-serif"
-    }
-  });
-  state.selection = [id];
-  setStatus("Text created");
-  render();
-}
-
-function sampleStyleFromObject(id) {
-  const found = id ? getObjectById(id) : null;
-  if (!found) {
-    setStatus("Eyedropper: click an object to sample");
-    return;
-  }
-  const sampled = normalizeStyle(found.object.style);
-  if (state.selection.length > 0 && !state.selection.includes(found.object.id)) {
-    applyStyleToSelection(sampled);
-    setStatus("Sampled appearance applied to selection");
-  } else {
-    DEFAULT_STYLE.fill = sampled.fill;
-    DEFAULT_STYLE.stroke = sampled.stroke;
-    DEFAULT_STYLE.strokeWidth = sampled.strokeWidth;
-    DEFAULT_STYLE.strokeJoin = sampled.strokeJoin;
-    DEFAULT_STYLE.strokeCap = sampled.strokeCap;
-    DEFAULT_STYLE.strokeDasharray = sampled.strokeDasharray;
-    DEFAULT_STYLE.strokeMiterlimit = sampled.strokeMiterlimit;
-    DEFAULT_STYLE.fillOpacity = sampled.fillOpacity;
-    DEFAULT_STYLE.strokeOpacity = sampled.strokeOpacity;
-    DEFAULT_STYLE.fillGradient = sampled.fillGradient ? deepClone(sampled.fillGradient) : null;
-    DEFAULT_STYLE.strokeGradient = sampled.strokeGradient ? deepClone(sampled.strokeGradient) : null;
-    DEFAULT_STYLE.opacity = sampled.opacity;
-    setStatus("Default appearance sampled");
-    render();
-  }
-}
-
-function beginPan(event) {
-  state.interaction.mode = "panning";
-  state.interaction.pointerId = event.pointerId;
-  state.interaction.start = {
-    x: event.clientX,
-    y: event.clientY,
-    panX: state.view.panX,
-    panY: state.view.panY
-  };
-  updateWorkspaceClasses();
-}
-
-function continuePan(event) {
-  if (state.interaction.mode !== "panning" || !state.interaction.start) {
-    return;
-  }
-  state.view.panX = state.interaction.start.panX + event.clientX - state.interaction.start.x;
-  state.view.panY = state.interaction.start.panY + event.clientY - state.interaction.start.y;
-  state.view.fitted = false;
-  applyViewTransform();
-}
-
-function finishPan() {
-  if (state.interaction.mode !== "panning") {
-    return;
-  }
-  state.interaction.mode = null;
-  state.interaction.pointerId = null;
-  state.interaction.start = null;
-  updateWorkspaceClasses();
-}
-
-function getCurrentDrawingStyle({ fill = "none" } = {}) {
-  return normalizeStyle({
-    ...DEFAULT_STYLE,
-    fill,
-    fillGradient: fill === "none" ? null : DEFAULT_STYLE.fillGradient
-  });
-}
-
-function simplifyPoints(points, tolerance) {
-  if (!Array.isArray(points) || points.length <= 2 || tolerance <= 0) {
-    return points || [];
-  }
-
-  const perpendicularDistance = (point, start, end) => {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    if (dx === 0 && dy === 0) {
-      return Math.hypot(point.x - start.x, point.y - start.y);
-    }
-    return Math.abs(dy * point.x - dx * point.y + end.x * start.y - end.y * start.x) / Math.hypot(dx, dy);
-  };
-
-  const simplifyRange = (startIndex, endIndex, out) => {
-    let maxDistance = 0;
-    let maxIndex = startIndex;
-    for (let i = startIndex + 1; i < endIndex; i += 1) {
-      const distance = perpendicularDistance(points[i], points[startIndex], points[endIndex]);
-      if (distance > maxDistance) {
-        maxDistance = distance;
-        maxIndex = i;
-      }
-    }
-    if (maxDistance > tolerance) {
-      simplifyRange(startIndex, maxIndex, out);
-      out.pop();
-      simplifyRange(maxIndex, endIndex, out);
-    } else {
-      out.push(points[startIndex], points[endIndex]);
-    }
-  };
-
-  const simplified = [];
-  simplifyRange(0, points.length - 1, simplified);
-  return simplified.filter((point, index, arr) => index === 0 || point.x !== arr[index - 1].x || point.y !== arr[index - 1].y);
-}
-
-function beginPencilStroke(point, pointerId) {
-  pushHistory();
-  const id = nextId("pencil");
-  addShape({
-    id,
-    type: "path",
-    name: "Pencil Path",
-    zIndex: state.objects.length,
-    visible: true,
-    locked: false,
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: getCurrentDrawingStyle({ fill: "none" }),
-    geometry: {
-      anchors: [{ x: point.x, y: point.y, inHandle: null, outHandle: null }],
-      closed: false
-    }
-  });
-  state.selection = [id];
-  state.activePathId = null;
-  state.directSelection.pathId = id;
-  state.directSelection.anchorIndex = 0;
-  state.interaction.mode = "pencil-drawing";
-  state.interaction.pointerId = pointerId;
-  state.interaction.draftId = id;
-  state.interaction.pencilPoints = [point];
-  setStatus("Drawing freehand path");
-  render();
-}
-
-function continuePencilStroke(point) {
-  if (state.interaction.mode !== "pencil-drawing" || !state.interaction.draftId) {
-    return;
-  }
-  const points = state.interaction.pencilPoints || [];
-  const previous = points[points.length - 1];
-  if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 2) {
-    return;
-  }
-  points.push(point);
-  state.interaction.pencilPoints = points;
-  const found = getObjectById(state.interaction.draftId);
-  if (!found || found.object.type !== "path") {
-    return;
-  }
-  found.object.geometry.anchors = points.map((entry) => ({
-    x: entry.x,
-    y: entry.y,
-    inHandle: null,
-    outHandle: null
-  }));
-  render();
-}
-
-function finishPencilStroke() {
-  if (state.interaction.mode !== "pencil-drawing") {
-    return;
-  }
-  const id = state.interaction.draftId;
-  const found = id ? getObjectById(id) : null;
-  if (found && found.object.type === "path") {
-    const smoothing = clamp(Number(dom.pencilSmoothingInput.value) || 0, 0, 16);
-    const simplified = simplifyPoints(state.interaction.pencilPoints || [], smoothing);
-    found.object.geometry.anchors = simplified.map((point) => ({
-      x: point.x,
-      y: point.y,
-      inHandle: null,
-      outHandle: null
-    }));
-    if (found.object.geometry.anchors.length < 2) {
-      state.objects = removeObjectsByIds(state.objects, new Set([id]));
-      state.selection = [];
-      state.history.undo.pop();
-      updateHistoryButtons();
-    } else {
-      state.selection = [id];
-      state.directSelection.pathId = id;
-      state.directSelection.anchorIndex = 0;
-    }
-  }
-  state.interaction.mode = null;
-  state.interaction.pointerId = null;
-  state.interaction.draftId = null;
-  state.interaction.pencilPoints = null;
-  setStatus("Pencil path created");
   render();
 }
 
@@ -5247,7 +2605,8 @@ function continueMoveSelection(point, event) {
   let dx = rawDx;
   let dy = rawDy;
 
-  if (state.snap.enabled && !event.altKey) {
+  if(state.grid.snap&&!event.altKey&&state.interaction.startSelectionBounds){const b=state.interaction.startSelectionBounds,p=snapPoint({x:b.x+dx,y:b.y+dy});dx=p.x-b.x;dy=p.y-b.y;state.interaction.snapGuides=[];}
+  else if (state.snap.enabled && !event.altKey) {
     const snapped = computeSnapAdjustment(
       state.interaction.startSelectionBounds,
       rawDx,
@@ -5417,8 +2776,8 @@ function beginOrExtendPath(point) {
       locked: false,
       transform: deepClone(DEFAULT_TRANSFORM),
       style: {
-        ...deepClone(DEFAULT_STYLE),
-        fill: "none"
+        ...deepClone(state.paint),
+        fill: "none", stroke:state.paint.stroke==='none'?'#222222':state.paint.stroke, strokeWidth:Math.max(1,state.paint.strokeWidth)
       },
       geometry: {
         anchors: [
@@ -5433,25 +2792,16 @@ function beginOrExtendPath(point) {
       }
     });
     state.activePathId = id;
-    state.interaction.penHistoryPathId = id;
     state.selection = [id];
-    state.directSelection.pathId = id;
-    state.directSelection.anchorIndex = 0;
     setStatus("Pen: click to add points");
     render();
-    return { pathId: id, anchorIndex: 0, created: true };
+    return;
   }
 
   const found = getObjectById(state.activePathId);
   if (!found || found.object.type !== "path") {
     state.activePathId = null;
-    state.interaction.penHistoryPathId = null;
-    return null;
-  }
-
-  if (state.interaction.penHistoryPathId !== found.object.id) {
-    pushHistory();
-    state.interaction.penHistoryPathId = found.object.id;
+    return;
   }
 
   const anchors = found.object.geometry.anchors;
@@ -5459,395 +2809,88 @@ function beginOrExtendPath(point) {
     const first = anchors[0];
     const dist = Math.hypot(first.x - point.x, first.y - point.y);
     if (dist < 10) {
+      pushHistory();
       found.object.geometry.closed = true;
       state.activePathId = null;
-      state.interaction.penHistoryPathId = null;
-      state.interaction.livePreviewPoint = null;
-      state.directSelection.pathId = found.object.id;
-      state.directSelection.anchorIndex = 0;
       setStatus("Path closed");
       render();
-      return { pathId: found.object.id, anchorIndex: 0, closed: true };
+      return;
     }
   }
 
+  pushHistory();
   anchors.push({
     x: point.x,
     y: point.y,
     inHandle: null,
     outHandle: null
   });
-  state.directSelection.pathId = found.object.id;
-  state.directSelection.anchorIndex = anchors.length - 1;
 
   render();
-  return { pathId: found.object.id, anchorIndex: anchors.length - 1, created: false };
-}
-
-function continuePenDrag(point, event) {
-  if (state.interaction.mode !== "pen-dragging") {
-    return;
-  }
-  const pathId = state.interaction.penDragPathId;
-  const anchorIndex = state.interaction.penDragAnchorIndex;
-  const found = pathId ? getObjectById(pathId) : null;
-  if (!found || found.object.type !== "path" || !Number.isInteger(anchorIndex)) {
-    return;
-  }
-
-  const anchor = found.object.geometry.anchors[anchorIndex];
-  const startAnchor = state.interaction.dragAnchorSnapshot;
-  const startLocal = state.interaction.dragStartLocal;
-  if (!anchor || !startAnchor || !startLocal) {
-    return;
-  }
-
-  const local = localPointForPath(found.object, point);
-  const dist = Math.hypot(local.x - startLocal.x, local.y - startLocal.y);
-  if (dist < 2) {
-    return;
-  }
-
-  const dx = local.x - startLocal.x;
-  const dy = local.y - startLocal.y;
-  anchor.outHandle = { x: startAnchor.x + dx, y: startAnchor.y + dy };
-  if (!event.altKey) {
-    anchor.inHandle = {
-      x: startAnchor.x - dx,
-      y: startAnchor.y - dy
-    };
-  }
-}
-
-function finishPenDrag() {
-  if (state.interaction.mode !== "pen-dragging") {
-    return;
-  }
-  state.interaction.mode = null;
-  state.interaction.pointerId = null;
-  state.interaction.start = null;
-  state.interaction.penDragPathId = null;
-  state.interaction.penDragAnchorIndex = null;
-  state.interaction.dragStartLocal = null;
-  state.interaction.dragAnchorSnapshot = null;
-  setStatus(state.activePathId ? "Pen: click to add points" : "Ready");
-  render();
-}
-
-function finishActivePath() {
-  if (!state.activePathId) {
-    return;
-  }
-  state.activePathId = null;
-  state.interaction.penHistoryPathId = null;
-  state.interaction.livePreviewPoint = null;
-  setStatus("Path finalized");
-  render();
-}
-
-function localPointForPath(path, point) {
-  return applyInverseTransform(point, path.transform);
-}
-
-function beginAnchorDrag(pathId, anchorIndex, point, pointerId) {
-  const foundPath = pathId ? getObjectById(pathId) : null;
-  if (
-    !foundPath ||
-    foundPath.object.type !== "path" ||
-    !Number.isInteger(anchorIndex) ||
-    anchorIndex < 0 ||
-    anchorIndex >= (foundPath.object.geometry.anchors || []).length
-  ) {
-    return false;
-  }
-
-  pushHistory();
-  const anchor = foundPath.object.geometry.anchors[anchorIndex];
-  state.selection = [pathId];
-  state.activePathId = pathId;
-  state.directSelection.pathId = pathId;
-  state.directSelection.anchorIndex = anchorIndex;
-  state.interaction.mode = "anchor-moving";
-  state.interaction.pointerId = pointerId;
-  state.interaction.start = point;
-  state.interaction.dragStartLocal = localPointForPath(foundPath.object, point);
-  state.interaction.dragAnchorSnapshot = deepClone(anchor);
-  state.interaction.dragHandleSnapshot = null;
-  state.interaction.activeHandle = null;
-  setStatus(`Anchor ${anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
-  return true;
-}
-
-function beginHandleDrag(pathId, anchorIndex, handleKind, point, pointerId) {
-  const foundPath = pathId ? getObjectById(pathId) : null;
-  if (
-    !foundPath ||
-    foundPath.object.type !== "path" ||
-    (handleKind !== "in" && handleKind !== "out") ||
-    !Number.isInteger(anchorIndex) ||
-    anchorIndex < 0 ||
-    anchorIndex >= (foundPath.object.geometry.anchors || []).length
-  ) {
-    return false;
-  }
-
-  pushHistory();
-  const anchor = foundPath.object.geometry.anchors[anchorIndex];
-  const key = handleKind === "in" ? "inHandle" : "outHandle";
-  const startHandle = anchor[key] || { x: anchor.x, y: anchor.y };
-  state.selection = [pathId];
-  state.activePathId = pathId;
-  state.directSelection.pathId = pathId;
-  state.directSelection.anchorIndex = anchorIndex;
-  state.interaction.mode = "handle-moving";
-  state.interaction.pointerId = pointerId;
-  state.interaction.start = point;
-  state.interaction.handleKind = handleKind;
-  state.interaction.dragStartLocal = localPointForPath(foundPath.object, point);
-  state.interaction.dragAnchorSnapshot = deepClone(anchor);
-  state.interaction.dragHandleSnapshot = deepClone(startHandle);
-  state.interaction.activeHandle = { pathId, anchorIndex, kind: handleKind };
-  setStatus(`Editing ${handleKind} handle`);
-  return true;
-}
-
-function continueAnchorDrag(point) {
-  const pathId = state.directSelection.pathId;
-  const anchorIndex = state.directSelection.anchorIndex;
-  const found = pathId ? getObjectById(pathId) : null;
-  const startAnchor = state.interaction.dragAnchorSnapshot;
-  const startLocal = state.interaction.dragStartLocal;
-  if (!found || found.object.type !== "path" || !startAnchor || !startLocal || !Number.isInteger(anchorIndex)) {
-    return;
-  }
-
-  const anchor = found.object.geometry.anchors[anchorIndex];
-  if (!anchor) {
-    return;
-  }
-
-  const local = localPointForPath(found.object, point);
-  const dx = local.x - startLocal.x;
-  const dy = local.y - startLocal.y;
-  anchor.x = startAnchor.x + dx;
-  anchor.y = startAnchor.y + dy;
-  anchor.inHandle = startAnchor.inHandle
-    ? { x: startAnchor.inHandle.x + dx, y: startAnchor.inHandle.y + dy }
-    : null;
-  anchor.outHandle = startAnchor.outHandle
-    ? { x: startAnchor.outHandle.x + dx, y: startAnchor.outHandle.y + dy }
-    : null;
-  setStatus(`Anchor ${anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
-}
-
-function continueHandleDrag(point, event) {
-  const pathId = state.directSelection.pathId;
-  const anchorIndex = state.directSelection.anchorIndex;
-  const found = pathId ? getObjectById(pathId) : null;
-  const startAnchor = state.interaction.dragAnchorSnapshot;
-  const startHandle = state.interaction.dragHandleSnapshot;
-  const startLocal = state.interaction.dragStartLocal;
-  if (!found || found.object.type !== "path" || !startAnchor || !startHandle || !startLocal || !Number.isInteger(anchorIndex)) {
-    return;
-  }
-
-  const anchor = found.object.geometry.anchors[anchorIndex];
-  if (!anchor) {
-    return;
-  }
-
-  const key = state.interaction.handleKind === "in" ? "inHandle" : "outHandle";
-  const oppositeKey = key === "inHandle" ? "outHandle" : "inHandle";
-  const local = localPointForPath(found.object, point);
-  const dx = local.x - startLocal.x;
-  const dy = local.y - startLocal.y;
-  const nextHandle = {
-    x: startHandle.x + dx,
-    y: startHandle.y + dy
-  };
-  anchor[key] = nextHandle;
-
-  if (!event.altKey) {
-    anchor[oppositeKey] = {
-      x: anchor.x - (nextHandle.x - anchor.x),
-      y: anchor.y - (nextHandle.y - anchor.y)
-    };
-  }
-  setStatus(`${state.interaction.handleKind} handle: ${round(nextHandle.x, 2)}, ${round(nextHandle.y, 2)}`);
-}
-
-function resetPathDragState() {
-  state.interaction.mode = null;
-  state.interaction.pointerId = null;
-  state.interaction.start = null;
-  state.interaction.handleKind = null;
-  state.interaction.dragStartLocal = null;
-  state.interaction.dragAnchorSnapshot = null;
-  state.interaction.dragHandleSnapshot = null;
-  state.interaction.activeHandle = null;
-}
-
-function toggleAnchorSmooth(pathId, anchorIndex) {
-  const found = pathId ? getObjectById(pathId) : null;
-  if (!found || found.object.type !== "path") {
-    return;
-  }
-  const anchor = found.object.geometry.anchors?.[anchorIndex];
-  if (!anchor) {
-    return;
-  }
-
-  pushHistory();
-  const hasHandles = Boolean(anchor.inHandle || anchor.outHandle);
-  if (hasHandles) {
-    anchor.inHandle = null;
-    anchor.outHandle = null;
-    setStatus("Converted anchor to corner");
-  } else {
-    const anchors = found.object.geometry.anchors;
-    const prev = anchors[anchorIndex - 1] || anchors[anchorIndex + 1] || { x: anchor.x - 32, y: anchor.y };
-    const next = anchors[anchorIndex + 1] || anchors[anchorIndex - 1] || { x: anchor.x + 32, y: anchor.y };
-    const vx = next.x - prev.x;
-    const vy = next.y - prev.y;
-    const length = Math.max(1, Math.hypot(vx, vy));
-    const handleLength = Math.min(80, Math.max(24, length / 4));
-    const ux = vx / length;
-    const uy = vy / length;
-    anchor.inHandle = {
-      x: anchor.x - ux * handleLength,
-      y: anchor.y - uy * handleLength
-    };
-    anchor.outHandle = {
-      x: anchor.x + ux * handleLength,
-      y: anchor.y + uy * handleLength
-    };
-    setStatus("Converted anchor to smooth");
-  }
-  state.selection = [pathId];
-  state.directSelection.pathId = pathId;
-  state.directSelection.anchorIndex = anchorIndex;
-  render();
-}
-
-function continueOpenPathFromEndpoint(pathId, anchorIndex) {
-  const found = pathId ? getObjectById(pathId) : null;
-  if (!found || found.object.type !== "path" || found.object.geometry.closed) {
-    return false;
-  }
-  const anchors = found.object.geometry.anchors || [];
-  if (anchors.length === 0 || (anchorIndex !== 0 && anchorIndex !== anchors.length - 1)) {
-    return false;
-  }
-
-  if (anchorIndex === 0) {
-    found.object.geometry.anchors = [...anchors].reverse().map((anchor) => ({
-      ...anchor,
-      inHandle: anchor.outHandle ? { ...anchor.outHandle } : null,
-      outHandle: anchor.inHandle ? { ...anchor.inHandle } : null
-    }));
-  }
-  state.activePathId = pathId;
-  state.interaction.penHistoryPathId = null;
-  state.selection = [pathId];
-  state.directSelection.pathId = pathId;
-  state.directSelection.anchorIndex = found.object.geometry.anchors.length - 1;
-  setStatus("Continuing open path");
-  render();
-  return true;
-}
-
-function removeLastActivePathAnchor() {
-  if (!state.activePathId) {
-    return false;
-  }
-  const found = getObjectById(state.activePathId);
-  if (!found || found.object.type !== "path") {
-    state.activePathId = null;
-    state.interaction.penHistoryPathId = null;
-    return false;
-  }
-  const anchors = found.object.geometry.anchors || [];
-  pushHistory();
-  anchors.pop();
-  if (anchors.length === 0) {
-    state.objects = removeObjectsByIds(state.objects, new Set([state.activePathId]));
-    state.selection = [];
-    state.activePathId = null;
-    state.directSelection.pathId = null;
-    state.directSelection.anchorIndex = null;
-  } else {
-    state.directSelection.pathId = found.object.id;
-    state.directSelection.anchorIndex = anchors.length - 1;
-  }
-  sortAndReindexObjects();
-  setStatus("Removed last pen anchor");
-  render();
-  return true;
-}
-
-function updatePenHoverAnchor(point) {
-  if (state.tool !== TOOLS.PEN || !state.activePathId) {
-    if (state.interaction.hoverAnchor) {
-      state.interaction.hoverAnchor = null;
-      render();
-    }
-    return;
-  }
-  const found = getObjectById(state.activePathId);
-  if (!found || found.object.type !== "path") {
-    return;
-  }
-  const anchors = found.object.geometry.anchors || [];
-  let nextHover = null;
-  anchors.forEach((anchor, index) => {
-    const world = applyTransformToPoint(anchor, found.object.transform);
-    if (Math.hypot(world.x - point.x, world.y - point.y) <= 10) {
-      nextHover = { pathId: found.object.id, anchorIndex: index };
-    }
-  });
-  const changed =
-    nextHover?.pathId !== state.interaction.hoverAnchor?.pathId ||
-    nextHover?.anchorIndex !== state.interaction.hoverAnchor?.anchorIndex;
-  if (changed) {
-    state.interaction.hoverAnchor = nextHover;
-    render();
-  }
 }
 
 function pointerDownOnCanvas(event) {
+  if(event.button===1||spaceDown||state.tool===TOOLS.HAND){if(event.button!==0&&event.button!==1)return;event.preventDefault();dom.canvas.focus();dom.canvas.setPointerCapture(event.pointerId);state.interaction.mode='panning';state.interaction.pointerId=event.pointerId;state.interaction.start={x:event.clientX,y:event.clientY,cx:state.view.cx,cy:state.view.cy};state.view.fit=false;return;}
   if (event.button !== 0) {
     return;
   }
 
   dom.canvas.focus();
   event.preventDefault();
-  capturePointer(event);
 
   const point = svgPointFromEvent(event);
+  if(state.tool===TOOLS.ZOOM){zoomAt(event.altKey?1/1.5:1.5,point);return;}
+  dom.canvas.setPointerCapture(event.pointerId);
   const bezierHandleNode = event.target.closest("[data-handle-path-id]");
-  if ((state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN) && bezierHandleNode) {
+  if (state.tool === TOOLS.DIRECT && bezierHandleNode) {
     const pathId = bezierHandleNode.dataset.handlePathId;
     const anchorIndex = Number(bezierHandleNode.dataset.handleAnchorIndex);
     const handleKind = bezierHandleNode.dataset.handleKind;
-    if (beginHandleDrag(pathId, anchorIndex, handleKind, point, event.pointerId)) {
+    const foundPath = pathId ? getObjectById(pathId) : null;
+    if (
+      foundPath &&
+      foundPath.object.type === "path" &&
+      (handleKind === "in" || handleKind === "out") &&
+      Number.isInteger(anchorIndex) &&
+      anchorIndex >= 0 &&
+      anchorIndex < (foundPath.object.geometry.anchors || []).length
+    ) {
+      pushHistory();
+      state.selection = [pathId];
+      state.activePathId = pathId;
+      state.directSelection.pathId = pathId;
+      state.directSelection.anchorIndex = anchorIndex;
+      state.interaction.mode = "handle-moving";
+      state.interaction.pointerId = event.pointerId;
+      state.interaction.start = point;
+      state.interaction.handleKind = handleKind;
+      setStatus("Editing bezier handle");
       render();
       return;
     }
   }
 
   const anchorNode = event.target.closest("[data-anchor-path-id]");
-  if ((state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN) && anchorNode) {
+  if (state.tool === TOOLS.DIRECT && anchorNode) {
     const pathId = anchorNode.dataset.anchorPathId;
     const anchorIndex = Number(anchorNode.dataset.anchorIndex);
     const foundPath = pathId ? getObjectById(pathId) : null;
-    if (event.altKey && foundPath?.object?.type === "path" && Number.isInteger(anchorIndex)) {
-      toggleAnchorSmooth(pathId, anchorIndex);
-      return;
-    }
-    if (state.tool === TOOLS.PEN && continueOpenPathFromEndpoint(pathId, anchorIndex)) {
-      return;
-    }
-    if (beginAnchorDrag(pathId, anchorIndex, point, event.pointerId)) {
+    if (
+      foundPath &&
+      foundPath.object.type === "path" &&
+      Number.isInteger(anchorIndex) &&
+      anchorIndex >= 0 &&
+      anchorIndex < (foundPath.object.geometry.anchors || []).length
+    ) {
+      pushHistory();
+      state.selection = [pathId];
+      state.activePathId = pathId;
+      state.directSelection.pathId = pathId;
+      state.directSelection.anchorIndex = anchorIndex;
+      state.interaction.mode = "anchor-moving";
+      state.interaction.pointerId = event.pointerId;
+      state.interaction.start = point;
+      setStatus("Editing path anchor");
       render();
       return;
     }
@@ -5866,54 +2909,19 @@ function pointerDownOnCanvas(event) {
   const objectId = hitTestTopObject(event, point);
   const found = objectId ? getObjectById(objectId) : null;
 
-  if (state.tool === TOOLS.HAND) {
-    beginPan(event);
-    return;
-  }
-
-  if (state.tool === TOOLS.ZOOM) {
-    setZoom(state.view.zoom * (event.altKey ? 0.8 : 1.25), event);
-    setStatus(`Zoom ${Math.round(state.view.zoom * 100)}%`);
-    return;
-  }
-
-  if (state.tool === TOOLS.EYEDROPPER) {
-    sampleStyleFromObject(objectId);
-    return;
-  }
-
-  if (state.tool === TOOLS.PENCIL) {
-    beginPencilStroke(point, event.pointerId);
-    return;
-  }
-
-  if (state.tool === TOOLS.TEXT) {
-    createTextObject(point);
-    return;
-  }
-
-  if (state.tool === TOOLS.RECT || state.tool === TOOLS.ELLIPSE || state.tool === TOOLS.LINE || state.tool === TOOLS.POLYGON) {
-    beginCreateShape(state.tool, point);
+  if ([TOOLS.RECT,TOOLS.ELLIPSE,TOOLS.LINE,TOOLS.PENCIL,TOOLS.POLYGON,TOOLS.STAR].includes(state.tool)) {
+    beginCreateShape(state.tool, snapPoint(point));
+    state.interaction.pointerId=event.pointerId;
     render();
     return;
   }
 
   if (state.tool === TOOLS.PEN) {
-    const result = beginOrExtendPath(point);
-    if (result && !result.closed) {
-      const foundPath = getObjectById(result.pathId);
-      state.interaction.mode = "pen-dragging";
-      state.interaction.pointerId = event.pointerId;
-      state.interaction.start = point;
-      state.interaction.penDragPathId = result.pathId;
-      state.interaction.penDragAnchorIndex = result.anchorIndex;
-      state.interaction.dragStartLocal = foundPath ? localPointForPath(foundPath.object, point) : point;
-      state.interaction.dragAnchorSnapshot = foundPath
-        ? deepClone(foundPath.object.geometry.anchors[result.anchorIndex])
-        : null;
-    }
+    const anchor=snapPoint(point);beginOrExtendPath(anchor);
+    if(state.activePathId){state.interaction.mode='pen-handle';state.interaction.pointerId=event.pointerId;state.interaction.start=anchor;}
     return;
   }
+  if(state.tool===TOOLS.TEXT){pushHistory();const id=nextId();addShape({id,type:'text',name:'Text',zIndex:state.objects.length,visible:true,locked:false,transform:deepClone(DEFAULT_TRANSFORM),style:{...state.paint,fill:state.paint.fill==='none'||state.paint.fill===DEFAULT_STYLE.fill?'#222222':state.paint.fill,stroke:'none'},geometry:{x:point.x,y:point.y,text:'Type here',fontSize:36,fontFamily:'Arial'}});state.selection=[id];textEditing=false;render();$('text-content-input').focus();$('text-content-input').select();return;}
 
   if (state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT) {
     if (found && !found.object.locked) {
@@ -5923,15 +2931,11 @@ function pointerDownOnCanvas(event) {
         } else {
           state.selection = [...state.selection, found.object.id];
         }
-      } else {
+      } else if(!state.selection.includes(found.object.id)) {
         state.selection = [found.object.id];
       }
-      const layer = getTopLevelLayerForId(found.object.id);
-      if (layer) {
-        state.activeLayerId = layer.id;
-      }
 
-      if (!event.shiftKey && state.tool === TOOLS.SELECT) {
+      if (!event.shiftKey) {
         beginMoveSelection(point, event.pointerId);
       }
 
@@ -5944,9 +2948,6 @@ function pointerDownOnCanvas(event) {
       } else {
         state.directSelection.pathId = null;
         state.directSelection.anchorIndex = null;
-      }
-      if (state.tool === TOOLS.DIRECT) {
-        setStatus(found.object.type === "path" ? "Direct selection: edit anchors" : "Direct selection");
       }
     } else {
       const canMarquee = state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT;
@@ -5966,116 +2967,107 @@ function pointerDownOnCanvas(event) {
 }
 
 function pointerMoveOnCanvas(event) {
-  if (
-    state.interaction.pointerId !== null &&
-    state.interaction.pointerId !== undefined &&
-    event.pointerId !== state.interaction.pointerId
-  ) {
-    return;
-  }
-
+  if(state.interaction.mode==='panning'){const s=state.interaction.start;state.view.cx=s.cx-(event.clientX-s.x)/state.view.zoom;state.view.cy=s.cy-(event.clientY-s.y)/state.view.zoom;renderView();return;}
   const point = svgPointFromEvent(event);
-  state.interaction.lastCursorPoint = point;
-
-  if (state.interaction.mode === "panning") {
-    continuePan(event);
-    return;
-  }
-
-  if (state.interaction.mode === "pencil-drawing") {
-    continuePencilStroke(point);
-    return;
-  }
-
-  if (state.interaction.mode === "pen-dragging") {
-    continuePenDrag(point, event);
-    renderSoon();
-    return;
+  if(state.interaction.mode==='pen-handle'){
+    const s=state.interaction.start,found=getObjectById(state.activePathId),a=found?.object.geometry.anchors.at(-1);
+    if(a&&Math.hypot(point.x-s.x,point.y-s.y)>3/state.view.zoom){a.outHandle={...point};a.inHandle={x:2*a.x-point.x,y:2*a.y-point.y};render(true);}return;
   }
 
   if (state.interaction.mode === "marquee-select") {
     state.interaction.marqueeCurrent = point;
-    render();
+    drawSelectionOutline();
     return;
   }
 
   if (state.interaction.mode === "handle-moving") {
-    continueHandleDrag(point, event);
-    renderSoon();
+    const pathId = state.directSelection.pathId;
+    const anchorIndex = state.directSelection.anchorIndex;
+    const found = pathId ? getObjectById(pathId) : null;
+    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
+      const local = applyInverseTransform(point, found.object.transform);
+      const anchor = found.object.geometry.anchors[anchorIndex];
+      if (anchor) {
+        const kind = state.interaction.handleKind === "in" ? "inHandle" : "outHandle";
+        const oppositeKind = kind === "inHandle" ? "outHandle" : "inHandle";
+        anchor[kind] = { x: local.x, y: local.y };
+        if (!event.altKey) {
+          anchor[oppositeKind] = {
+            x: anchor.x - (local.x - anchor.x),
+            y: anchor.y - (local.y - anchor.y)
+          };
+        }
+      }
+    }
+    render(true);
     return;
   }
 
   if (state.interaction.mode === "anchor-moving") {
-    continueAnchorDrag(point);
-    renderSoon();
+    const pathId = state.directSelection.pathId;
+    const anchorIndex = state.directSelection.anchorIndex;
+    const found = pathId ? getObjectById(pathId) : null;
+    if (found && found.object.type === "path" && Number.isInteger(anchorIndex)) {
+      const local = applyInverseTransform(point, found.object.transform);
+      const anchor = found.object.geometry.anchors[anchorIndex];
+      if (anchor) {
+        const dx = local.x - anchor.x;
+        const dy = local.y - anchor.y;
+        anchor.x = local.x;
+        anchor.y = local.y;
+        if (anchor.inHandle) {
+          anchor.inHandle.x += dx;
+          anchor.inHandle.y += dy;
+        }
+        if (anchor.outHandle) {
+          anchor.outHandle.x += dx;
+          anchor.outHandle.y += dy;
+        }
+      }
+    }
+    render(true);
     return;
   }
 
   if (state.interaction.mode === "creating") {
-    continueCreateShape(point);
-    render();
+    continueCreateShape(state.tool===TOOLS.PENCIL?point:snapPoint(point),event.shiftKey);
+    render(true);
     return;
   }
 
   if (state.interaction.mode === "moving") {
     continueMoveSelection(point, event);
-    render();
+    render(true);
     return;
   }
 
   if (state.interaction.mode === "scaling" || state.interaction.mode === "rotating") {
     continueHandleTransform(point, event.shiftKey);
-    render();
-    return;
-  }
-
-  if (state.tool === TOOLS.PEN && state.activePathId && state.interaction.mode === null) {
-    state.interaction.livePreviewPoint = point;
-  } else if (state.interaction.livePreviewPoint) {
-    state.interaction.livePreviewPoint = null;
-  }
-
-  updatePenHoverAnchor(point);
-  if (state.tool === TOOLS.PEN && state.activePathId) {
-    renderSoon();
-  } else if (state.tool === TOOLS.SELECT || state.tool === TOOLS.DIRECT) {
-    setStatus(`Cursor: ${round(point.x, 1)}, ${round(point.y, 1)}`);
+    render(true);
   }
 }
 
-function pointerUpOnCanvas(event = {}) {
-  if (event.pointerId !== undefined) {
-    releasePointer(event);
-  }
-
-  if (state.interaction.mode === "panning") {
-    finishPan();
-    return;
-  }
-
-  if (state.interaction.mode === "pencil-drawing") {
-    finishPencilStroke();
-    return;
-  }
-
-  if (state.interaction.mode === "pen-dragging") {
-    finishPenDrag();
-    return;
-  }
+function pointerUpOnCanvas() {
+  if(state.interaction.mode==='panning'||state.interaction.mode==='pen-handle'){const pen=state.interaction.mode==='pen-handle';state.interaction.mode=null;state.interaction.pointerId=null;state.interaction.start=null;if(pen)render();else saveDocument();return;}
   if (state.interaction.mode === "marquee-select") {
     finishMarqueeSelection();
     return;
   }
 
   if (state.interaction.mode === "handle-moving") {
-    resetPathDragState();
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    state.interaction.start = null;
+    state.interaction.handleKind = null;
     setStatus("Ready");
     render();
     return;
   }
 
   if (state.interaction.mode === "anchor-moving") {
-    resetPathDragState();
+    state.interaction.mode = null;
+    state.interaction.pointerId = null;
+    state.interaction.start = null;
     setStatus("Ready");
     render();
     return;
@@ -6096,67 +3088,30 @@ function pointerUpOnCanvas(event = {}) {
   }
 }
 
-function escapeAttribute(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function safeExportId(value, usedIds) {
-  const candidate = String(value || "").trim();
-  if (!candidate || !/^[A-Za-z_][\w:.-]*$/.test(candidate) || usedIds.has(candidate)) {
-    return "";
-  }
-  usedIds.add(candidate);
-  return candidate;
-}
-
-function exportIdentityAttributes(shape, context) {
-  const attrs = [];
-  const name = sanitizeManualName(shape.name);
-  const id = safeExportId(shape.sourceId, context.usedIds);
-  if (id) {
-    attrs.push(`id="${escapeAttribute(id)}"`);
-  }
-  if (name) {
-    attrs.push(`data-name="${escapeAttribute(name)}"`);
-  }
-  return attrs.length ? ` ${attrs.join(" ")}` : "";
-}
-
-function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }) {
+function shapeToSvgString(shape, indent = "  ") {
   if (shape.visible === false) {
     return "";
   }
 
   const style = normalizeStyle(shape.style);
   const styleAttributes = [];
-  const computedFill = shape.type === "path" && !shape.geometry.rawD && !shape.geometry.closed ? "none" : gradientPaintValue(style, "fill") || "none";
-  const computedStroke = gradientPaintValue(style, "stroke") || "none";
-  const computedStrokeWidth = round(clampNumber(style.strokeWidth, 0, 999, 0), 3);
-  const computedOpacity = round(clampNumber(style.opacity, 0, 1, 1), 3);
-  const computedFillOpacity = round(clampNumber(style.fillOpacity, 0, 1, 1), 3);
-  const computedStrokeOpacity = round(clampNumber(style.strokeOpacity, 0, 1, 1), 3);
+  const computedFill = shape.type === "path" && !shape.geometry.closed ? "none" : style.gradient?`url(#${gradientId(shape)})`:style.fill || "none";
+  const computedStroke = style.stroke || "none";
+  const computedStrokeWidth = round(clamp(Number(style.strokeWidth) || 0, 0, 999), 3);
+  const computedOpacity = round(clamp(Number(style.opacity), 0, 1), 3);
 
   if (computedFill === "none") {
     styleAttributes.push(`fill="none"`);
   } else {
-    styleAttributes.push(`fill="${escapeAttribute(computedFill)}"`);
+    styleAttributes.push(`fill="${computedFill}"`);
   }
 
   if (computedStroke && computedStroke !== "none" && computedStrokeWidth > 0) {
-    styleAttributes.push(`stroke="${escapeAttribute(computedStroke)}"`);
+    styleAttributes.push(`stroke="${computedStroke}"`);
     styleAttributes.push(`stroke-width="${computedStrokeWidth}"`);
-    styleAttributes.push(`stroke-linejoin="${style.strokeJoin || "miter"}"`);
-    styleAttributes.push(`stroke-linecap="${style.strokeCap || "butt"}"`);
-    if (style.strokeDasharray) {
-      styleAttributes.push(`stroke-dasharray="${escapeAttribute(style.strokeDasharray)}"`);
-    }
-    if ((style.strokeJoin || "miter") === "miter") {
-      styleAttributes.push(`stroke-miterlimit="${round(style.strokeMiterlimit || 4)}"`);
-    }
+    if(style.strokeCap!=='butt')styleAttributes.push(`stroke-linecap="${style.strokeCap}"`);
+    if(style.strokeJoin!=='miter')styleAttributes.push(`stroke-linejoin="${style.strokeJoin}"`);
+    if(style.strokeDash)styleAttributes.push(`stroke-dasharray="${style.strokeDash}"`);
   } else {
     styleAttributes.push(`stroke="none"`);
   }
@@ -6164,71 +3119,34 @@ function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }
   if (computedOpacity !== 1) {
     styleAttributes.push(`opacity="${computedOpacity}"`);
   }
-  if (computedFillOpacity !== 1 && computedFill !== "none") {
-    styleAttributes.push(`fill-opacity="${computedFillOpacity}"`);
-  }
-  if (style.fillRule === "evenodd") {
-    styleAttributes.push(`fill-rule="evenodd"`);
-  }
-  if (computedStrokeOpacity !== 1 && computedStroke && computedStroke !== "none") {
-    styleAttributes.push(`stroke-opacity="${computedStrokeOpacity}"`);
-  }
-  if (style.clipPath) {
-    styleAttributes.push(`clip-path="${escapeAttribute(style.clipPath)}"`);
-  }
-  if (style.mask) {
-    styleAttributes.push(`mask="${escapeAttribute(style.mask)}"`);
-  }
-  if (style.filter) {
-    styleAttributes.push(`filter="${escapeAttribute(style.filter)}"`);
-  }
-  if (style.mixBlendMode) {
-    styleAttributes.push(`style="mix-blend-mode:${escapeAttribute(style.mixBlendMode)}"`);
-  }
 
   const transform = transformToString(shape.transform);
   const transformAttribute = transform ? ` transform="${transform}"` : "";
-  const identityAttributes = exportIdentityAttributes(shape, context);
 
   if (shape.type === "rect") {
     const g = shape.geometry;
     const rx = g.rx ? ` rx="${round(g.rx)}"` : "";
     const ry = g.ry ? ` ry="${round(g.ry)}"` : "";
-    return `${indent}<rect${identityAttributes} x="${round(g.x)}" y="${round(g.y)}" width="${round(g.width)}" height="${round(g.height)}"${rx}${ry} ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<rect x="${round(g.x)}" y="${round(g.y)}" width="${round(g.width)}" height="${round(g.height)}"${rx}${ry} ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
 
   if (shape.type === "ellipse") {
     const g = shape.geometry;
-    return `${indent}<ellipse${identityAttributes} cx="${round(g.cx)}" cy="${round(g.cy)}" rx="${round(g.rx)}" ry="${round(g.ry)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<ellipse cx="${round(g.cx)}" cy="${round(g.cy)}" rx="${round(g.rx)}" ry="${round(g.ry)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
 
   if (shape.type === "path") {
-    const d = shape.geometry.rawD || buildPathD(shape.geometry.anchors, shape.geometry.closed);
+    const d = buildPathD(shape.geometry.anchors, shape.geometry.closed);
     if (!d) {
       return "";
     }
-    return `${indent}<path${identityAttributes} d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
+    return `${indent}<path d="${d}" ${styleAttributes.join(" ")}${transformAttribute} />`;
   }
-
-  if (shape.type === "line") {
-    const g = shape.geometry;
-    return `${indent}<line${identityAttributes} x1="${round(g.x1)}" y1="${round(g.y1)}" x2="${round(g.x2)}" y2="${round(g.y2)}" ${styleAttributes.join(" ")}${transformAttribute} />`;
-  }
-
-  if (shape.type === "polygon") {
-    const points = polygonPoints(shape.geometry)
-      .map((point) => `${round(point.x)},${round(point.y)}`)
-      .join(" ");
-    return `${indent}<polygon${identityAttributes} points="${points}" ${styleAttributes.join(" ")}${transformAttribute} />`;
-  }
-
-  if (shape.type === "text") {
-    const g = shape.geometry;
-    const escaped = String(g.text || "Text")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    return `${indent}<text${identityAttributes} x="${round(g.x)}" y="${round(g.y)}" font-size="${round(g.fontSize)}" font-family="${escapeAttribute(g.fontFamily || "Inter, Arial, sans-serif")}" ${styleAttributes.join(" ")}${transformAttribute}>${escaped}</text>`;
+  if(shape.type==='compound')return `${indent}<path d="${shape.geometry.contours.map(c=>buildPathD(c.anchors,c.closed)).join(' ')}" fill-rule="${shape.geometry.fillRule||'evenodd'}" ${styleAttributes.join(' ')}${transformAttribute} />`;
+  if(shape.type==='text'){
+    const g=shape.geometry,esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    const spans=g.text.split('\n').map((line,i)=>`<tspan x="${round(g.x)}" dy="${i?`${g.lineHeight||1.2}em`:'0'}">${esc(line||' ')}</tspan>`).join('');
+    return `${indent}<text x="${round(g.x)}" y="${round(g.y)}" font-size="${round(g.fontSize)}" font-family="${esc(g.fontFamily)}" font-weight="${g.fontWeight||400}" font-style="${g.fontStyle||'normal'}" text-anchor="${g.textAlign||'start'}" letter-spacing="${g.letterSpacing||0}" ${styleAttributes.join(' ')}${transformAttribute}>${spans}</text>`;
   }
 
   if (shape.type === "boolean") {
@@ -6240,16 +3158,12 @@ function shapeToSvgString(shape, indent = "  ", context = { usedIds: new Set() }
     }
 
     if (op === "unite") {
-      return `${indent}<path${identityAttributes} d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
-    }
-
-    if (op === "exclude") {
-      return `${indent}<path${identityAttributes} d="${aPath} ${bPath}" fill-rule="evenodd" ${styleAttributes.join(" ")}${transformAttribute} />`;
+      return `${indent}<path d="${aPath} ${bPath}" ${styleAttributes.join(" ")}${transformAttribute} />`;
     }
 
     if (op === "intersect") {
       const clipId = `clip-${shape.id}`;
-      return `${indent}<g${identityAttributes}${transformAttribute}>
+      return `${indent}<g${transformAttribute}>
 ${indent}  <defs>
 ${indent}    <clipPath id="${clipId}" clipPathUnits="userSpaceOnUse">
 ${indent}      <path d="${bPath}" />
@@ -6267,7 +3181,7 @@ ${indent}</g>`;
         height: state.doc.height
       };
       const maskId = `mask-${shape.id}`;
-      return `${indent}<g${identityAttributes}${transformAttribute}>
+      return `${indent}<g${transformAttribute}>
 ${indent}  <defs>
 ${indent}    <mask id="${maskId}" maskUnits="userSpaceOnUse" x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}">
 ${indent}      <rect x="${round(b.x - 4)}" y="${round(b.y - 4)}" width="${round(b.width + 8)}" height="${round(b.height + 8)}" fill="#fff" />
@@ -6279,967 +3193,32 @@ ${indent}</g>`;
     }
   }
 
-  if (shape.type === "raw") {
-    const markup = shape.geometry?.markup || "";
-    if (!markup) {
-      return "";
-    }
-    return `${indent}<g${identityAttributes}${transformAttribute}>\n${indent}  ${markup}\n${indent}</g>`;
-  }
-
   if (shape.type === "group") {
     const childLines = [...(shape.children || [])]
       .sort((a, b) => a.zIndex - b.zIndex)
-      .map((child) => shapeToSvgString(child, `${indent}  `, context))
+      .map((child) => shapeToSvgString(child, `${indent}  `))
       .filter(Boolean)
       .join("\n");
     if (!childLines) {
       return "";
     }
-    return `${indent}<g${identityAttributes}${transformAttribute}>\n${childLines}\n${indent}</g>`;
+    return `${indent}<g${transformAttribute}${computedOpacity!==1?` opacity="${computedOpacity}"`:''}>\n${childLines}\n${indent}</g>`;
   }
 
   return "";
 }
 
-function exportSvgString(options = {}) {
-  normalizeArtboards(state.doc);
-  const preset = options.preset || dom.exportPresetInput?.value || "standard";
-  const sourceObjects = preset === "selected"
-    ? collectSelectedObjects()
-    : state.objects;
-  const ordered = [...sourceObjects].sort((a, b) => a.zIndex - b.zIndex);
-  const context = { usedIds: new Set() };
-  const lines = ordered.map((shape) => shapeToSvgString(shape, "  ", context)).filter(Boolean);
-  const gradientLines = [];
-  const serializer = new XMLSerializer();
-  for (const gradient of collectStyleGradients().values()) {
-    const node = gradientToSvgNode(gradient);
-    if (node) {
-      gradientLines.push(`    ${serializer.serializeToString(node)}`);
-    }
-  }
-  const defsContent = [state.doc.defs, ...gradientLines].filter(Boolean).join("\n");
-  if (preset === "all-artboards") {
-    let cursorX = 0;
-    const artboardGap = 48;
-    const contextAll = { usedIds: new Set() };
-    const artboardLines = state.doc.artboards.map((artboard, index) => {
-      const clipId = `artboard-clip-${index + 1}`;
-      const content = ordered
-        .map((shape) => shapeToSvgString(shape, "    ", contextAll))
-        .filter(Boolean)
-        .join("\n");
-      const line = `  <g data-name="${escapeAttribute(artboard.name)}" transform="translate(${round(cursorX - artboard.x)} ${round(-artboard.y)})" clip-path="url(#${clipId})">\n${content}\n  </g>`;
-      cursorX += artboard.width + artboardGap;
-      return line;
-    });
-    const width = Math.max(1, cursorX - artboardGap);
-    const height = Math.max(...state.doc.artboards.map((artboard) => artboard.height), 1);
-    const clipDefs = state.doc.artboards
-      .map((artboard, index) => `    <clipPath id="artboard-clip-${index + 1}"><rect x="${round(artboard.x)}" y="${round(artboard.y)}" width="${round(artboard.width)}" height="${round(artboard.height)}" /></clipPath>`)
-      .join("\n");
-    let output = [
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-      `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${round(width)}\" height=\"${round(height)}\" viewBox=\"0 0 ${round(width)} ${round(height)}\">`,
-      `  <defs>\n${[defsContent, clipDefs].filter(Boolean).join("\n")}\n  </defs>`,
-      ...artboardLines,
-      "</svg>"
-    ].filter(Boolean).join("\n");
-    output = output.replace(/^<\?xml[^>]+>\n/, "").replace(/>\s+</g, "><").replace(/\s{2,}/g, " ").trim();
-    return output;
-  }
-  let output = [
+function exportSvgString() {
+  const ordered = [...state.objects].sort((a, b) => a.zIndex - b.zIndex);
+  const defs=[];function gather(shapes){for(const shape of shapes){if(!shape.visible)continue;const g=normalizeGradient(shape.style?.gradient);if(g&&shape.type!=='group'&&!(shape.type==='path'&&!shape.geometry.closed))defs.push(gradientMarkup(shape,g));if(shape.children)gather(shape.children);}}gather(ordered);
+  const lines = ordered.map((shape) => shapeToSvgString(shape, "  ")).filter(Boolean);
+  return [
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
     `<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${round(state.doc.width)}\" height=\"${round(state.doc.height)}\" viewBox=\"0 0 ${round(state.doc.width)} ${round(state.doc.height)}\">`,
-    defsContent ? `  <defs>\n${defsContent}\n  </defs>` : "",
+    ...(defs.length?[`  <defs>${defs.join('')}</defs>`]:[]),
     ...lines,
     "</svg>"
-  ].filter(Boolean).join("\n");
-  if (preset === "web") {
-    output = output.replace(/^<\?xml[^>]+>\n/, "");
-  }
-  if (preset === "minified" || preset === "onchain") {
-    output = output
-      .replace(/^<\?xml[^>]+>\n/, "")
-      .replace(/>\s+</g, "><")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-  }
-  return output;
-}
-
-function getToolLabel(tool) {
-  const labels = {
-    [TOOLS.SELECT]: "Selection Tool",
-    [TOOLS.DIRECT]: "Direct Selection Tool",
-    [TOOLS.PEN]: "Pen Tool",
-    [TOOLS.PENCIL]: "Pencil Tool",
-    [TOOLS.RECT]: "Rectangle Tool",
-    [TOOLS.ELLIPSE]: "Ellipse Tool",
-    [TOOLS.POLYGON]: "Polygon Tool",
-    [TOOLS.LINE]: "Line Tool",
-    [TOOLS.TEXT]: "Type Tool",
-    [TOOLS.EYEDROPPER]: "Eyedropper Tool",
-    [TOOLS.HAND]: "Hand Tool",
-    [TOOLS.ZOOM]: "Zoom Tool"
-  };
-  return labels[tool] || "Tool";
-}
-
-function refreshCodePanelIfOpen() {
-  if (!dom.codeDrawer.classList.contains("is-open")) {
-    return;
-  }
-  dom.svgCodeInput.value = exportSvgString();
-  dom.svgValidationMessage.textContent = "Valid SVG";
-  dom.svgValidationMessage.classList.remove("is-error");
-}
-
-function validateSvgSource(source) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(source, "image/svg+xml");
-  const parseError = doc.querySelector("parsererror");
-  const svg = doc.documentElement?.tagName?.toLowerCase() === "svg" ? doc.documentElement : null;
-  if (parseError || !svg) {
-    return {
-      ok: false,
-      message: parseError?.textContent?.trim().split("\n")[0] || "Input must be a valid SVG element"
-    };
-  }
-  return { ok: true, svg };
-}
-
-function numberAttr(node, name, fallback = 0) {
-  const value = Number(node.getAttribute(name));
-  return Number.isFinite(value) ? value : fallback;
-}
-
-function numberLengthAttr(node, name, fallback = 0) {
-  const raw = String(node.getAttribute(name) || "").trim();
-  const match = raw.match(/^[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/i);
-  const value = match ? Number(match[0]) : NaN;
-  return Number.isFinite(value) ? value : fallback;
-}
-
-function parseSvgViewBox(svg) {
-  const values = String(svg.getAttribute("viewBox") || "")
-    .trim()
-    .split(/[\s,]+/)
-    .map(Number);
-  if (values.length === 4 && values.every(Number.isFinite) && values[2] > 0 && values[3] > 0) {
-    return { x: values[0], y: values[1], width: values[2], height: values[3] };
-  }
-  return null;
-}
-
-function svgViewportInfo(svg) {
-  const viewBox = parseSvgViewBox(svg);
-  const fallbackWidth = viewBox?.width || state.doc.width;
-  const fallbackHeight = viewBox?.height || state.doc.height;
-  const width = clamp(numberLengthAttr(svg, "width", fallbackWidth), 64, 10000);
-  const height = clamp(numberLengthAttr(svg, "height", fallbackHeight), 64, 10000);
-  return { width, height, viewBox };
-}
-
-function viewBoxToViewportMatrix(svg, viewport) {
-  const viewBox = viewport.viewBox;
-  if (!viewBox) {
-    return matrixIdentity();
-  }
-
-  const preserve = String(svg.getAttribute("preserveAspectRatio") || "xMidYMid meet").trim();
-  if (preserve === "none") {
-    return matrixMultiply(
-      matrixScale(viewport.width / viewBox.width, viewport.height / viewBox.height),
-      matrixTranslate(-viewBox.x, -viewBox.y)
-    );
-  }
-
-  const [align = "xMidYMid", meetOrSlice = "meet"] = preserve.split(/\s+/);
-  const scaleX = viewport.width / viewBox.width;
-  const scaleY = viewport.height / viewBox.height;
-  const scale = meetOrSlice === "slice" ? Math.max(scaleX, scaleY) : Math.min(scaleX, scaleY);
-  let translateX = 0;
-  let translateY = 0;
-
-  if (/xMid/.test(align)) {
-    translateX = (viewport.width - viewBox.width * scale) / 2;
-  } else if (/xMax/.test(align)) {
-    translateX = viewport.width - viewBox.width * scale;
-  }
-  if (/YMid/.test(align)) {
-    translateY = (viewport.height - viewBox.height * scale) / 2;
-  } else if (/YMax/.test(align)) {
-    translateY = viewport.height - viewBox.height * scale;
-  }
-
-  return matrixMultiply(matrixTranslate(translateX, translateY), matrixMultiply(matrixScale(scale), matrixTranslate(-viewBox.x, -viewBox.y)));
-}
-
-function svgStyleMap(node) {
-  const styleText = node.getAttribute("style") || "";
-  return new Map(
-    styleText
-      .split(";")
-      .map((entry) => entry.split(":").map((part) => part.trim()))
-      .filter((entry) => entry.length === 2 && entry[0])
-  );
-}
-
-function styleObjectFromMap(map) {
-  const result = {};
-  for (const [key, value] of map.entries()) {
-    result[key] = value;
-  }
-  return result;
-}
-
-function styleMapFromText(text) {
-  return new Map(
-    String(text || "")
-      .split(";")
-      .map((entry) => entry.split(":").map((part) => part.trim()))
-      .filter((entry) => entry.length === 2 && entry[0])
-  );
-}
-
-function svgPresentationValue(node, name, fallback = "") {
-  const styleMap = svgStyleMap(node);
-  return node.getAttribute(name) || styleMap.get(name) || fallback;
-}
-
-function isSvgNodeHidden(node) {
-  const display = svgPresentationValue(node, "display", "").toLowerCase();
-  const visibility = svgPresentationValue(node, "visibility", "").toLowerCase();
-  const opacity = Number(svgPresentationValue(node, "opacity", "1"));
-  return display === "none" || visibility === "hidden" || opacity === 0;
-}
-
-function isSvgNodeLocked(node) {
-  const lockValues = [
-    node.getAttribute("data-locked"),
-    node.getAttribute("data-lock"),
-    node.getAttribute("locked"),
-    node.getAttribute("inkscape:locked"),
-    node.getAttribute("sodipodi:insensitive")
-  ]
-    .filter(Boolean)
-    .map((value) => String(value).toLowerCase());
-  const className = node.getAttribute("class") || "";
-  return lockValues.some((value) => value === "true" || value === "1" || value === "locked") || /\blocked\b/i.test(className);
-}
-
-function decodeNameValue(value) {
-  const raw = String(value || "").trim();
-  if (!raw) {
-    return "";
-  }
-  try {
-    return decodeURIComponent(raw);
-  } catch (error) {
-    return raw;
-  }
-}
-
-function cleanImportedName(value, { allowGeneratedId = false } = {}) {
-  let name = decodeNameValue(value)
-    .replace(/[_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!name || name === "." || name === "-") {
-    return "";
-  }
-
-  const generatedIdPattern = /^(?:path|rect|rectangle|ellipse|circle|g|group|layer|text|line|poly|polygon|polyline|shape|object)[\s_-]*\d+$/i;
-  if (!allowGeneratedId && generatedIdPattern.test(name)) {
-    return "";
-  }
-
-  return name;
-}
-
-function sanitizeManualName(value) {
-  return cleanImportedName(value, { allowGeneratedId: true });
-}
-
-function commitObjectNameEdit() {
-  const primary = getPrimarySelectedObject();
-  const nextName = sanitizeManualName(dom.objectNameInput.value);
-  if (!primary || !nextName || primary.name === nextName) {
-    render();
-    return;
-  }
-  pushHistory();
-  primary.name = nextName;
-  setStatus(`Renamed ${nextName}`);
-  render();
-}
-
-function childText(node, tagName) {
-  const child = [...node.children].find((candidate) => candidate.tagName?.toLowerCase() === tagName);
-  return child?.textContent || "";
-}
-
-function fallbackImportedName(tag, counters, { layer = false } = {}) {
-  const labels = {
-    g: layer ? "Layer" : "Group",
-    path: "Path",
-    rect: "Rectangle",
-    ellipse: "Ellipse",
-    circle: "Ellipse",
-    line: "Line",
-    polygon: "Polygon",
-    text: "Text"
-  };
-  const label = labels[tag] || "Object";
-  counters[label] = (counters[label] || 0) + 1;
-  return `${label} ${counters[label]}`;
-}
-
-function isLayerLikeGroup(node) {
-  const groupMode = node.getAttribute("inkscape:groupmode") || "";
-  const id = cleanImportedName(node.getAttribute("id"), { allowGeneratedId: true });
-  const dataName = cleanImportedName(node.getAttribute("data-name"), { allowGeneratedId: true });
-  const label = cleanImportedName(node.getAttribute("inkscape:label"), { allowGeneratedId: true });
-  return (
-    groupMode.toLowerCase() === "layer" ||
-    /^(?:layer|Layer)\s*\d*$/i.test(id) ||
-    /^(?:layer|Layer)\s*\d*$/i.test(dataName) ||
-    /^(?:layer|Layer)\s*\d*$/i.test(label)
-  );
-}
-
-function makeUniqueImportedName(name, counters) {
-  const base = sanitizeManualName(name);
-  if (!base) {
-    return "";
-  }
-  const key = base.toLowerCase();
-  counters.__names ??= {};
-  counters.__names[key] = (counters.__names[key] || 0) + 1;
-  return counters.__names[key] === 1 ? base : `${base} ${counters.__names[key]}`;
-}
-
-function getSvgNodeName(node, fallbackName, counters, kind = "object") {
-  const layerLike = kind === "group" && isLayerLikeGroup(node);
-  const groupCandidates = [
-    { value: node.getAttribute("inkscape:label"), allowGeneratedId: true },
-    { value: node.getAttribute("data-name"), allowGeneratedId: true },
-    { value: node.getAttribute("aria-label"), allowGeneratedId: true },
-    { value: childText(node, "title"), allowGeneratedId: true },
-    { value: childText(node, "desc"), allowGeneratedId: true },
-    { value: node.getAttribute("id"), allowGeneratedId: layerLike }
-  ];
-  const objectCandidates = [
-    { value: node.getAttribute("data-name"), allowGeneratedId: true },
-    { value: node.getAttribute("aria-label"), allowGeneratedId: true },
-    { value: childText(node, "title"), allowGeneratedId: true },
-    { value: childText(node, "desc"), allowGeneratedId: true },
-    { value: node.getAttribute("id"), allowGeneratedId: false }
-  ];
-  const candidates = kind === "group" ? groupCandidates : objectCandidates;
-
-  for (const candidate of candidates) {
-    const name = cleanImportedName(candidate.value, { allowGeneratedId: candidate.allowGeneratedId });
-    if (name) {
-      return makeUniqueImportedName(name, counters);
-    }
-  }
-
-  return makeUniqueImportedName(fallbackName, counters) || fallbackName;
-}
-
-function sourceIdFromNode(node) {
-  const raw = decodeNameValue(node.getAttribute("id")).trim();
-  if (!raw || !/^[A-Za-z_][\w:.-]*$/.test(raw)) {
-    return null;
-  }
-  return raw;
-}
-
-function cssUnescapeIdentifier(value) {
-  try {
-    return CSS?.escape ? value : value;
-  } catch (error) {
-    return value;
-  }
-}
-
-function parseCssDeclarations(text) {
-  return styleObjectFromMap(styleMapFromText(text));
-}
-
-function cssSpecificity(selector) {
-  if (selector.startsWith("#")) {
-    return 100;
-  }
-  if (selector.startsWith(".")) {
-    return 10;
-  }
-  return 1;
-}
-
-function parseEmbeddedSvgCss(svg) {
-  const rules = [];
-  let order = 0;
-  for (const styleNode of [...svg.querySelectorAll("style")]) {
-    const css = String(styleNode.textContent || "").replace(/\/\*[\s\S]*?\*\//g, "");
-    const rulePattern = /([^{}@]+)\{([^{}]+)\}/g;
-    let match;
-    while ((match = rulePattern.exec(css))) {
-      const declarations = parseCssDeclarations(match[2]);
-      for (const selector of match[1].split(",").map((part) => part.trim()).filter(Boolean)) {
-        if (/[\s>+~:[\]*]/.test(selector)) {
-          continue;
-        }
-        if (!selector.startsWith(".") && !selector.startsWith("#") && !/^[a-zA-Z][\w-]*$/.test(selector)) {
-          continue;
-        }
-        rules.push({
-          selector,
-          declarations,
-          specificity: cssSpecificity(selector),
-          order: order++
-        });
-      }
-    }
-  }
-  return rules;
-}
-
-function extractImportDefs(svg) {
-  const serializer = new XMLSerializer();
-  const definitionTags = new Set([
-    "clippath",
-    "filter",
-    "lineargradient",
-    "marker",
-    "mask",
-    "pattern",
-    "radialgradient",
-    "style",
-    "symbol"
-  ]);
-  const definitions = [];
-  for (const node of [...svg.children]) {
-    const tag = node.localName || node.tagName || "";
-    if (tag.toLowerCase() === "defs") {
-      definitions.push(...[...node.children].map((child) => serializer.serializeToString(child)));
-    } else if (definitionTags.has(tag.toLowerCase())) {
-      definitions.push(serializer.serializeToString(node));
-    }
-  }
-  return definitions.join("\n");
-}
-
-function cssRuleMatchesNode(rule, node) {
-  const selector = rule.selector;
-  if (selector.startsWith(".")) {
-    return [...node.classList].includes(cssUnescapeIdentifier(selector.slice(1)));
-  }
-  if (selector.startsWith("#")) {
-    return node.getAttribute("id") === cssUnescapeIdentifier(selector.slice(1));
-  }
-  return (node.localName || node.tagName || "").toLowerCase() === selector.toLowerCase();
-}
-
-function cssStyleForNode(node, context) {
-  const result = {};
-  const matches = (context?.cssRules || [])
-    .filter((rule) => cssRuleMatchesNode(rule, node))
-    .sort((a, b) => a.specificity - b.specificity || a.order - b.order);
-  for (const rule of matches) {
-    Object.assign(result, rule.declarations);
-  }
-  return result;
-}
-
-function svgStyleFromDeclarations(declarations) {
-  const read = (name) => declarations[name];
-  const readNumber = (name) => {
-    const match = String(read(name) || "").match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/i);
-    return match ? Number(match[0]) : NaN;
-  };
-  const style = {};
-  if (read("color")) {
-    style.color = read("color");
-  }
-  if (read("fill")) {
-    style.fill = read("fill");
-  }
-  if (read("stroke")) {
-    style.stroke = read("stroke");
-  }
-  if (read("stroke-width")) {
-    style.strokeWidth = readNumber("stroke-width");
-  }
-  if (read("stroke-linejoin")) {
-    style.strokeJoin = read("stroke-linejoin");
-  }
-  if (read("stroke-linecap")) {
-    style.strokeCap = read("stroke-linecap");
-  }
-  if (read("stroke-dasharray")) {
-    style.strokeDasharray = read("stroke-dasharray") === "none" ? "" : read("stroke-dasharray");
-  }
-  if (read("stroke-miterlimit")) {
-    style.strokeMiterlimit = readNumber("stroke-miterlimit");
-  }
-  if (read("fill-opacity")) {
-    style.fillOpacity = readNumber("fill-opacity");
-  }
-  if (read("stroke-opacity")) {
-    style.strokeOpacity = readNumber("stroke-opacity");
-  }
-  if (read("opacity")) {
-    style.opacity = readNumber("opacity");
-  }
-  if (read("fill-rule")) {
-    style.fillRule = read("fill-rule").trim().toLowerCase() === "evenodd" ? "evenodd" : "nonzero";
-  }
-  if (read("clip-path")) {
-    style.clipPath = read("clip-path");
-  }
-  if (read("mask")) {
-    style.mask = read("mask");
-  }
-  if (read("filter")) {
-    style.filter = read("filter");
-  }
-  if (read("mix-blend-mode")) {
-    style.mixBlendMode = read("mix-blend-mode");
-  }
-  return style;
-}
-
-function presentationStyleForNode(node) {
-  const declarations = {};
-  for (const name of [
-    "color",
-    "fill",
-    "stroke",
-    "stroke-width",
-    "stroke-linejoin",
-    "stroke-linecap",
-    "stroke-dasharray",
-    "stroke-miterlimit",
-    "fill-opacity",
-    "stroke-opacity",
-    "opacity",
-    "fill-rule",
-    "clip-path",
-    "mask",
-    "filter",
-    "mix-blend-mode"
-  ]) {
-    const value = node.getAttribute(name);
-    if (value !== null && value !== "") {
-      declarations[name] = value;
-    }
-  }
-  return svgStyleFromDeclarations(declarations);
-}
-
-function resolveCurrentColor(value, style) {
-  if (typeof value === "string" && value.trim().toLowerCase() === "currentcolor") {
-    return style.color || SVG_IMPORT_DEFAULT_STYLE.color;
-  }
-  return value;
-}
-
-function warnUnsupportedPaint(style, node) {
-  const tag = (node.localName || node.tagName || "element").toLowerCase();
-  for (const key of ["fill", "stroke"]) {
-    const value = style[key];
-    if (typeof value === "string" && /^url\(/i.test(value.trim())) {
-      console.warn(`SVG editor: preserving ${key} paint server '${value}' on imported ${tag}`);
-    }
-  }
-}
-
-function mergeInheritedStyle(parentStyle, node, context = null) {
-  const inlineStyle = styleObjectFromMap(svgStyleMap(node));
-  const next = normalizeStyle({
-    ...(parentStyle || SVG_IMPORT_DEFAULT_STYLE),
-    ...svgStyleFromDeclarations(cssStyleForNode(node, context)),
-    ...presentationStyleForNode(node),
-    ...svgStyleFromDeclarations(inlineStyle)
-  });
-  next.color = inlineStyle.color || node.getAttribute("color") || next.color || parentStyle?.color || SVG_IMPORT_DEFAULT_STYLE.color;
-  next.fill = resolveCurrentColor(next.fill, next);
-  next.stroke = resolveCurrentColor(next.stroke, next);
-  warnUnsupportedPaint(next, node);
-  return next;
-}
-
-function parseSvgPoints(value) {
-  const numbers = String(value || "").match(/[-+]?(?:\d*\.\d+|\d+\.?)(?:e[-+]?\d+)?/gi)?.map(Number) || [];
-  const points = [];
-  for (let index = 0; index + 1 < numbers.length; index += 2) {
-    const x = numbers[index];
-    const y = numbers[index + 1];
-    if (Number.isFinite(x) && Number.isFinite(y)) {
-      points.push({ x, y });
-    }
-  }
-  return points;
-}
-
-function transformAnchor(anchor, matrix) {
-  const point = matrixApplyPoint(matrix, anchor);
-  return {
-    x: point.x,
-    y: point.y,
-    inHandle: anchor.inHandle ? matrixApplyPoint(matrix, anchor.inHandle) : null,
-    outHandle: anchor.outHandle ? matrixApplyPoint(matrix, anchor.outHandle) : null
-  };
-}
-
-function transformForImport(parentMatrix, node) {
-  const localMatrix = parseSvgTransformMatrix(node.getAttribute("transform"));
-  const matrix = matrixMultiply(parentMatrix || matrixIdentity(), localMatrix);
-  return matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
-}
-
-function transformObjectGeometryForImport(shape, matrix) {
-  if (matrixIsIdentity(matrix)) {
-    return shape;
-  }
-  if (shape.type === "path" && !shape.geometry.rawD) {
-    shape.geometry.anchors = (shape.geometry.anchors || []).map((anchor) => transformAnchor(anchor, matrix));
-    shape.transform = deepClone(DEFAULT_TRANSFORM);
-    return shape;
-  }
-  if (shape.type === "polygon" && Array.isArray(shape.geometry.points)) {
-    shape.geometry.points = shape.geometry.points.map((point) => matrixApplyPoint(matrix, point));
-    shape.transform = deepClone(DEFAULT_TRANSFORM);
-    return shape;
-  }
-  if (shape.type === "line") {
-    const p1 = matrixApplyPoint(matrix, { x: shape.geometry.x1, y: shape.geometry.y1 });
-    const p2 = matrixApplyPoint(matrix, { x: shape.geometry.x2, y: shape.geometry.y2 });
-    shape.geometry.x1 = p1.x;
-    shape.geometry.y1 = p1.y;
-    shape.geometry.x2 = p2.x;
-    shape.geometry.y2 = p2.y;
-    shape.transform = deepClone(DEFAULT_TRANSFORM);
-    return shape;
-  }
-  shape.transform = matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix };
-  return shape;
-}
-
-function serializeRawImportedNode(node) {
-  const clone = node.cloneNode(true);
-  clone.removeAttribute("transform");
-  clone.removeAttribute("id");
-  return new XMLSerializer().serializeToString(clone);
-}
-
-function rawImportedShape(node, base, matrix, reason = "unsupported SVG element") {
-  const tag = (node.localName || node.tagName || "svg").toLowerCase();
-  const symbolHref = tag === "use"
-    ? String(node.getAttribute("href") || node.getAttributeNS("http://www.w3.org/1999/xlink", "href") || "").trim()
-    : "";
-  const ownerViewBox = node.ownerSVGElement?.viewBox?.baseVal;
-  const fallbackWidth = Number(ownerViewBox?.width) || state.doc.width;
-  const fallbackHeight = Number(ownerViewBox?.height) || state.doc.height;
-  if (!rawImportedShape.warned) {
-    rawImportedShape.warned = new Set();
-  }
-  const key = `${tag}:${reason}`;
-  if (!rawImportedShape.warned.has(key)) {
-    rawImportedShape.warned.add(key);
-    console.warn(`SVG editor: preserving ${tag} as raw SVG-backed content (${reason})`);
-  }
-  return {
-    ...base,
-    type: "raw",
-    transform: matrixIsIdentity(matrix) ? deepClone(DEFAULT_TRANSFORM) : { ...deepClone(DEFAULT_TRANSFORM), matrix },
-    geometry: {
-      markup: serializeRawImportedNode(node),
-      symbolHref,
-      bounds: {
-        x: 0,
-        y: 0,
-        width: Math.max(1, fallbackWidth),
-        height: Math.max(1, fallbackHeight)
-      }
-    }
-  };
-}
-
-function shapeFromSvgElement(node, zIndex, counters, parentMatrix = matrixIdentity(), parentStyle = SVG_IMPORT_DEFAULT_STYLE, context = null) {
-  const tag = (node.localName || node.tagName).toLowerCase();
-  const fallbackName = fallbackImportedName(tag, counters);
-  const importMatrix = matrixMultiply(parentMatrix, parseSvgTransformMatrix(node.getAttribute("transform")));
-  const base = {
-    id: nextId(tag),
-    sourceId: sourceIdFromNode(node),
-    name: getSvgNodeName(node, fallbackName, counters, "object"),
-    zIndex,
-    visible: !isSvgNodeHidden(node),
-    locked: isSvgNodeLocked(node),
-    transform: deepClone(DEFAULT_TRANSFORM),
-    style: mergeInheritedStyle(parentStyle, node, context)
-  };
-
-  if (tag === "rect") {
-    return transformObjectGeometryForImport({
-      ...base,
-      type: "rect",
-      geometry: {
-        x: numberAttr(node, "x"),
-        y: numberAttr(node, "y"),
-        width: Math.max(1, numberAttr(node, "width", 1)),
-        height: Math.max(1, numberAttr(node, "height", 1)),
-        rx: numberAttr(node, "rx"),
-        ry: numberAttr(node, "ry")
-      }
-    }, importMatrix);
-  }
-  if (tag === "ellipse" || tag === "circle") {
-    const r = numberAttr(node, "r", 1);
-    return transformObjectGeometryForImport({
-      ...base,
-      type: "ellipse",
-      geometry: {
-        cx: numberAttr(node, "cx"),
-        cy: numberAttr(node, "cy"),
-        rx: tag === "circle" ? r : Math.max(1, numberAttr(node, "rx", 1)),
-        ry: tag === "circle" ? r : Math.max(1, numberAttr(node, "ry", 1))
-      }
-    }, importMatrix);
-  }
-  if (tag === "line") {
-    return transformObjectGeometryForImport({
-      ...base,
-      type: "line",
-      style: normalizeStyle({ ...base.style, fill: "none" }),
-      geometry: {
-        x1: numberAttr(node, "x1"),
-        y1: numberAttr(node, "y1"),
-        x2: numberAttr(node, "x2", 1),
-        y2: numberAttr(node, "y2", 1)
-      }
-    }, importMatrix);
-  }
-  if (tag === "polygon") {
-    const points = parseSvgPoints(node.getAttribute("points"));
-    if (points.length >= 3) {
-      const cx = points.reduce((sum, point) => sum + point.x, 0) / points.length;
-      const cy = points.reduce((sum, point) => sum + point.y, 0) / points.length;
-      const radius = Math.max(...points.map((point) => Math.hypot(point.x - cx, point.y - cy)));
-      return transformObjectGeometryForImport({
-        ...base,
-        type: "polygon",
-        geometry: { cx, cy, radius, sides: clamp(points.length, 3, 12), points }
-      }, importMatrix);
-    }
-  }
-  if (tag === "polyline") {
-    const points = parseSvgPoints(node.getAttribute("points"));
-    if (points.length >= 2) {
-      return transformObjectGeometryForImport({
-        ...base,
-        type: "path",
-        style: normalizeStyle({ ...base.style, fill: "none" }),
-        geometry: {
-          anchors: points.map((point) => ({ x: point.x, y: point.y, inHandle: null, outHandle: null })),
-          closed: false
-        }
-      }, importMatrix);
-    }
-  }
-  if (tag === "path") {
-    const parsed = parseLegacyPathD(node.getAttribute("d") || "");
-    const shape = {
-      ...base,
-      type: "path",
-      geometry: {
-        anchors: parsed.anchors,
-        closed: parsed.closed,
-        rawD: parsed.preserved ? parsed.rawD : ""
-      }
-    };
-    if (parsed.preserved && !matrixIsIdentity(importMatrix)) {
-      return rawImportedShape(node, base, importMatrix, "complex transformed path data");
-    }
-    return transformObjectGeometryForImport(shape, importMatrix);
-  }
-  if (tag === "text") {
-    return transformObjectGeometryForImport({
-      ...base,
-      type: "text",
-      geometry: {
-        x: numberAttr(node, "x"),
-        y: numberAttr(node, "y"),
-        text: node.textContent || "Text",
-        fontSize: Math.max(4, numberAttr(node, "font-size", 48)),
-        fontFamily: node.getAttribute("font-family") || "Inter, Arial, sans-serif"
-      }
-    }, importMatrix);
-  }
-  if (["use", "image", "foreignobject", "symbol"].includes(tag)) {
-    return rawImportedShape(node, base, importMatrix);
-  }
-  return null;
-}
-
-function importChildrenFromSvgNode(node, counters, parentMatrix = matrixIdentity(), parentStyle = SVG_IMPORT_DEFAULT_STYLE, context = null) {
-  const ignoredTags = new Set(["defs", "style", "metadata", "script", "title", "desc", "clipPath", "mask", "pattern", "linearGradient", "radialGradient"]);
-  const children = [];
-  const inheritedStyle = mergeInheritedStyle(parentStyle, node, context);
-
-  for (const child of [...node.children]) {
-    const tag = (child.localName || child.tagName)?.toLowerCase();
-    if (!tag || ignoredTags.has(tag)) {
-      continue;
-    }
-
-    if (tag === "g" || tag === "svg") {
-      const childMatrix = matrixMultiply(parentMatrix, parseSvgTransformMatrix(child.getAttribute("transform")));
-      const childStyle = mergeInheritedStyle(inheritedStyle, child, context);
-      const nestedChildren = importChildrenFromSvgNode(child, counters, childMatrix, childStyle, context);
-      if (nestedChildren.length === 0) {
-        continue;
-      }
-      const layerLike = isLayerLikeGroup(child);
-      const fallbackName = fallbackImportedName("g", counters, { layer: layerLike });
-      children.push({
-        id: nextId("group"),
-        type: "group",
-        sourceId: sourceIdFromNode(child),
-        name: getSvgNodeName(child, fallbackName, counters, "group"),
-        zIndex: children.length,
-        visible: !isSvgNodeHidden(child),
-        locked: isSvgNodeLocked(child),
-        transform: deepClone(DEFAULT_TRANSFORM),
-        style: {
-          ...childStyle,
-          fill: "none"
-        },
-        geometry: {
-          x: 0,
-          y: 0,
-          width: 0,
-          height: 0
-        },
-        children: nestedChildren.map((shape, index) => ({ ...shape, zIndex: index }))
-      });
-      continue;
-    }
-
-    const shape = shapeFromSvgElement(child, children.length, counters, parentMatrix, inheritedStyle, context);
-    if (shape) {
-      children.push(shape);
-    }
-  }
-
-  return children.map((shape, index) => ({ ...shape, zIndex: index }));
-}
-
-function parseSvgSourceToDocument(source) {
-  const result = validateSvgSource(source);
-  if (!result.ok) {
-    return result;
-  }
-
-  const svg = result.svg;
-  const counters = {};
-  const viewport = svgViewportInfo(svg);
-  const rootMatrix = viewBoxToViewportMatrix(svg, viewport);
-  const importContext = {
-    cssRules: parseEmbeddedSvgCss(svg),
-    defs: extractImportDefs(svg)
-  };
-  const nextObjects = importChildrenFromSvgNode(svg, counters, rootMatrix, SVG_IMPORT_DEFAULT_STYLE, importContext);
-  const nextDoc = {
-    name: "Imported SVG",
-    artboardName: "Imported Artboard",
-    width: viewport.width,
-    height: viewport.height,
-    defs: importContext.defs,
-    activeArtboardId: "imported-artboard",
-    artboards: [
-      {
-        id: "imported-artboard",
-        name: "Imported Artboard",
-        x: 0,
-        y: 0,
-        width: viewport.width,
-        height: viewport.height
-      }
-    ]
-  };
-
-  return { ok: true, svg, objects: nextObjects, doc: nextDoc };
-}
-
-function applyImportedSvgDocument(parsed, sourceLabel) {
-  if (!parsed.ok) {
-    dom.svgValidationMessage.textContent = parsed.message;
-    dom.svgValidationMessage.classList.add("is-error");
-    setStatus(parsed.message);
-    return;
-  }
-
-  if (parsed.objects.length === 0) {
-    const message = "No supported SVG objects found";
-    dom.svgValidationMessage.textContent = message;
-    dom.svgValidationMessage.classList.add("is-error");
-    setStatus(message);
-    return;
-  }
-
-  pushHistory();
-  state.doc = {
-    ...state.doc,
-    ...deepClone(parsed.doc || {}),
-    defs: parsed.doc.defs || ""
-  };
-  normalizeArtboards(state.doc);
-  state.objects = parsed.objects;
-  state.selection = [];
-  state.activeLayerId = state.objects.find((shape) => shape.type === "group" && shape.visible !== false && !shape.locked)?.id || null;
-  state.activePathId = null;
-  state.directSelection.pathId = null;
-  state.directSelection.anchorIndex = null;
-  dom.svgValidationMessage.textContent = `Imported ${parsed.objects.length} top-level layer(s)`;
-  dom.svgValidationMessage.classList.remove("is-error");
-  setStatus(`${sourceLabel} imported`);
-  render();
-}
-
-function applySvgCode() {
-  applyImportedSvgDocument(parseSvgSourceToDocument(dom.svgCodeInput.value), "SVG code");
-}
-
-function importSvgFile(file) {
-  if (!file) {
-    return;
-  }
-  if (file.type && file.type !== "image/svg+xml" && !file.name.toLowerCase().endsWith(".svg")) {
-    const message = "Choose a valid .svg file";
-    dom.svgValidationMessage.textContent = message;
-    dom.svgValidationMessage.classList.add("is-error");
-    setStatus(message);
-    return;
-  }
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    const source = String(reader.result || "");
-    applyImportedSvgDocument(parseSvgSourceToDocument(source), file.name || "SVG file");
-  });
-  reader.addEventListener("error", () => {
-    const message = "Unable to read SVG file";
-    dom.svgValidationMessage.textContent = message;
-    dom.svgValidationMessage.classList.add("is-error");
-    setStatus(message);
-  });
-  reader.readAsText(file);
+  ].join("\n");
 }
 
 function downloadSvg() {
@@ -7248,12 +3227,48 @@ function downloadSvg() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "art.svg";
+  a.download = `${activeBoardFilename()}.svg`;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function activeBoardFilename(){return (syncBoards()[state.activeBoard].name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'art');}
+
+async function downloadPng(){
+  const w=Math.round(state.doc.width),h=Math.round(state.doc.height);if(w*h>25000000){setStatus('PNG export exceeds 25 megapixels');return;}
+  const url=URL.createObjectURL(new Blob([exportSvgString()],{type:'image/svg+xml'}));
+  const filename=activeBoardFilename();try{const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=url;});const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(image,0,0,w,h);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('PNG encoding failed');const download=URL.createObjectURL(blob),a=document.createElement('a');a.href=download;a.download=`${filename}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(download),1000);setStatus('PNG exported');}catch{setStatus('PNG export failed');}finally{URL.revokeObjectURL(url);}
+}
+
+function projectPayload(){return {format:'philstudio-v2',boards:syncBoards(),activeBoard:state.activeBoard,grid:state.grid};}
+function saveProject(){const url=URL.createObjectURL(new Blob([JSON.stringify(projectPayload(),null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='art.phstudio';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setStatus('Editable project saved');}
+function decodeProject(raw){
+  if(raw?.format==='philstudio-v2'){
+    if(!Array.isArray(raw.boards)||!raw.boards.length||raw.boards.length>16)throw Error('Invalid project artboards');
+    const boards=raw.boards.map((b,i)=>{const p=decodeProject({format:'philstudio-v1',document:b.document,objects:b.objects,grid:raw.grid});return{name:String(b.name||`Artboard ${i+1}`).slice(0,100),document:p.document,objects:p.objects};});const activeBoard=clamp(Math.round(Number(raw.activeBoard)||0),0,boards.length-1),grid={visible:raw.grid?.visible===true,snap:raw.grid?.snap===true,size:clamp(Number(raw.grid?.size)||20,2,500)};return{boards,activeBoard,grid};
+  }
+  if(raw?.format!=='philstudio-v1'||!Array.isArray(raw.objects))throw Error('Unsupported project format');
+  const num=(v,min=-1e7,max=1e7)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw Error('Invalid project number');return v;};
+  const color=v=>{if(typeof v==='string'&&(/^(?:#[a-fA-F0-9]{3,4}|#[a-fA-F0-9]{6}(?:[a-fA-F0-9]{2})?|none|transparent)$/.test(v)))return v;if(typeof v==='string'&&/^(?:\w+|rgba?\([\d.,%\s]+\))$/.test(v))return colorToHex(v);throw Error('Invalid project color');};
+  const shapeTypes=new Set(['rect','ellipse','path','compound','text','group','boolean']);let count=0;const point=p=>({x:num(p.x),y:num(p.y)});
+  function contour(c){if(!Array.isArray(c.anchors)||c.anchors.length>20000)throw Error('Invalid project anchors');return {anchors:c.anchors.map(a=>({...point(a),inHandle:a.inHandle?point(a.inHandle):null,outHandle:a.outHandle?point(a.outHandle):null})),closed:c.closed===true};}
+  function read(s,z,depth){
+    if(!s||!shapeTypes.has(s.type)||++count>5000||depth>32)throw Error('Unsupported or oversized project');const t=s.transform||DEFAULT_TRANSFORM,g=s.geometry||{},style=normalizeStyle(s.style);style.fill=color(style.fill);style.stroke=color(style.stroke);style.strokeWidth=num(style.strokeWidth,0,10000);style.opacity=num(style.opacity,0,1);
+    const out={id:nextId(),type:s.type,name:String(s.name||s.type).slice(0,100),zIndex:z,visible:s.visible!==false,locked:s.locked===true,transform:{tx:num(t.tx),ty:num(t.ty),sx:num(t.sx,-10000,10000),sy:num(t.sy,-10000,10000),rotation:num(t.rotation)},style,geometry:{}};
+    if(s.type==='rect')out.geometry={x:num(g.x),y:num(g.y),width:num(g.width,0),height:num(g.height,0),rx:num(g.rx||0,0),ry:num(g.ry||0,0)};
+    else if(s.type==='ellipse')out.geometry={cx:num(g.cx),cy:num(g.cy),rx:num(g.rx,0),ry:num(g.ry,0)};
+    else if(s.type==='path')out.geometry=contour(g);
+    else if(s.type==='compound'){if(!Array.isArray(g.contours)||g.contours.length>1000)throw Error('Invalid compound contours');out.geometry={contours:g.contours.map(contour),fillRule:g.fillRule==='nonzero'?'nonzero':'evenodd'};}
+    else if(s.type==='text')out.geometry={x:num(g.x),y:num(g.y),text:String(g.text||'').slice(0,100000),fontSize:num(g.fontSize,6,500),fontFamily:String(g.fontFamily||'Arial').slice(0,100),fontWeight:g.fontWeight===700?700:400,fontStyle:g.fontStyle==='italic'?'italic':'normal',textAlign:['start','middle','end'].includes(g.textAlign)?g.textAlign:'start',letterSpacing:num(g.letterSpacing||0,-20,100),lineHeight:num(g.lineHeight||1.2,.5,4)};
+    else if(s.type==='group'){if(!Array.isArray(s.children))throw Error('Invalid group');out.children=s.children.map((child,i)=>read(child,i,depth+1));}
+    else if(s.type==='boolean'){if(!['unite','subtract','intersect'].includes(g.op))throw Error('Invalid boolean operation');const path=d=>parseEditableContours(d).map(c=>buildPathD(c.anchors,c.closed)).join(' ');out.geometry={op:g.op,aPath:path(g.aPath),bPath:path(g.bPath),bounds:{x:num(g.bounds.x),y:num(g.bounds.y),width:num(g.bounds.width,0),height:num(g.bounds.height,0)}};}
+    return out;
+  }
+  const document={width:num(raw.document?.width,1,10000),height:num(raw.document?.height,1,10000)},objects=raw.objects.map((s,i)=>read(s,i,0));return{document,objects,grid:{visible:raw.grid?.visible===true,snap:raw.grid?.snap===true,size:clamp(Number(raw.grid?.size)||20,2,500)}};
+}
+function installProject(p){state.boards=p.boards||[{name:'Artboard 1',document:p.document,objects:p.objects}];state.activeBoard=p.activeBoard||0;const b=state.boards[state.activeBoard];state.doc=b.document;state.objects=b.objects;state.grid=p.grid;deselectAll();state.view.fit=true;}
+function openProject(source){const p=decodeProject(JSON.parse(source));pushHistory();installProject(p);render();setStatus('Editable project opened');}
 
 async function copySvg() {
   const source = exportSvgString();
@@ -7271,25 +3286,13 @@ function loadInitialDocument() {
   window.localStorage.removeItem("svg-editor:canonical-shapes");
   window.localStorage.removeItem("svg-editor:legacy-shapes");
 
+  try{const project=window.localStorage.getItem('svg-editor:studio-project-v2');if(project){installProject(decodeProject(JSON.parse(project)));return;}}catch(error){console.warn('Unable to restore project',error);}
+  try{const size=JSON.parse(window.localStorage.getItem('svg-editor:document-size')||'null');if(size){state.doc.width=clamp(Number(size.width)||1200,64,10000);state.doc.height=clamp(Number(size.height)||800,64,10000);}}catch{}
   const canonicalRaw = window.localStorage.getItem(STORAGE_CANONICAL_KEY);
   if (canonicalRaw) {
     try {
       const parsed = JSON.parse(canonicalRaw);
-      state.objects = adaptShapeArray(Array.isArray(parsed) ? parsed : parsed.objects);
-      if (!Array.isArray(parsed) && parsed.doc) {
-        state.doc.width = clamp(Number(parsed.doc.width ?? state.doc.width), 64, 10000);
-        state.doc.height = clamp(Number(parsed.doc.height ?? state.doc.height), 64, 10000);
-        state.doc.defs = typeof parsed.doc.defs === "string" ? parsed.doc.defs : "";
-        state.doc.name = sanitizeManualName(parsed.doc.name) || state.doc.name;
-        state.doc.artboardName = sanitizeManualName(parsed.doc.artboardName) || state.doc.artboardName;
-        state.doc.activeArtboardId = typeof parsed.doc.activeArtboardId === "string" ? parsed.doc.activeArtboardId : state.doc.activeArtboardId;
-        state.doc.artboards = Array.isArray(parsed.doc.artboards) ? parsed.doc.artboards : state.doc.artboards;
-        normalizeArtboards(state.doc);
-        state.activeLayerId = typeof parsed.activeLayerId === "string" ? parsed.activeLayerId : null;
-      }
-      if (!getObjectById(state.activeLayerId)) {
-        state.activeLayerId = state.objects.find((shape) => shape.type === "group")?.id || null;
-      }
+      state.objects = adaptShapeArray(parsed);
       return;
     } catch (error) {
       console.warn("[svg-editor] Failed to parse canonical snapshot", error);
@@ -7311,176 +3314,21 @@ function loadInitialDocument() {
 }
 
 function deleteSelection() {
-  if (deleteActiveAnchor()) {
-    return;
-  }
-
   if (state.selection.length === 0) {
     return;
   }
 
   pushHistory();
   const selected = new Set(state.selection);
-  state.objects = removeObjectsByIds(state.objects, selected);
+  const remove=objects=>objects.filter(shape=>!selected.has(shape.id)||shape.locked).map(shape=>shape.type==='group'?{...shape,children:remove(shape.children||[])}:shape);
+  state.objects=remove(state.objects);
   sortAndReindexObjects();
-  if (selected.has(state.activeLayerId)) {
-    state.activeLayerId = null;
-  }
   deselectAll();
   setStatus("Selection deleted");
   render();
 }
 
-function deleteActiveAnchor() {
-  const activeAnchor = getActiveAnchorSelection();
-  if (!activeAnchor || (state.tool !== TOOLS.DIRECT && state.tool !== TOOLS.PEN)) {
-    return false;
-  }
-
-  const anchors = activeAnchor.path.geometry.anchors || [];
-  if (anchors.length <= 2) {
-    setStatus("Path needs at least two anchors");
-    return true;
-  }
-
-  pushHistory();
-  anchors.splice(activeAnchor.anchorIndex, 1);
-  if (activeAnchor.path.geometry.closed && anchors.length < 3) {
-    activeAnchor.path.geometry.closed = false;
-  }
-  state.directSelection.anchorIndex = clamp(activeAnchor.anchorIndex, 0, anchors.length - 1);
-  setStatus("Anchor deleted");
-  render();
-  return true;
-}
-
-function getSelectedPathObjects() {
-  return state.selection
-    .map((id) => getObjectById(id)?.object)
-    .filter((shape) => shape?.type === "path" && !shape.geometry?.rawD);
-}
-
-function reverseSelectedPaths() {
-  const paths = getSelectedPathObjects();
-  if (paths.length === 0) {
-    setStatus("Select editable paths to reverse");
-    return;
-  }
-  pushHistory();
-  for (const path of paths) {
-    path.geometry.anchors = [...(path.geometry.anchors || [])].reverse().map((anchor) => ({
-      x: anchor.x,
-      y: anchor.y,
-      inHandle: anchor.outHandle ? deepClone(anchor.outHandle) : null,
-      outHandle: anchor.inHandle ? deepClone(anchor.inHandle) : null
-    }));
-  }
-  setStatus(`Reversed ${paths.length} path(s)`);
-  render();
-}
-
-function simplifySelectedPaths() {
-  const paths = getSelectedPathObjects();
-  if (paths.length === 0) {
-    setStatus("Select editable paths to simplify");
-    return;
-  }
-  pushHistory();
-  for (const path of paths) {
-    const points = (path.geometry.anchors || []).map((anchor) => ({ x: anchor.x, y: anchor.y }));
-    const simplified = cleanPolygonPoints(simplifyPoints(points, 3), 0.25);
-    path.geometry.anchors = simplified.map((point) => ({ x: point.x, y: point.y, inHandle: null, outHandle: null }));
-    if (path.geometry.closed && path.geometry.anchors.length < 3) {
-      path.geometry.closed = false;
-    }
-  }
-  setStatus(`Simplified and cleaned ${paths.length} path(s)`);
-  render();
-}
-
-function joinSelectedOpenPaths() {
-  const paths = getSelectedPathObjects().filter((path) => !path.geometry.closed && (path.geometry.anchors || []).length > 0);
-  if (paths.length !== 2) {
-    setStatus("Select two open editable paths to join");
-    return;
-  }
-  pushHistory();
-  const [a, b] = paths;
-  a.geometry.anchors = [...a.geometry.anchors, ...b.geometry.anchors.map((anchor) => deepClone(anchor))];
-  state.objects = removeObjectsByIds(state.objects, new Set([b.id]));
-  state.selection = [a.id];
-  state.directSelection.pathId = a.id;
-  state.directSelection.anchorIndex = a.geometry.anchors.length - 1;
-  setStatus("Joined open paths");
-  render();
-}
-
-function convertSelectedAnchor() {
-  const active = getActiveAnchorSelection();
-  if (active) {
-    toggleAnchorSmooth(active.pathId, active.anchorIndex);
-    return;
-  }
-  const path = getSelectedPathObjects()[0];
-  if (!path) {
-    setStatus("Select an editable path anchor to convert");
-    return;
-  }
-  toggleAnchorSmooth(path.id, 0);
-}
-
-function duplicateSelection() {
-  if (state.selection.length === 0) {
-    return;
-  }
-
-  pushHistory();
-  const clones = [];
-  for (const id of state.selection) {
-    const found = getObjectById(id);
-    if (!found) {
-      continue;
-    }
-    const clone = deepClone(found.object);
-    clone.id = nextId(found.object.type);
-    clone.name = `${found.object.name || found.object.type} copy`;
-    clone.transform = normalizeTransform(clone.transform);
-    clone.transform.tx += 18;
-    clone.transform.ty += 18;
-    const target = found.parent?.children || state.objects;
-    clone.zIndex = found.index + 1;
-    target.splice(found.index + 1, 0, clone);
-    target.forEach((shape, index) => {
-      shape.zIndex = index;
-    });
-    clones.push(clone);
-  }
-  sortAndReindexObjects();
-  state.selection = clones.map((shape) => shape.id);
-  setStatus(`Duplicated ${clones.length} object(s)`);
-  render();
-}
-
 function moveSelectionBy(dx, dy) {
-  const activeAnchor = getActiveAnchorSelection();
-  if (activeAnchor && (state.tool === TOOLS.DIRECT || state.tool === TOOLS.PEN)) {
-    pushHistory();
-    const anchor = activeAnchor.anchor;
-    anchor.x += dx;
-    anchor.y += dy;
-    if (anchor.inHandle) {
-      anchor.inHandle.x += dx;
-      anchor.inHandle.y += dy;
-    }
-    if (anchor.outHandle) {
-      anchor.outHandle.x += dx;
-      anchor.outHandle.y += dy;
-    }
-    setStatus(`Anchor ${activeAnchor.anchorIndex + 1}: ${round(anchor.x, 2)}, ${round(anchor.y, 2)}`);
-    render();
-    return;
-  }
-
   if (state.selection.length === 0) {
     return;
   }
@@ -7506,12 +3354,11 @@ function finishActivePathIfAny(cancel = false) {
   const found = getObjectById(state.activePathId);
   if (!found || found.object.type !== "path") {
     state.activePathId = null;
-    state.interaction.penHistoryPathId = null;
     return;
   }
 
   if (cancel || found.object.geometry.anchors.length <= 1) {
-    state.objects = removeObjectsByIds(state.objects, new Set([state.activePathId]));
+    state.objects = state.objects.filter((shape) => shape.id !== state.activePathId);
     sortAndReindexObjects();
     state.selection = [];
     setStatus("Path creation cancelled");
@@ -7520,7 +3367,6 @@ function finishActivePathIfAny(cancel = false) {
   }
 
   state.activePathId = null;
-  state.interaction.penHistoryPathId = null;
   render();
 }
 
@@ -7530,7 +3376,10 @@ function handleToolGroupClick(event) {
     return;
   }
 
-  const nextTool = button.dataset.tool;
+  setTool(button.dataset.tool);
+}
+
+function setTool(nextTool){
   if (!nextTool || !Object.values(TOOLS).includes(nextTool)) {
     return;
   }
@@ -7538,6 +3387,7 @@ function handleToolGroupClick(event) {
   if (state.tool === TOOLS.PEN && nextTool !== TOOLS.PEN) {
     finishActivePathIfAny(false);
   }
+  if(state.tool!==TOOLS.PEN&&nextTool===TOOLS.PEN)state.activePathId=null;
 
   if (state.interaction.mode === "marquee-select") {
     state.interaction.mode = null;
@@ -7549,7 +3399,73 @@ function handleToolGroupClick(event) {
 
   state.tool = nextTool;
   applyToolButtonState();
+  drawSelectionOutline();
+  dom.canvas.style.cursor=nextTool===TOOLS.HAND?'grab':nextTool===TOOLS.ZOOM?'zoom-in':nextTool===TOOLS.TEXT?'text':nextTool===TOOLS.SELECT||nextTool===TOOLS.DIRECT?'default':'crosshair';
   setStatus(`Tool: ${nextTool}`);
+}
+
+function copyObjects(){clipboardObjects=deepClone(state.objects.filter(s=>state.selection.includes(s.id)&&!s.locked));setStatus(`${clipboardObjects.length} object(s) copied`);}
+function pasteObjects(){if(!clipboardObjects.length)return;pushHistory();const fresh=(s)=>({...deepClone(s),id:nextId(),locked:false,...(s.children?{children:s.children.map(fresh)}:{})});const copies=clipboardObjects.map(s=>{const c=fresh(s);c.transform.tx+=12;c.transform.ty+=12;c.zIndex=state.objects.length;addShape(c);return c.id;});state.selection=copies;state.activePathId=null;render();setStatus('Objects pasted');}
+function duplicateSelection(){copyObjects();pasteObjects();}
+function renameSelection(){const s=getPrimarySelectedObject();if(!s||s.locked)return;const name=prompt('Layer name',s.name);if(name?.trim()){pushHistory();s.name=name.trim().slice(0,100);render();}}
+function changeText(patch){const s=getPrimarySelectedObject();if(s?.type!=='text'||s.locked)return;pushHistory();Object.assign(s.geometry,patch);render();}
+function makeCompound(){
+  const selected=state.objects.filter(s=>state.selection.includes(s.id)&&!s.locked);if(selected.length<2)return;
+  const contours=[];for(const s of selected){const path=shapeToWorldPathData(s);if(!path||!['rect','ellipse','path'].includes(s.type)||(s.type==='path'&&!s.geometry.closed)){setStatus('Compound paths require closed shapes');return;}contours.push(...parseEditableContours(path.d));}
+  pushHistory();const id=nextId(),top=selected.at(-1);state.objects=state.objects.filter(s=>!selected.includes(s));addShape({id,type:'compound',name:'Compound path',zIndex:top.zIndex,visible:true,locked:false,style:deepClone(top.style),transform:deepClone(DEFAULT_TRANSFORM),geometry:{contours,fillRule:'evenodd'}});state.selection=[id];render();setStatus('Compound path created');
+}
+function releaseCompound(){const s=getPrimarySelectedObject();if(s?.type!=='compound'||s.locked)return;pushHistory();state.objects=state.objects.filter(o=>o.id!==s.id);state.selection=s.geometry.contours.map((c,i)=>{const id=nextId();addShape({id,type:'path',name:`Contour ${i+1}`,zIndex:s.zIndex+i,visible:true,locked:false,style:deepClone(s.style),transform:deepClone(s.transform),geometry:deepClone(c)});return id;});render();setStatus('Compound contours released');}
+
+function currentPaint(){return normalizeStyle(getPrimarySelectedObject()?.style||state.paint);}
+function defaultGradient(type='linear'){return {type,angle:0,stops:[{offset:0,color:colorToHex(currentPaint().fill,'#90caf9'),opacity:1},{offset:100,color:'#17283f',opacity:1}]};}
+function updateGradient(fn){const g=deepClone(currentPaint().gradient||defaultGradient());fn(g);applyStyleToSelection({gradient:normalizeGradient(g)});}
+function renderGradientInspector(style){
+  const g=style.gradient;$('gradient-type-input').value=g?.type||'none';$('gradient-angle-input').value=g?.angle||0;$('gradient-angle-input').disabled=g?.type!=='linear';$('gradient-add-stop').disabled=!g||g.stops.length>=16;
+  $('gradient-sample').style.background=g?`${g.type==='linear'?`linear-gradient(${90+g.angle}deg`:'radial-gradient(circle'} , ${g.stops.map(s=>`${s.color}${Math.round(s.opacity*255).toString(16).padStart(2,'0')} ${s.offset}%`).join(', ')})`:style.fill==='none'?'transparent':style.fill;
+  const list=$('gradient-stops');list.replaceChildren();if(!g)return;
+  g.stops.forEach((s,i)=>{const row=document.createElement('div');row.className='gradient-stop';const color=document.createElement('input');color.type='color';color.value=s.color;color.setAttribute('aria-label',`Stop ${i+1} color`);const pos=document.createElement('input');pos.type='number';pos.min=0;pos.max=100;pos.value=s.offset;pos.title='Position (%)';pos.setAttribute('aria-label',`Stop ${i+1} position`);const op=document.createElement('input');op.type='number';op.min=0;op.max=100;op.value=Math.round(s.opacity*100);op.title='Opacity (%)';op.setAttribute('aria-label',`Stop ${i+1} opacity`);const del=document.createElement('button');del.type='button';del.textContent='×';del.className='text-button';del.disabled=g.stops.length<=2;del.setAttribute('aria-label',`Remove stop ${i+1}`);color.addEventListener('change',()=>updateGradient(x=>x.stops[i].color=color.value));pos.addEventListener('change',()=>updateGradient(x=>x.stops[i].offset=Number(pos.value)));op.addEventListener('change',()=>updateGradient(x=>x.stops[i].opacity=Number(op.value)/100));del.addEventListener('click',()=>updateGradient(x=>x.stops.splice(i,1)));row.append(color,pos,op,del);list.append(row);});
+}
+function buildSwatches(){for(const color of ['#000000','#ffffff','#777777','#da3b42','#eaa64b','#f0dc50','#65b458','#2db8bc','#4f83db','#764cb8','#e08ab5','#9c714b']){const b=document.createElement('button');b.type='button';b.style.background=color;b.title=`Fill ${color} (Shift: stroke)`;b.setAttribute('aria-label',b.title);b.addEventListener('click',e=>applyStyleToSelection(e.shiftKey?{stroke:color}:{fill:color,gradient:null}));$('swatches').append(b);}}
+
+// Parse only the editable SVG primitives this object model supports. Never
+// insert imported markup into the page. Unsupported effects fail explicitly.
+function importSvg(source){
+  const parsed=new DOMParser().parseFromString(source,'image/svg+xml'),root=parsed.documentElement;
+  if(root.localName!=='svg'||parsed.querySelector('parsererror'))throw Error('Invalid SVG document');
+  const supported=new Set(['rect','ellipse','circle','line','polyline','polygon','path','text','g']);
+  const number=(el,key,fallback=0)=>{const value=el.getAttribute(key);if(value===null)return fallback;const n=Number(value);if(!Number.isFinite(n))throw Error(`Unsupported ${key} value`);return n;};
+  const paint=(value,fallback)=>{if(value===null)return fallback;if(value==='none'||value==='transparent')return value;if(/^#[0-9a-f]{3,4}$/i.test(value))return '#'+[...value.slice(1)].map(c=>c+c).join('');if(/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(value))return value;if(!/^\w+$/.test(value)&&!/^rgba?\([\d.,%\s]+\)$/i.test(value))throw Error('Unsupported paint');return colorToHex(value,fallback);};
+  const fraction=(value,fallback)=>{if(value===null)return fallback;const v=value.endsWith('%')?Number(value.slice(0,-1))/100:Number(value);if(!Number.isFinite(v))throw Error('Invalid gradient coordinate');return v;};
+  const gradients=new Map();for(const defs of [...root.children].filter(c=>c.localName==='defs'))for(const el of defs.children){
+    if(!['linearGradient','radialGradient'].includes(el.localName))throw Error(`Unsupported definition: ${el.localName}`);
+    const id=el.getAttribute('id'),type=el.localName==='linearGradient'?'linear':'radial';if(!id||gradients.has(id)||el.hasAttribute('href')||el.hasAttribute('xlink:href')||!['objectBoundingBox',null].includes(el.getAttribute('gradientUnits'))||!['pad',null].includes(el.getAttribute('spreadMethod')))throw Error('Unsupported gradient definition');
+    const tx=el.getAttribute('gradientTransform');let angle=0;if(tx){const m=tx.match(/^rotate\(([-+\d.]+)[ ,]+(?:0?\.5)[ ,]+(?:0?\.5)\)$/);if(!m)throw Error('Unsupported gradient transform');angle=Number(m[1]);}
+    let coords;if(type==='linear')coords={x1:fraction(el.getAttribute('x1'),0),y1:fraction(el.getAttribute('y1'),0),x2:fraction(el.getAttribute('x2'),1),y2:fraction(el.getAttribute('y2'),0)};else{const cx=fraction(el.getAttribute('cx'),.5),cy=fraction(el.getAttribute('cy'),.5);coords={cx,cy,r:fraction(el.getAttribute('r'),.5),fx:fraction(el.getAttribute('fx'),cx),fy:fraction(el.getAttribute('fy'),cy)};}
+    const stops=[...el.children].map(s=>{if(s.localName!=='stop'||s.hasAttribute('style'))throw Error('Unsupported gradient stop');return{offset:fraction(s.getAttribute('offset'),0)*100,color:colorToHex(paint(s.getAttribute('stop-color'),'#000000')),opacity:number(s,'stop-opacity',1)};});if(stops.length<2||stops.length>16)throw Error('Gradient requires 2–16 stops');gradients.set(id,normalizeGradient({type,angle,coords,stops}));
+  }
+  function read(el,z,inherited){
+    const tag=el.localName;if(!supported.has(tag))throw Error(`Unsupported SVG element: ${tag}`);
+    if(el.hasAttribute('style')||el.hasAttribute('clip-path')||el.hasAttribute('mask')||el.hasAttribute('filter')||el.hasAttribute('class'))throw Error('SVG contains unsupported effects or CSS styles');
+    const rawTransform=el.getAttribute('transform')||'';if(rawTransform&&!/^(?:\s*(?:translate|rotate|scale)\s*\([-+\d.eE,\s]+\)\s*)+$/.test(rawTransform))throw Error('Unsupported transform');
+    const fill=el.getAttribute('fill'),ref=fill?.match(/^url\(#([\w.:-]+)\)$/);if(ref&&!gradients.has(ref[1]))throw Error('Unknown gradient reference');
+    const style={fill:ref?'#000000':paint(fill,inherited.fill),gradient:ref?deepClone(gradients.get(ref[1])):fill===null?deepClone(inherited.gradient||null):null,stroke:paint(el.getAttribute('stroke'),inherited.stroke),strokeWidth:number(el,'stroke-width',inherited.strokeWidth),opacity:number(el,'opacity',1),strokeCap:el.getAttribute('stroke-linecap')||inherited.strokeCap,strokeJoin:el.getAttribute('stroke-linejoin')||inherited.strokeJoin,strokeDash:el.getAttribute('stroke-dasharray')||inherited.strokeDash};
+    const shape={id:nextId(),type:tag,name:tag,zIndex:z,visible:true,locked:false,transform:parseLegacyTransform(rawTransform),style,geometry:{}};
+    const anchor=(x,y)=>({x,y,inHandle:null,outHandle:null});
+    if(tag==='rect')shape.geometry={x:number(el,'x'),y:number(el,'y'),width:Math.max(1,number(el,'width')),height:Math.max(1,number(el,'height')),rx:number(el,'rx'),ry:number(el,'ry')};
+    else if(tag==='ellipse'||tag==='circle'){shape.type='ellipse';shape.geometry={cx:number(el,'cx'),cy:number(el,'cy'),rx:Math.max(1,number(el,tag==='circle'?'r':'rx')),ry:Math.max(1,number(el,tag==='circle'?'r':'ry'))};}
+    else if(tag==='line'){shape.type='path';shape.geometry={anchors:[anchor(number(el,'x1'),number(el,'y1')),anchor(number(el,'x2'),number(el,'y2'))],closed:false};}
+    else if(tag==='polygon'||tag==='polyline'){const pts=(el.getAttribute('points')||'').trim().split(/[ ,\s]+/).map(Number);if(pts.length<4||pts.length%2||pts.some(n=>!Number.isFinite(n)))throw Error('Invalid polygon points');shape.type='path';shape.geometry={anchors:pts.filter((_,i)=>i%2===0).map((x,i)=>anchor(x,pts[i*2+1])),closed:tag==='polygon'};}
+    else if(tag==='path'){const contours=parseEditableContours(el.getAttribute('d')||'');if(!contours.length)throw Error('Invalid path');if(contours.length===1){shape.geometry=contours[0];}else{shape.type='compound';shape.geometry={contours,fillRule:el.getAttribute('fill-rule')==='evenodd'?'evenodd':'nonzero'};}}
+    else if(tag==='text'){if([...el.children].some(c=>c.localName!=='tspan'))throw Error('Unsupported text layout');const leading=el.children[1]?.getAttribute('dy')?.match(/^([\d.]+)em$/);shape.geometry={x:number(el,'x'),y:number(el,'y'),text:el.children.length?[...el.children].map(c=>c.textContent).join('\n'):el.textContent,fontSize:number(el,'font-size',36),fontFamily:el.getAttribute('font-family')||'Arial',fontWeight:el.getAttribute('font-weight')==='bold'?700:number(el,'font-weight',400),fontStyle:el.getAttribute('font-style'),textAlign:el.getAttribute('text-anchor'),letterSpacing:number(el,'letter-spacing',0),lineHeight:leading?Number(leading[1]):1.2};}
+    else {shape.type='group';shape.children=[...el.children].filter(c=>!['title','desc','metadata'].includes(c.localName)).map((c,i)=>read(c,i,style));}
+    return normalizeCanonicalShape(shape,z);
+  }
+  const vb=(root.getAttribute('viewBox')||'').trim().split(/[ ,\s]+/).map(Number);let width,height,originX=0,originY=0;
+  if(vb.length===4&&vb.every(Number.isFinite)){[originX,originY,width,height]=vb;}else{width=number(root,'width',1200);height=number(root,'height',800);}
+  if(!(width>0&&height>0&&width<=10000&&height<=10000))throw Error('Unsupported SVG dimensions');
+  const objects=[...root.children].filter(c=>!['title','desc','metadata','defs'].includes(c.localName)).map((c,i)=>read(c,i,{fill:paint(root.getAttribute('fill'),'#000000'),stroke:paint(root.getAttribute('stroke'),'none'),strokeWidth:number(root,'stroke-width',1),opacity:1}));
+  for(const shape of objects){shape.transform.tx-=originX;shape.transform.ty-=originY;}
+  pushHistory();state.doc={width,height};state.objects=objects;deselectAll();fitArtboard();render();setStatus(`Imported ${objects.length} editable object(s)`);
 }
 
 function bindEvents() {
@@ -7559,95 +3475,56 @@ function bindEvents() {
   dom.canvas.addEventListener("pointermove", pointerMoveOnCanvas);
   dom.canvas.addEventListener("pointerup", pointerUpOnCanvas);
   dom.canvas.addEventListener("pointercancel", pointerUpOnCanvas);
-  window.addEventListener("pointerup", pointerUpOnCanvas);
+  dom.canvas.addEventListener('wheel',event=>{event.preventDefault();if(event.shiftKey){state.view.fit=false;state.view.cx+=event.deltaY/state.view.zoom;renderView();}else zoomAt(Math.exp(-event.deltaY*.0015),svgPointFromEvent(event));},{passive:false});
+  $('zoom-in-btn').addEventListener('click',()=>zoomAt(1.25));$('zoom-out-btn').addEventListener('click',()=>zoomAt(.8));$('fit-btn').addEventListener('click',fitArtboard);$('actual-size-btn').addEventListener('click',()=>zoomAt(1/state.view.zoom));
+  $('fill-none-btn').addEventListener('click',()=>applyStyleToSelection({fill:'none',gradient:null}));$('stroke-none-btn').addEventListener('click',()=>applyStyleToSelection({stroke:'none'}));
+  $('gradient-type-input').addEventListener('change',()=>{const type=$('gradient-type-input').value;applyStyleToSelection({gradient:type==='none'?null:{...(currentPaint().gradient||defaultGradient(type)),type}});});
+  $('gradient-angle-input').addEventListener('change',()=>updateGradient(g=>g.angle=Number($('gradient-angle-input').value)));
+  $('gradient-add-stop').addEventListener('click',()=>updateGradient(g=>{if(g.stops.length>=16)return;let index=0;for(let i=1;i<g.stops.length-1;i++)if(g.stops[i+1].offset-g.stops[i].offset>g.stops[index+1].offset-g.stops[index].offset)index=i;const a=g.stops[index],b=g.stops[index+1];g.stops.push({offset:Math.round((a.offset+b.offset)/2),color:a.color,opacity:(a.opacity+b.opacity)/2});}));
+  $('stroke-cap-input').addEventListener('change',()=>applyStyleToSelection({strokeCap:$('stroke-cap-input').value}));$('stroke-join-input').addEventListener('change',()=>applyStyleToSelection({strokeJoin:$('stroke-join-input').value}));$('stroke-dash-input').addEventListener('change',()=>applyStyleToSelection({strokeDash:normalizeDash($('stroke-dash-input').value)}));
+  $('grid-toggle-btn').addEventListener('click',()=>{state.grid.visible=!state.grid.visible;render();});$('grid-snap-input').addEventListener('change',()=>{state.grid.snap=$('grid-snap-input').checked;render();});$('grid-size-input').addEventListener('change',()=>{state.grid.size=clamp(Number($('grid-size-input').value)||20,2,500);render();});
+  $('shape-sides-input').addEventListener('change',()=>{state.shapeSides=clamp(Math.round(Number($('shape-sides-input').value)||5),3,32);$('shape-sides-input').value=state.shapeSides;});
+  $('corner-radius-input').addEventListener('change',()=>{const s=getPrimarySelectedObject();if(s?.type!=='rect'||s.locked)return;pushHistory();s.geometry.rx=s.geometry.ry=clamp(Number($('corner-radius-input').value)||0,0,Math.min(s.geometry.width,s.geometry.height)/2);render();});
+  $('align-target-input').addEventListener('change',()=>{state.alignTarget=$('align-target-input').value;render();});$('download-png-btn').addEventListener('click',downloadPng);buildSwatches();
+  $('compound-btn').addEventListener('click',makeCompound);$('release-compound-btn').addEventListener('click',releaseCompound);
+  $('expand-layers-btn').addEventListener('click',()=>setAllGroupsExpanded(true));$('collapse-layers-btn').addEventListener('click',()=>setAllGroupsExpanded(false));
+  $('text-content-input').addEventListener('input',()=>{const s=getPrimarySelectedObject();if(s?.type!=='text'||s.locked)return;if(!textEditing){pushHistory();textEditing=true;}s.geometry.text=$('text-content-input').value;render();});
+  $('text-content-input').addEventListener('blur',()=>{textEditing=false;});
+  $('font-size-input').addEventListener('change',()=>changeText({fontSize:clamp(Number($('font-size-input').value)||36,6,500)}));$('font-family-input').addEventListener('change',()=>changeText({fontFamily:$('font-family-input').value}));
+  $('font-weight-input').addEventListener('change',()=>changeText({fontWeight:Number($('font-weight-input').value)}));$('font-style-input').addEventListener('change',()=>changeText({fontStyle:$('font-style-input').value}));$('text-align-input').addEventListener('change',()=>changeText({textAlign:$('text-align-input').value}));$('letter-spacing-input').addEventListener('change',()=>changeText({letterSpacing:clamp(Number($('letter-spacing-input').value)||0,-20,100)}));$('line-height-input').addEventListener('change',()=>changeText({lineHeight:clamp(Number($('line-height-input').value)||1.2,.5,4)}));
+  $('duplicate-btn').addEventListener('click',duplicateSelection);$('rename-layer-btn').addEventListener('click',renameSelection);$('delete-layer-btn').addEventListener('click',deleteSelection);
+  $('new-doc-btn').addEventListener('click',()=>{syncBoards();if((state.boards.length>1||state.boards.some(b=>b.objects.length))&&!confirm('Start a new project? You can undo this.'))return;pushHistory();state.objects=[];state.doc={width:1200,height:800};state.boards=[];state.activeBoard=0;deselectAll();fitArtboard();render();setStatus('New project');});
+  $('artboard-select').addEventListener('change',()=>selectBoard(Number($('artboard-select').value)));$('add-artboard-btn').addEventListener('click',()=>addBoard(false));$('duplicate-artboard-btn').addEventListener('click',()=>addBoard(true));$('rename-artboard-btn').addEventListener('click',renameBoard);$('delete-artboard-btn').addEventListener('click',removeBoard);
+  $('import-svg-btn').addEventListener('click',()=>$('import-svg-input').click());
+  $('import-svg-input').addEventListener('change',async()=>{const file=$('import-svg-input').files[0];if(!file)return;try{if(file.size>2*1024*1024)throw Error('SVG exceeds 2 MB');importSvg(await file.text());}catch(error){setStatus('Open SVG: '+error.message);}finally{$('import-svg-input').value='';}});
+  $('save-project-btn').addEventListener('click',saveProject);$('open-project-btn').addEventListener('click',()=>$('project-input').click());$('project-input').addEventListener('change',async()=>{const file=$('project-input').files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Project exceeds 10 MB');openProject(await file.text());}catch(error){setStatus('Open project: '+error.message);}finally{$('project-input').value='';}});
+  if(window.ResizeObserver)new ResizeObserver(()=>{renderView();drawSelectionOutline();}).observe(dom.canvas);
+  window.addEventListener('pagehide',saveDocument);
+  window.addEventListener('keyup',event=>{if(event.code==='Space')spaceDown=false;});window.addEventListener('blur',()=>{spaceDown=false;});
 
   dom.docWidth.addEventListener("change", () => {
     pushHistory();
-    resizeActiveArtboard(Number(dom.docWidth.value), state.doc.height);
+    state.doc.width = clamp(Number(dom.docWidth.value), 64, 10000);
     render();
   });
 
   dom.docHeight.addEventListener("change", () => {
     pushHistory();
-    resizeActiveArtboard(state.doc.width, Number(dom.docHeight.value));
+    state.doc.height = clamp(Number(dom.docHeight.value), 64, 10000);
     render();
-  });
-
-  dom.documentNameInput.addEventListener("change", () => {
-    pushHistory();
-    state.doc.name = sanitizeManualName(dom.documentNameInput.value) || "Untitled SVG";
-    render();
-  });
-
-  dom.artboardNameInput.addEventListener("change", () => {
-    pushHistory();
-    const name = sanitizeManualName(dom.artboardNameInput.value) || "Artboard 1";
-    const active = getActiveArtboard();
-    active.name = name;
-    state.doc.artboardName = name;
-    render();
-  });
-
-  dom.objectNameInput.addEventListener("change", commitObjectNameEdit);
-  dom.objectNameInput.addEventListener("blur", commitObjectNameEdit);
-  dom.objectNameInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commitObjectNameEdit();
-    }
   });
 
   dom.fillInput.addEventListener("change", () => {
-    applyStyleToSelection({ fill: dom.fillInput.value, fillGradient: null });
-    dom.fillModeInput.value = "solid";
+    applyStyleToSelection({ fill: dom.fillInput.value,gradient:null });
   });
 
   dom.strokeInput.addEventListener("change", () => {
-    applyStyleToSelection({ stroke: dom.strokeInput.value, strokeGradient: null });
-    dom.strokeModeInput.value = "solid";
-  });
-
-  dom.fillModeInput.addEventListener("change", () => applyPaintMode("fill", dom.fillModeInput.value));
-  dom.strokeModeInput.addEventListener("change", () => applyPaintMode("stroke", dom.strokeModeInput.value));
-  for (const input of [dom.fillGradientStartInput, dom.fillGradientEndInput, dom.fillGradientAngleInput]) {
-    input.addEventListener("change", () => updateGradientStyle("fill"));
-  }
-  for (const input of [dom.strokeGradientStartInput, dom.strokeGradientEndInput, dom.strokeGradientAngleInput]) {
-    input.addEventListener("change", () => updateGradientStyle("stroke"));
-  }
-
-  dom.fillOpacityInput.addEventListener("change", () => {
-    applyStyleToSelection({ fillOpacity: clampNumber(dom.fillOpacityInput.value, 0, 1, 1) });
-  });
-
-  dom.strokeOpacityInput.addEventListener("change", () => {
-    applyStyleToSelection({ strokeOpacity: clampNumber(dom.strokeOpacityInput.value, 0, 1, 1) });
+    applyStyleToSelection({ stroke: dom.strokeInput.value });
   });
 
   dom.strokeWidthInput.addEventListener("change", () => {
     const next = clamp(Number(dom.strokeWidthInput.value), 0, 64);
     applyStyleToSelection({ strokeWidth: Number.isFinite(next) ? next : 0 });
-  });
-
-  dom.strokeDashInput.addEventListener("change", commitStrokeDashEdit);
-  dom.strokeDashInput.addEventListener("blur", commitStrokeDashEdit);
-  dom.strokeDashInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commitStrokeDashEdit();
-    }
-  });
-
-  dom.miterLimitInput.addEventListener("change", () => {
-    applyStyleToSelection({ strokeMiterlimit: Math.max(1, Number(dom.miterLimitInput.value) || 4) });
-  });
-
-  dom.strokeJoinInput.addEventListener("change", () => {
-    applyStyleToSelection({ strokeJoin: dom.strokeJoinInput.value });
-  });
-
-  dom.strokeCapInput.addEventListener("change", () => {
-    applyStyleToSelection({ strokeCap: dom.strokeCapInput.value });
   });
 
   dom.opacityInput.addEventListener("change", () => {
@@ -7667,50 +3544,8 @@ function bindEvents() {
 
   dom.undoBtn.addEventListener("click", undo);
   dom.redoBtn.addEventListener("click", redo);
-  dom.undoToolbarBtn.addEventListener("click", undo);
-  dom.redoToolbarBtn.addEventListener("click", redo);
-  dom.newProjectBtn.addEventListener("click", newProject);
-  dom.clearCanvasBtn.addEventListener("click", clearCanvas);
-  dom.saveDraftBtn.addEventListener("click", () => saveDraft());
-  dom.resetEditorBtn.addEventListener("click", resetEditorState);
-  dom.draftsSelect.addEventListener("change", () => {
-    if (dom.draftsSelect.value) {
-      openDraft(dom.draftsSelect.value);
-      dom.draftsSelect.value = "";
-    }
-  });
-  dom.autosaveToggle.addEventListener("change", () => {
-    state.autosave = dom.autosaveToggle.checked;
-    saveSettings();
-    setStatus(state.autosave ? "Autosave enabled" : "Autosave disabled");
-  });
-  dom.addLayerBtn.addEventListener("click", () => addLayer());
-  dom.duplicateBtn.addEventListener("click", duplicateSelection);
-  dom.deleteBtn.addEventListener("click", deleteSelection);
-  dom.importSvgBtn.addEventListener("click", () => dom.importSvgInput.click());
-  dom.importSvgToolbarBtn.addEventListener("click", () => dom.importSvgInput.click());
-  dom.importSvgInput.addEventListener("change", () => {
-    const [file] = dom.importSvgInput.files || [];
-    importSvgFile(file);
-    dom.importSvgInput.value = "";
-  });
   dom.downloadSvgBtn.addEventListener("click", downloadSvg);
   dom.copySvgBtn.addEventListener("click", copySvg);
-  dom.toggleCodeBtn.addEventListener("click", () => {
-    dom.codeDrawer.classList.toggle("is-open");
-    refreshCodePanelIfOpen();
-  });
-  dom.toggleCodeToolbarBtn.addEventListener("click", () => {
-    dom.codeDrawer.classList.toggle("is-open");
-    refreshCodePanelIfOpen();
-  });
-  dom.refreshSvgCodeBtn.addEventListener("click", () => {
-    dom.svgCodeInput.value = exportSvgString();
-    dom.svgValidationMessage.textContent = "Valid SVG";
-    dom.svgValidationMessage.classList.remove("is-error");
-  });
-  dom.exportPresetInput.addEventListener("change", refreshCodePanelIfOpen);
-  dom.applySvgCodeBtn.addEventListener("click", applySvgCode);
   dom.layerForwardBtn.addEventListener("click", () => moveSelectionInLayer(1));
   dom.layerBackwardBtn.addEventListener("click", () => moveSelectionInLayer(-1));
   dom.groupBtn.addEventListener("click", groupSelection);
@@ -7726,42 +3561,6 @@ function bindEvents() {
   dom.booleanUniteBtn.addEventListener("click", () => applyBooleanOperation("unite"));
   dom.booleanSubtractBtn.addEventListener("click", () => applyBooleanOperation("subtract"));
   dom.booleanIntersectBtn.addEventListener("click", () => applyBooleanOperation("intersect"));
-  dom.booleanExcludeBtn.addEventListener("click", () => applyBooleanOperation("exclude"));
-  dom.dividePathBtn.addEventListener("click", divideSelection);
-  dom.reversePathBtn.addEventListener("click", reverseSelectedPaths);
-  dom.simplifyPathBtn.addEventListener("click", simplifySelectedPaths);
-  dom.offsetPathBtn.addEventListener("click", offsetSelectedPaths);
-  dom.outlineStrokeBtn.addEventListener("click", outlineStrokeSelection);
-  dom.expandAppearanceBtn.addEventListener("click", expandAppearanceSelection);
-  dom.joinPathsBtn.addEventListener("click", joinSelectedOpenPaths);
-  dom.convertAnchorBtn.addEventListener("click", convertSelectedAnchor);
-  dom.addArtboardBtn.addEventListener("click", addArtboard);
-  dom.duplicateArtboardBtn.addEventListener("click", duplicateArtboard);
-  dom.renameArtboardBtn.addEventListener("click", renameActiveArtboard);
-  dom.deleteArtboardBtn.addEventListener("click", deleteArtboard);
-  dom.fitArtboardBtn.addEventListener("click", fitArtboardToScreen);
-  dom.duplicateSymbolBtn.addEventListener("click", duplicateSelection);
-  dom.breakSymbolBtn.addEventListener("click", breakSelectedSymbolInstance);
-  dom.addFillSwatchBtn.addEventListener("click", () => {
-    const primary = getPrimarySelectedObject();
-    const style = normalizeStyle(primary?.style || DEFAULT_STYLE);
-    state.swatches.push({ type: "solid", name: `Swatch ${state.swatches.length + 1}`, color: style.fill === "none" ? "#000000" : colorToHex(style.fill, "#000000") });
-    saveSettings();
-    render();
-    setStatus("Saved fill swatch");
-  });
-  dom.addGradientSwatchBtn.addEventListener("click", () => {
-    const primary = getPrimarySelectedObject();
-    const gradient = normalizeStyle(primary?.style || DEFAULT_STYLE).fillGradient;
-    if (!gradient) {
-      setStatus("Select an object with a fill gradient first");
-      return;
-    }
-    state.swatches.push({ type: "gradient", name: `Gradient ${state.swatches.length + 1}`, gradient: deepClone(gradient) });
-    saveSettings();
-    render();
-    setStatus("Saved gradient swatch");
-  });
   dom.snapToggleBtn.addEventListener("click", () => {
     state.snap.enabled = !state.snap.enabled;
     if (!state.snap.enabled) {
@@ -7771,43 +3570,16 @@ function bindEvents() {
     setStatus(state.snap.enabled ? "Snapping enabled" : "Snapping disabled");
   });
 
-  dom.gridToggleBtn.addEventListener("click", () => {
-    state.view.grid = !state.view.grid;
-    render();
-    setStatus(state.view.grid ? "Grid visible" : "Grid hidden");
-  });
-
-  dom.rulersToggleBtn.addEventListener("click", () => {
-    state.view.rulers = !state.view.rulers;
-    render();
-    setStatus(state.view.rulers ? "Rulers visible" : "Rulers hidden");
-  });
-
-  dom.zoomInBtn.addEventListener("click", () => setZoom(state.view.zoom * 1.25));
-  dom.zoomOutBtn.addEventListener("click", () => setZoom(state.view.zoom * 0.8));
-  dom.fitScreenBtn.addEventListener("click", fitArtboardToScreen);
-  dom.resetViewBtn.addEventListener("click", () => {
-    state.view.zoom = 1;
-    state.view.panX = 0;
-    state.view.panY = 0;
-    state.view.fitted = false;
-    applyViewTransform();
-  });
-
-  dom.pasteboard.addEventListener(
-    "wheel",
-    (event) => {
-      event.preventDefault();
-      const direction = event.deltaY > 0 ? 0.9 : 1.1;
-      setZoom(state.view.zoom * direction, event);
-    },
-    { passive: false }
-  );
-
   window.addEventListener("keydown", (event) => {
-    const activeTag = document.activeElement?.tagName;
-    const isEditingField = activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT";
-
+    if(event.target.matches?.('input,textarea,select,[contenteditable]'))return;
+    const key=event.key.toLowerCase(),mod=event.metaKey||event.ctrlKey;
+    if(event.code==='Space'&&!mod){spaceDown=true;event.preventDefault();return;}
+    if(mod&&key==='a'){state.selection=state.objects.filter(s=>s.visible&&!s.locked).map(s=>s.id);render();event.preventDefault();return;}
+    if(mod&&key==='c'){copyObjects();event.preventDefault();return;}
+    if(mod&&key==='v'){pasteObjects();event.preventDefault();return;}
+    if(mod&&key==='d'){duplicateSelection();event.preventDefault();return;}
+    if(mod&&key==='g'){event.shiftKey?ungroupSelection():groupSelection();event.preventDefault();return;}
+    if(!mod&&!event.altKey){const shortcuts={v:TOOLS.SELECT,a:TOOLS.DIRECT,p:TOOLS.PEN,n:TOOLS.PENCIL,m:TOOLS.RECT,l:TOOLS.ELLIPSE,'\\':TOOLS.LINE,t:TOOLS.TEXT,h:TOOLS.HAND,z:TOOLS.ZOOM};if(shortcuts[key]){setTool(shortcuts[key]);event.preventDefault();return;}if(key==='0'){fitArtboard();event.preventDefault();return;}if(key==='enter'&&state.tool===TOOLS.PEN){finishActivePathIfAny(false);event.preventDefault();return;}}
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
       if (event.shiftKey) {
         redo();
@@ -7824,60 +3596,14 @@ function bindEvents() {
       return;
     }
 
-    if (!isEditingField && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "d") {
-      duplicateSelection();
-      event.preventDefault();
-      return;
-    }
-
-    if (!isEditingField && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "g") {
-      if (event.shiftKey) {
-        ungroupSelection();
-      } else {
-        groupSelection();
-      }
-      event.preventDefault();
-      return;
-    }
-
-    if (!isEditingField && !event.metaKey && !event.ctrlKey && !event.altKey) {
-      const toolKey = event.key.toLowerCase();
-      const keyMap = {
-        v: TOOLS.SELECT,
-        a: TOOLS.DIRECT,
-        p: TOOLS.PEN,
-        n: TOOLS.PENCIL,
-        m: TOOLS.RECT,
-        l: TOOLS.ELLIPSE,
-        t: TOOLS.TEXT,
-        h: TOOLS.HAND,
-        z: TOOLS.ZOOM,
-        i: TOOLS.EYEDROPPER
-      };
-      if (keyMap[toolKey]) {
-        if (state.tool === TOOLS.PEN && keyMap[toolKey] !== TOOLS.PEN) {
-          finishActivePathIfAny(false);
-        }
-        state.tool = keyMap[toolKey];
-        applyToolButtonState();
-        setStatus(`Tool: ${getToolLabel(state.tool)}`);
-        event.preventDefault();
-        return;
-      }
-    }
-
-    if (!isEditingField && (event.key === "Delete" || event.key === "Backspace")) {
-      if (removeLastActivePathAnchor()) {
-        event.preventDefault();
-        return;
-      }
+    if (event.key === "Delete" || event.key === "Backspace") {
       deleteSelection();
       event.preventDefault();
       return;
     }
 
-    if (!isEditingField && event.key === "Escape") {
-      finishActivePath();
+    if (event.key === "Escape") {
+      if(state.tool===TOOLS.PEN)finishActivePathIfAny(false);else deselectAll();
       state.interaction.mode = null;
       state.interaction.handleKind = null;
       resetMarqueeInteractionState();
@@ -7888,32 +3614,26 @@ function bindEvents() {
       return;
     }
 
-    if (!isEditingField && event.key === "Enter") {
-      finishActivePath();
-      event.preventDefault();
-      return;
-    }
-
-    const nudge = event.altKey ? 0.1 : event.shiftKey ? 10 : 1;
-    if (!isEditingField && event.key === "ArrowLeft") {
+    const nudge = event.shiftKey ? 10 : 1;
+    if (event.key === "ArrowLeft") {
       moveSelectionBy(-nudge, 0);
       event.preventDefault();
       return;
     }
 
-    if (!isEditingField && event.key === "ArrowRight") {
+    if (event.key === "ArrowRight") {
       moveSelectionBy(nudge, 0);
       event.preventDefault();
       return;
     }
 
-    if (!isEditingField && event.key === "ArrowUp") {
+    if (event.key === "ArrowUp") {
       moveSelectionBy(0, -nudge);
       event.preventDefault();
       return;
     }
 
-    if (!isEditingField && event.key === "ArrowDown") {
+    if (event.key === "ArrowDown") {
       moveSelectionBy(0, nudge);
       event.preventDefault();
       return;
@@ -7922,14 +3642,11 @@ function bindEvents() {
 }
 
 function init() {
-  loadSettings();
   loadInitialDocument();
   applyToolButtonState();
   bindEvents();
-  updateDraftsSelect();
   updateHistoryButtons();
   render();
-  requestAnimationFrame(fitArtboardToScreen);
   setStatus("Ready");
 }
 

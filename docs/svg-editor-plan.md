@@ -121,3 +121,28 @@ Upgrade the editor toward an Illustrator-like workflow while preserving route st
   - predictable transform serialization
   - reduced SVG attribute noise (omits default opacity, avoids empty groups)
 - `Copy SVG` and `Download SVG` actions are connected to this serializer.
+
+## Studio workspace (Milestone 12)
+
+- The site route now allocates the viewport to the editor, with a compact dark tool rail, inspector, layers panel, document bar, and white artboard on a neutral pasteboard.
+- Added line, freehand pencil, editable multiline text, hand/pan, and zoom tools. Pen anchors can be dragged on placement to create Bézier curves. Shift constrains rectangle/ellipse proportions and line angles.
+- View controls support cursor-centered wheel zoom, fit artboard, actual size, hand dragging, and Space/middle-button temporary pan. Selection and direct-edit handles remain fixed in screen size when zoomed.
+- Added fill/stroke None, editable defaults for new objects, layer visibility/locking/renaming, duplicate, object copy/paste, and document size autosave. Pointer-move renders skip rebuilding the inspector/layers and defer storage writes.
+- Keyboard tools: V (selection), A (direct), P (pen), N (pencil), M (rectangle), L (ellipse), backslash (line), T (type), H (hand), Z (zoom), 0 (fit). Cmd/Ctrl+A/C/V/D/G and Shift+Cmd/Ctrl+G work for select-all, copy, paste, duplicate, group and ungroup.
+- Open SVG supports editable rectangles, ellipses/circles, lines/polygons, text, groups, and single-subpath M/L/C/Z paths with simple paints and transforms. It deliberately rejects unsupported complex effects rather than injecting arbitrary SVG markup. This is not a complete Illustrator import or pathfinder implementation; gradients, compound paths, advanced typography, and arbitrary SVG effects remain future work.
+
+## Advanced vector tools (Milestone 13)
+
+- Linear and radial gradient fills support up to sixteen stops, stop offsets, colors, independent opacity, and linear angle. SVG export emits native gradient definitions; supported object-bounding-box gradients can be reopened as editable gradients.
+- Added polygon/star drawing, editable rectangle corners, swatches (Shift applies a stroke swatch), stroke caps/joins/dash patterns, grid display and snapping, and alignment to the artboard.
+- Typography supports bold/italic, alignment, tracking and leading. SVG text export preserves these attributes.
+- Expanded path import supports M/L/H/V/C/S/Q/T/A/Z and relative commands. Quadratic and elliptical arc segments are converted to cubics. Multiple contours are preserved as compound paths, with make/release compound actions. Direct anchor editing of a compound requires releasing the contours first.
+- Projects support up to sixteen independently sized, named artboards with switching, duplication, deletion and undo. SVG/PNG export operates on the active board. Native `.phstudio` files preserve all artboards and editable layers; browser autosave restores the entire project.
+- PNG raster export renders at active artboard dimensions, up to 25 megapixels. SVG imports remain constrained to supported elements and effects; complex third-party SVGs, Illustrator `.ai` files, true curve-based boolean geometry, advanced typography and simultaneous artboard positioning remain outside this milestone.
+- Regression checks: `node scripts/check-svg-studio.js`.
+
+## Illustrator-style Layers panel (Milestone 14)
+
+- Object rows use small artwork thumbnails, visibility and lock columns, target circles, selection markers and compact icon actions. Groups start collapsed and can be expanded individually or all at once.
+- Expanded groups reveal indented children without expanding the entire layer list. Group visibility and lock changes propagate to descendants and clear affected selections.
+- Dragging siblings reorders them in their group; forward/backward actions also work for nested objects. Stacking order now updates model z-indices directly rather than re-sorting against outdated indices.
