@@ -6,12 +6,12 @@
   <title>createPhil - Tyler Lengyel</title>
   <meta
     name="description"
-    content="Operate the createPhil trait machine and assemble a one-of-one Phil."
+    content="Randomly assemble an unofficial Phil composition from Genesis artwork traits."
   />
   <meta name="theme-color" content="#EAE7DF" />
   <script src="/assets/site-shell.js?v=20261116-sitewide-theme"></script>
   <link rel="stylesheet" href="/assets/site-theme.css?v=20261116-sitewide-theme" />
-  <link rel="stylesheet" href="/createPhil/machine.css" />
+  <link rel="stylesheet" href="/createPhil/machine.css?v=20261126-random" />
 </head>
 
 <body class="create-phil-page">
@@ -25,7 +25,7 @@
       <h1>createPhil</h1>
       <p class="lede">
         Build a Phil from the 896 original Genesis traits used by the live Ethereum dApp.
-        Pull each lever to discover actual artwork, assembled in the official layer order.
+        Pull each lever to roll a random trait, assembled in the official layer order.
       </p>
     </section>
 
@@ -59,6 +59,7 @@
               <strong>READY</strong>
               <span>Pull a trait lever to begin.</span>
             </div>
+            <div class="idle-disclaimer" data-idle-disclaimer aria-hidden="true">Not 1 of 369<br />Not on-chain<br />Not Verified</div>
           </div>
 
           <p class="machine-status" data-machine-status aria-live="polite">
@@ -74,7 +75,7 @@
               Reset machine
             </button>
           </div>
-          <p class="machine-note">Manual experiments only. No minting, wallet connection, or blockchain transaction.</p>
+          <p class="machine-note">Unofficial artwork experiments only. Compositions are not minted or verified Genesis Phils, and are not on-chain.</p>
         </section>
 
         <section class="control-bank" aria-labelledby="controls-heading">
@@ -104,7 +105,7 @@
     </noscript>
   </main>
 
-  <script src="/createPhil/catalog.js"></script>
-  <script src="/createPhil/machine.js"></script>
+  <script src="/createPhil/catalog.js?v=20261126-random"></script>
+  <script src="/createPhil/machine.js?v=20261126-random"></script>
 </body>
 </html>

@@ -97,6 +97,16 @@
     if(selection.top?.some(id=>groups.hoodie.includes(id))&&selection.spikes?.some(id=>!groups.hoodieSpikes.includes(id)))return false;
     return true;
   }
-  const api={SHA256,COUNT,ORDER,REQUIRED,MULTI,verify,createReader,validateGroups,validSelection};
+  // The experimental composition is not a minted Genesis NFT. Embed the
+  // disclaimer in the artwork itself so it travels with every SVG export.
+  function markUnofficial(svg){
+    if(!svg.endsWith('</svg>'))throw Error('Invalid composition SVG');
+    const badge="<g aria-label='Not 1 of 369; Not on-chain; Not verified' transform='translate(401.06 373.22)'>"+
+      "<rect width='120' height='54' rx='3' fill='#10151b' stroke='#f2f0ea' stroke-width='0.7'/>"+
+      "<text x='110' y='15' fill='#ffffff' font-family='Arial, Helvetica, sans-serif' font-size='11' font-weight='700' text-anchor='end'>"+
+      "<tspan x='110'>Not 1 of 369</tspan><tspan x='110' dy='15'>Not on-chain</tspan><tspan x='110' dy='15'>Not Verified</tspan></text></g>";
+    return svg.slice(0,-6)+badge+'</svg>';
+  }
+  const api={SHA256,COUNT,ORDER,REQUIRED,MULTI,verify,createReader,validateGroups,validSelection,markUnofficial};
   if(typeof module==='object'&&module.exports)module.exports=api;else root.PhilCatalog=api;
 })(globalThis);

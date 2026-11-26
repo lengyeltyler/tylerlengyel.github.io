@@ -3,6 +3,7 @@
   const C=window.PhilCatalog;
   const $=(selector)=>document.querySelector(selector);
   const grid=$('[data-lever-grid]'), display=$('[data-phil-display]'), idle=$('[data-display-idle]');
+  const idleDisclaimer=$('[data-idle-disclaimer]');
   const status=$('[data-machine-status]'), count=$('[data-generation-count]');
   const exportButton=$('[data-export]'), resetButton=$('[data-reset-all]'), rollButton=$('[data-roll-all]');
   const selection=Object.fromEntries(C.ORDER.map(k=>[k,[]]));
@@ -35,13 +36,9 @@
         const pool=variants.filter(id=>!selection[key].includes(id));
         applyTrait(key,choose(pool.length?pool:variants));
       });
-      const select=document.createElement('select');select.className='trait-select';select.setAttribute('aria-label',`Choose ${category} variant`);
-      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose variant…';select.append(placeholder);
-      for(const id of variants){const option=document.createElement('option');option.value=String(id);option.textContent=name(id);select.append(option);}
-      select.addEventListener('change',()=>{if(select.value!=='')applyTrait(key,Number(select.value));select.value='';});
       const clear=document.createElement('button');clear.className='eject-button';clear.type='button';clear.textContent='Clear layer';clear.disabled=true;
       clear.addEventListener('click',()=>{selection[key]=[];render(`${category} cleared.`);});
-      station.append(plate,meta,windowEl,label,lever,select,clear);grid.append(station);
+      station.append(plate,meta,windowEl,label,lever,clear);grid.append(station);
       stations.set(key,{preview,empty,label,clear,category});
     }
   }
@@ -79,10 +76,10 @@
 
   function render(message){
     if(!C.validSelection(groups,selection))throw Error('Invalid trait combination');
-    const selected=ids();assembled=selected.length?reader.render(selected):'';
-    img.hidden=!assembled;idle.hidden=!!assembled;
+    const selected=ids();assembled=selected.length?C.markUnofficial(reader.render(selected)):'';
+    img.hidden=!assembled;idle.hidden=!!assembled;idleDisclaimer.hidden=!!assembled;
     if(assembled)img.src=svgURI(assembled);else img.removeAttribute('src');
-    display.setAttribute('aria-label',selected.length?`Phil preview: ${selected.map(name).join(', ')}`:'Generated Phil preview; no traits loaded');
+    display.setAttribute('aria-label',(selected.length?`Phil preview: ${selected.map(name).join(', ')}`:'Generated Phil preview; no traits loaded')+'. Not 1 of 369. Not on-chain. Not verified.');
     for(const [key,station] of stations){
       const current=selection[key],active=current.length>0;
       station.preview.hidden=!active;station.empty.hidden=active;station.clear.disabled=!active;
@@ -99,7 +96,7 @@
   exportButton.addEventListener('click',()=>{
     if(!assembled)return;
     const url=URL.createObjectURL(new Blob([assembled],{type:'image/svg+xml'}));
-    const a=document.createElement('a');a.href=url;a.download='phil-genesis-composition.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const a=document.createElement('a');a.href=url;a.download='phil-unofficial-composition.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   resetButton.addEventListener('click',()=>{for(const key of C.ORDER)selection[key]=[];render('Machine reset.');});
   rollButton.addEventListener('click',rollAll);

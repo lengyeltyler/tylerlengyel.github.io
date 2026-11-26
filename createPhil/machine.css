@@ -18,6 +18,8 @@
 .phil-display { position:relative; aspect-ratio:1; overflow:hidden; border:2px solid #56646d; background:repeating-conic-gradient(#161a1e 0 25%,#1b2024 0 50%) 50%/22px 22px; display:grid; place-items:center; }
 .phil-art { width:100%; height:100%; object-fit:contain; display:block; }
 .phil-art[hidden],.display-idle[hidden],.trait-window [hidden] { display:none; }
+.idle-disclaimer { position:absolute; bottom:1.9%; right:1.9%; padding:5px 8px; border:1px solid #f2f0ea; border-radius:3px; background:#10151b; color:#fff; text-align:right; font:700 .65rem/1.35 Arial,Helvetica,sans-serif; pointer-events:none; }
+.idle-disclaimer[hidden] { display:none; }
 .display-idle { display:grid; place-items:center; gap:8px; text-align:center; padding:16px; color:#a9c6d7; font-size:.75rem; }
 .display-idle strong { font-size:1.3rem; letter-spacing:.18em; }
 .crosshair { width:55px; height:55px; border:1px solid #536b78; border-radius:50%; background:linear-gradient(90deg,transparent 49%,#536b78 49% 51%,transparent 51%),linear-gradient(transparent 49%,#536b78 49% 51%,transparent 51%); }
@@ -28,7 +30,7 @@
 .machine-button:disabled,.eject-button:disabled { cursor:default; opacity:.4; }
 .machine-note { font: .68rem/1.5 var(--font-ui); color:#a9b9c3; margin:10px 0 0; }
 .lever-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-.trait-station { min-width:0; display:grid; grid-template-rows:auto auto 76px minmax(34px,auto) 38px auto auto; gap:5px; border:1px solid #65717b; background:linear-gradient(155deg,#343c43,#20252a); padding:8px; }
+.trait-station { min-width:0; display:grid; grid-template-rows:auto auto 76px minmax(34px,auto) 38px auto; gap:5px; border:1px solid #65717b; background:linear-gradient(155deg,#343c43,#20252a); padding:8px; }
 .trait-plate { display:flex; align-items:center; gap:6px; color:#e7f4fa; font-size:.76rem; line-height:1.2; }
 .trait-plate span { color:#92a7b3; font-size:.58rem; }
 .trait-plate strong { overflow-wrap:anywhere; }
@@ -44,7 +46,6 @@
 .lever.pulled .lever-arm { animation:pull-lever .24s ease; }
 @keyframes pull-lever { 50% { transform:rotate(32deg); } }
 .lever:hover { border-color:var(--machine-blue); color:var(--machine-blue); }
-.trait-select { width:100%; min-width:0; padding:5px 2px; font: .62rem var(--font-ui); color:#dbe7ef; background:#11161a; border:1px solid #65717b; }
 .eject-button { font-size:.61rem; padding:4px; }
 .machine-footer { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:8px; border-top:1px solid #59646d; padding:12px 18px; font-size:.63rem; color:#a9b9c3; }
 .machine-footer a { color:var(--machine-blue); }
