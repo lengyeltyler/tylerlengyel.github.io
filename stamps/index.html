@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABX x Phil Stamp Studio</title>
+<link rel="canonical" href="https://tylerlengyel.com/stamps/"><link rel="stylesheet" href="/assets/site-theme.css"><script src="/assets/site-shell.js?v=20261127-stamps"></script><style>
+*{box-sizing:border-box}body{margin:0;background:#f3eee4;color:#382f28;font:16px/1.5 system-ui,sans-serif}main{width:min(850px,94%);margin:36px auto}h1{font:normal clamp(38px,6vw,64px)/1 Georgia,serif;margin:0}p{margin:.7em 0}canvas{display:block;width:100%;border-radius:10% 8% 9% 7% / 14% 11% 16% 12%;box-shadow:0 9px 12px #432c1e38,inset 0 0 3px #422;cursor:crosshair;touch-action:manipulation;margin:24px 0}section,details{margin-top:14px}.controls,form{display:flex;align-items:center;flex-wrap:wrap;gap:10px}button,input{font:inherit;color:inherit}button,summary{cursor:pointer}button{border:1px solid #b9a695;background:#fcf8ef;padding:6px 15px;border-radius:18px}button:disabled{opacity:.5}input[type=number]{width:7em}details{border-top:1px solid #c8b8a6;padding:12px 0}summary{font-weight:600}small{color:#624c3d}label{display:inline-flex;align-items:center;gap:6px}
+.appearance{margin:14px 0}.appearance select{font:inherit;padding:5px 8px;border:1px solid #b9a695;border-radius:6px;color:inherit;background:#fcf8ef}body{background:var(--page-bg);color:var(--ink)}main small{color:var(--muted)}main button,main input,main select,main .appearance select{background:var(--paper);color:var(--ink);border-color:var(--line)}.site-header .theme-toggle{border-radius:var(--radius-sm)}</style></head><body><header data-site-header="stamps"></header><main><h1>ABX x Phil Stamp Studio</h1><p>Roll a Genesis Phil and its paired ABX stamp, then tap the clay to press both. On a keyboard, focus the clay and use the arrow keys and Enter.</p>
+<section aria-label="Genesis Phil seal"><button id="roll">Roll a Phil</button> <span id="philState" role="status">Ethereum connection required to check availability.</span><form id="lookup" style="margin:12px 0 4px"><label>ABX stamp # <input id="number" type="number" min="0" step="1" placeholder="Automatic"></label><button id="apply" type="submit">Change stamp</button></form>
+<small id="pairState" role="status">Leave the number blank for a random stamp with each roll.</small>
+<div class="controls appearance">
+<label>Tablet color <select id="surface"><option value="#424344">Charcoal</option><option value="#c17a54">Classic clay tablet</option><option value="custom">Custom color</option></select></label>
+<input type="color" id="customColor" aria-label="Custom tablet color" value="#424344" hidden>
+<label>Stamp finish <select id="finish"><option value="outline">White outline</option><option value="color">Full color</option><option value="gray">Black and white</option></select></label>
+<label>Stamp outline <select id="shape"><option>Oval</option><option>Rectangle</option><option>Square</option><option>Circle</option><option>Rounded rectangle</option><option>Capsule</option><option>Diamond</option><option>Triangle</option><option>Pentagon</option><option>Hexagon</option><option>Octagon</option><option>Decagon</option><option>Dodecagon</option><option>Shield</option><option>Arch</option><option>Ticket</option><option>Scalloped seal</option><option>Starburst</option></select></label></div><div><img id="portrait" width="110" height="110" hidden alt="Selected Genesis Phil in full color"><small id="identity" style="overflow-wrap:anywhere;display:block"></small></div></section>
+<canvas id="clay" width="1000" height="560" tabindex="0" aria-label="Clay tablet stamping surface"></canvas>
+<div class="controls"><label>Angle <input id="rotation" type="range" min="-90" max="90" value="0"><output id="angle">0°</output></label><button id="undo" disabled>Undo</button><button id="save">Save tablet as PNG</button></div>
+<small id="status" role="status"></small><p><small>After <a href="https://stamps.abx.io/">ABX Stamps by Art Blocks</a>, with <a href="https://phil.tylerlengyel.com/">Genesis Phil</a>.</small></p></main>
+<script>
+'use strict';
+const el=id=>document.getElementById(id), canvas=el('clay'), ctx=canvas.getContext('2d');
+const ground=document.createElement('canvas'); ground.width=canvas.width;ground.height=canvas.height;
+const base=ground.getContext('2d'), earth=base.createImageData(ground.width,ground.height);
+let active=null, focusPoint={x:500,y:280}, keyboard=false;
+const marks=[];
+function paintClay(hex){
+ let state=831;
+ const channels=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+for(let y=0;y<ground.height;y++)for(let x=0;x<ground.width;x++){
+ state=(Math.imul(1664525,state)+1013904223)>>>0;
+ const edge=Math.min(x,y,999-x,559-y), grain=(state/4294967296-.5)*14;
+ const shade=grain+6*Math.sin(x/103+y/63)+2*Math.sin(y/2.6+x/78)-22*(y/560)-23*Math.exp(-edge/7);
+ const i=(y*ground.width+x)*4;
+ channels.forEach((v,k)=>earth.data[i+k]=v+shade);earth.data[i+3]=255;
+}
+base.putImageData(earth,0,0);
+}
+function changeSurface(){
+ const custom=el('surface').value==='custom';
+ el('customColor').hidden=!custom;
+ paintClay(custom?el('customColor').value:el('surface').value);
+ render();
+}
+el('surface').onchange=changeSurface;
+el('customColor').oninput=changeSurface;
+el('finish').onchange=render;
+el('shape').onchange=render;
+function variants(mask,color){
+ const gray=document.createElement('canvas');gray.width=color.width;gray.height=color.height;
+ const g=gray.getContext('2d');g.drawImage(color,0,0);
+ const pixels=g.getImageData(0,0,gray.width,gray.height),d=pixels.data;
+ for(let i=0;i<d.length;i+=4){const value=Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2]);d[i]=d[i+1]=d[i+2]=value;}
+ g.putImageData(pixels,0,0);
+ return {outline:mask,color,gray};
+}
+function crop(source,left,top,width,height){
+ const out=document.createElement('canvas');out.width=width;out.height=height;
+ out.getContext('2d').drawImage(source,-left,-top);return out;
+}
+function seal(mark){
+ const tile=document.createElement('canvas'); tile.width=900;tile.height=500;
+ const t=tile.getContext('2d');t.translate(450,250);t.scale(-1,1);
+ const shape=el('shape').value;
+ const equilateral=['Square','Circle','Pentagon','Octagon','Decagon','Dodecagon','Scalloped seal','Starburst'].includes(shape);
+ const w=equilateral?245:445,h=245;
+ const path=new Path2D();
+ const polygon=points=>{points.forEach(([x,y],i)=>i?path.lineTo(x*w,y*h):path.moveTo(x*w,y*h));path.closePath();};
+ const sides={Triangle:3,Diamond:4,Pentagon:5,Hexagon:6,Octagon:8,Decagon:10,Dodecagon:12};
+ if(sides[shape]){
+  const n=sides[shape],offset=shape==='Hexagon'?0:-Math.PI/2;
+  polygon(Array.from({length:n},(_,i)=>[Math.cos(offset+i*2*Math.PI/n),Math.sin(offset+i*2*Math.PI/n)]));
+ }else if(shape==='Scalloped seal'||shape==='Starburst'){
+  const scallop=shape==='Scalloped seal',n=scallop?360:32;
+  polygon(Array.from({length:n},(_,i)=>{const a=i*2*Math.PI/n,r=scallop?.95+.05*Math.cos(18*a):(i%2?.85:1);return [r*Math.cos(a),r*Math.sin(a)];}));
+ }else if(shape==='Shield'){
+  path.moveTo(-w,-h);path.lineTo(w,-h);path.quadraticCurveTo(w,h*.55,0,h);path.quadraticCurveTo(-w,h*.55,-w,-h);path.closePath();
+ }else if(shape==='Arch'){
+  path.moveTo(-w,h);path.lineTo(-w,0);path.ellipse(0,0,w,h,0,Math.PI,2*Math.PI);path.lineTo(w,h);path.closePath();
+ }else if(shape==='Ticket'){
+  path.rect(-w,-h,2*w,2*h); // Replace the straight ends with inward semicircular notches.
+  const ticket=new Path2D();ticket.moveTo(-w,-h);ticket.lineTo(w,-h);ticket.lineTo(w,-36);ticket.arc(w,0,36,-Math.PI/2,Math.PI/2,true);ticket.lineTo(w,h);ticket.lineTo(-w,h);ticket.lineTo(-w,36);ticket.arc(-w,0,36,Math.PI/2,-Math.PI/2,true);ticket.closePath();
+  return draw(ticket);
+ }else if(shape==='Circle'||shape==='Oval'){path.ellipse(0,0,w,h,0,0,Math.PI*2);}
+ else{path.roundRect(-w,-h,2*w,2*h,shape==='Capsule'?h:shape==='Rounded rectangle'?60:0);}
+ return draw(path);
+ function draw(frame){
+  t.strokeStyle='#edece8';t.lineWidth=2.5;t.stroke(frame);
+  const ratios=[mark.face,mark.art].map(image=>image.width/image.height);
+  const gap=w*.09;
+  const centerY=shape==='Triangle'?h*.20:shape==='Shield'?-h*.15:0;
+  // Find the largest equal-height pair whose padded corners fit this particular frame.
+  t.save();t.setTransform(1,0,0,1,0,0);
+  let height=Math.min(325,(2*w-36-gap)/(ratios[0]+ratios[1]));
+  for(;height>8;height-=2){
+   const x=(height*(ratios[0]+ratios[1])+gap)/2+8,y=height/2+8;
+   if([-x,0,x].every(px=>[-y,0,y].every(py=>t.isPointInPath(frame,px,centerY+py))))break;
+  }
+  t.restore();
+  let x=-(height*(ratios[0]+ratios[1])+gap)/2;
+  [mark.face,mark.art].forEach((image,i)=>{const width=height*ratios[i];t.drawImage(image,x,centerY-height/2,width,height);x+=width+gap;});
+  return tile;
+ }
+
+}
+function render(){
+ ctx.drawImage(ground,0,0);
+ for(const m of marks){
+ ctx.save();ctx.translate(m.x,m.y);ctx.rotate(m.angle*Math.PI/180);
+ ctx.scale(m.scale,m.scale);const finish=el('finish').value;
+ if(m.finish!==finish||m.shape!==el('shape').value){m.tile=seal({face:m.face[finish],art:m.art[finish]});m.finish=finish;m.shape=el('shape').value;}
+ ctx.drawImage(m.tile,-450,-250);ctx.restore();}
+ if(keyboard){ctx.save();ctx.setLineDash([5,5]);ctx.strokeStyle='#fff';ctx.strokeRect(focusPoint.x-7,focusPoint.y-7,14,14);ctx.restore();}
+ el('undo').disabled=!marks.length;
+}
+function stampMark(x,y,angle,art,face){
+ const theta=angle*Math.PI/180;
+ // Fit the rotated seal and keep an inset on every edge.
+ const rx=450*Math.abs(Math.cos(theta))+250*Math.abs(Math.sin(theta));
+ const ry=450*Math.abs(Math.sin(theta))+250*Math.abs(Math.cos(theta));
+ const scale=Math.min(1,475/rx,260/ry);
+ const fit=(pos,r,limit)=>Math.min(limit-12-r,Math.max(12+r,pos));
+ marks.push({art,face,angle,scale,x:fit(x,rx*scale,canvas.width),y:fit(y,ry*scale,canvas.height)});
+ render();el('status').textContent='Impressions on tablet: '+marks.length;
+}
+canvas.onclick=e=>{keyboard=false;const r=canvas.getBoundingClientRect();verifiedPress((e.clientX-r.left)*1000/r.width,(e.clientY-r.top)*560/r.height)};
+canvas.onkeydown=e=>{if(!['Enter',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();keyboard=true;
+ focusPoint.x=Math.max(0,Math.min(1000,focusPoint.x+({ArrowLeft:-15,ArrowRight:15}[e.key]||0)));focusPoint.y=Math.max(0,Math.min(560,focusPoint.y+({ArrowUp:-15,ArrowDown:15}[e.key]||0)));
+ if(e.key==='Enter'||e.key===' ')verifiedPress(focusPoint.x,focusPoint.y);else render();};
+canvas.onblur=()=>{keyboard=false;render()};
+el('rotation').oninput=e=>el('angle').value=e.target.value+'°';
+el('undo').onclick=()=>{marks.pop();render();el('status').textContent='Impressions on tablet: '+marks.length;};
+el('save').onclick=()=>{keyboard=false;render();const link=document.createElement('a');link.download='phil-clay-tablet.png';link.href=canvas.toDataURL();link.click();};
+async function load(blob){
+ const img=await createImageBitmap(blob), mask=document.createElement('canvas');const scale=600/Math.max(img.width,img.height);mask.width=Math.max(1,Math.round(img.width*scale));mask.height=Math.max(1,Math.round(img.height*scale));
+ const m=mask.getContext('2d'),w=mask.width,h=mask.height;
+ m.drawImage(img,0,0,w,h);img.close();
+ const pixels=m.getImageData(0,0,w,h),d=pixels.data;
+ let left=w,top=h,right=-1,bottom=-1;
+ for(let i=0;i<d.length;i+=4){
+  const lum=d[i]*.299+d[i+1]*.587+d[i+2]*.114;
+  d[i]=d[i+1]=d[i+2]=242;d[i+3]*=Math.max(0,Math.min(1,(235-lum)/150));
+  if(d[i+3]<10)continue;
+  const x=(i/4)%w,y=Math.floor(i/4/w);
+  left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
+ }
+ if(right<left)throw Error('Empty stamp image');
+ const cropped=document.createElement('canvas');cropped.width=right-left+1;cropped.height=bottom-top+1;
+ cropped.getContext('2d').putImageData(pixels,-left,-top);
+ return variants(cropped,crop(mask,left,top,cropped.width,cropped.height));
+}
+async function pickStamp(){
+ const input=el('number');let id=input.valueAsNumber;
+ if(!input.validity.valid || (input.value!==''&&!Number.isSafeInteger(id)))throw Error('Enter a whole stamp number of zero or greater.');
+ const api='https://stamps.abx.io/api/stamps';
+ if(input.value===''){
+  try{
+   const res=await fetch(api+'?page=1&per=200',{signal:AbortSignal.timeout(10000)});
+   if(!res.ok)throw Error();
+   const data=await res.json(),rows=Array.isArray(data)?data:Object.values(data).find(Array.isArray);
+   const ids=rows.map(row=>Number(row.number)).filter(n=>Number.isSafeInteger(n)&&n>=0);
+   if(!ids.length)throw Error();
+   id=ids[Number(uniform(BigInt(ids.length)))];
+  }catch{id=0;}
+ }
+ const res=await fetch(api+'/'+id+'?format=png',{signal:AbortSignal.timeout(20000)});
+ if(!res.ok)throw Error('Could not load ABX stamp #'+id+'. Check the number or try again.');
+ return {id,images:await load(await res.blob())};
+}
+function lockPair(busy){
+ el('roll').disabled=busy;el('apply').disabled=busy;el('number').disabled=busy;
+}
+function showPair(pair){
+ active=pair.images;el('pairState').textContent='Paired with ABX stamp #'+pair.id+'.';
+}
+el('lookup').onsubmit=async e=>{
+ e.preventDefault();if(running)return;
+ if(!chosen){await roll();return;}
+ running=true;lockPair(true);
+ try{showPair(await pickStamp());}
+ catch(error){el('philState').textContent=error.message;}
+ finally{running=false;lockPair(false);}
+};
+// Genesis generation rules from lengyeltyler/genesis-phil, web/genesis.
+const groups={"color":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,652,653,654,655,656,657,658,659,660,661,662,663,664,665,666,667],"nebula":[16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123],"stars":[124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,668,669,670,671,672,673,674,675],"spiral":[140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203],"dust":[204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219],"overlay":[220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267],"wings":[268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299],"base":[300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,676,677,678,679,680,681,682,683,684,685,686,687,688],"body":[316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373,374,375,376,377,378,689,690,691,692,693,694,695,696,697,698,699,700,701,702,703,704,705,706,707,708,709,710,711],"spikes":[379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,712,713,714,715,716,717,718,719,720,721,722,723,724,725,726,727,728,729,730,731,732,733,734,735,736,737,738,739,740,741,742,743,744,745,746,747,748,749,750,751,752,753,754,755,756,757,758],"teeth":[459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,759,760,761,762,763,764,765,766,767,768,769,770,771,772,773,774,775,776,777,778,779,780,781,782,783,784,785,786,787,788,789,790],"jaw":[491,492,493,494,495,496,497,498,499,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538],"eyes":[539,540,541,542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,563,564,565,566,567,568,569,570,571,572,573,574,575,576,577,578,579,580,581,582,583,584,585,586,587,588,589,590,591,592,593,594,595,596,597,598,599,600,601,602,791,792,793,794,795,796,797,798,799,800,801,802,803,804,805,806,807,808,809,810,811,812,813,814,815,816,817,818,819,820,821,822,823,824,825,826,827,828,829,830,831,832,833,834,835,836],"top":[603,604,605,606,607,608,609,610,611,612,613,614,615,616,617,618,619,620,621,622,623,624,625,626,627,628,629,630,631,632,633,634,635,636,637,638,639,640,641,642,643,644,645,646,647,648,649,650,651,837,838,839,840,841,842,843,844,845,846,847,848,849,850,851,852,853,854,855,856,857,858,859,860,861,862,863,864,865,866,867,868,869,870,871,872,873,874,875,876,877,878,879,880,881,882,883,884,885,886,887,888,889,890,891,892,893,894,895],"hoodie":[603,604,605,606,607,608,609,610,611,612,613,614,615,616,617,618,837,838,839,840,841,842,843,844,845,846,847,848,849,850,851,852],"hoodieSpikes":[379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399,400,401,402,403,404,405,406,407,408,409,410,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,712,713,714,715,716,717,718,719,720,721,722,723,724,725,726,727,728,729,730,731,732,733,734,735,736,737,738,739,740,741]};
+const families={"families":["Turquoise","Brown","Teal","Espresso","Coral","Onyx","Purple","Grape","Bubblegum","SkyBlue","Midnight","Saphire","Green","Red","White","369"],"traits":{"0":"Turquoise","1":"Brown","2":"Teal","3":"Espresso","4":"Coral","5":"Onyx","6":"Purple","7":"Grape","8":"Bubblegum","9":"SkyBlue","10":"Midnight","11":"Saphire","12":"Green","13":"Red","14":"White","15":"369","16":"Turquoise","17":"Brown","18":"Teal","19":"Espresso","20":"Coral","21":"Onyx","22":"Purple","23":"Grape","24":"Bubblegum","25":"SkyBlue","26":"Midnight","27":"Saphire","28":"Green","29":"Red","30":"White","31":"369","32":"Turquoise","33":"Brown","34":"Teal","35":"Espresso","36":"Coral","37":"Onyx","38":"Purple","39":"Grape","40":"Bubblegum","41":"SkyBlue","42":"Midnight","43":"Saphire","44":"Green","45":"Red","46":"White","47":"369","48":"Saphire","49":"Red","50":"Turquoise","51":"Green","52":"Midnight","53":"SkyBlue","54":"Bubblegum","55":"Grape","56":"Purple","57":"Onyx","58":"Espresso","59":"Teal","60":"Brown","61":"Coral","62":"White","63":"369","64":"Coral","65":"Turquoise","66":"Brown","67":"Teal","68":"Espresso","69":"Onyx","70":"Purple","71":"Grape","72":"Bubblegum","73":"SkyBlue","74":"Midnight","75":"Saphire","76":"Green","77":"Red","78":"White","79":"369","80":"Onyx","81":"Turquoise","82":"Brown","83":"Teal","84":"Espresso","85":"Coral","86":"Purple","87":"Grape","88":"Bubblegum","89":"SkyBlue","90":"Midnight","91":"Saphire","92":"Green","93":"Red","94":"White","95":"369","96":"Midnight","97":"Turquoise","98":"Brown","99":"Teal","100":"Espresso","101":"Coral","102":"Onyx","103":"Purple","104":"Grape","105":"Bubblegum","106":"SkyBlue","107":"Saphire","108":"Green","109":"Red","110":"Turquoise","111":"Purple","112":"Brown","113":"Teal","114":"Espresso","115":"Coral","116":"Onyx","117":"Grape","118":"Bubblegum","119":"SkyBlue","120":"Midnight","121":"Saphire","122":"Green","123":"Red","124":"Turquoise","125":"Brown","126":"Teal","127":"Espresso","128":"Coral","129":"Onyx","130":"Purple","131":"Grape","132":"Bubblegum","133":"SkyBlue","134":"Midnight","135":"Saphire","136":"Green","137":"Red","138":"White","139":"369","140":"Purple","141":"Saphire","142":"Green","143":"Midnight","144":"SkyBlue","145":"Bubblegum","146":"Grape","147":"Purple","148":"Onyx","149":"Espresso","150":"Teal","151":"Brown","152":"Coral","153":"Red","154":"White","155":"369","156":"Midnight","157":"SkyBlue","158":"Bubblegum","159":"Saphire","160":"Green","161":"Grape","162":"Purple","163":"Onyx","164":"Coral","165":"Espresso","166":"Teal","167":"Brown","168":"Turquoise","169":"Red","170":"White","171":"369","172":"Green","173":"Saphire","174":"Midnight","175":"SkyBlue","176":"Bubblegum","177":"Grape","178":"Purple","179":"Onyx","180":"Coral","181":"Espresso","182":"Teal","183":"Brown","184":"Turquoise","185":"Red","186":"White","187":"369","188":"Turquoise","189":"Saphire","190":"Green","191":"Midnight","192":"SkyBlue","193":"Bubblegum","194":"Grape","195":"Purple","196":"Onyx","197":"Espresso","198":"Teal","199":"Brown","200":"Coral","201":"Red","202":"White","203":"369","204":"Turquoise","205":"Brown","206":"Teal","207":"Espresso","208":"Coral","209":"Purple","210":"Onyx","211":"Grape","212":"Bubblegum","213":"Midnight","214":"Saphire","215":"Green","216":"SkyBlue","217":"Red","218":"White","219":"369","268":"Brown","269":"Coral","270":"Teal","271":"Espresso","272":"Onyx","273":"Purple","274":"Grape","275":"Bubblegum","276":"SkyBlue","277":"Midnight","278":"Green","279":"Saphire","280":"Turquoise","281":"Red","282":"White","283":"369","284":"Coral","285":"Brown","286":"Teal","287":"Espresso","288":"Onyx","289":"Purple","290":"Grape","291":"Bubblegum","292":"SkyBlue","293":"Midnight","294":"Green","295":"Saphire","296":"Turquoise","297":"Red","298":"White","299":"369","300":"Green","301":"Saphire","302":"Midnight","303":"Bubblegum","304":"Grape","305":"Purple","306":"Onyx","307":"Coral","308":"Espresso","309":"Teal","310":"Brown","311":"Turquoise","312":"SkyBlue","313":"Red","314":"White","315":"369","316":"Green","317":"Red","318":"Turquoise","319":"Saphire","320":"Midnight","321":"SkyBlue","322":"Bubblegum","323":"Grape","324":"Purple","325":"Onyx","326":"Espresso","327":"Teal","328":"Brown","329":"Coral","330":"White","331":"369","332":"Brown","333":"Turquoise","334":"Teal","335":"Espresso","336":"Coral","337":"Onyx","338":"Purple","339":"Grape","340":"Bubblegum","341":"SkyBlue","342":"Midnight","343":"Saphire","344":"Green","345":"Red","346":"White","347":"369","348":"Midnight","349":"SkyBlue","350":"Bubblegum","351":"Turquoise","352":"Brown","353":"Teal","354":"Espresso","355":"Coral","356":"Onyx","357":"Purple","358":"Grape","359":"Saphire","360":"Green","361":"Red","362":"White","363":"369","364":"Purple","365":"Saphire","366":"Green","367":"Turquoise","368":"Brown","369":"Teal","370":"Espresso","371":"Onyx","372":"Grape","373":"Bubblegum","374":"SkyBlue","375":"Midnight","376":"Red","377":"White","378":"369","379":"Coral","380":"Brown","381":"Teal","382":"Espresso","383":"Onyx","384":"Purple","385":"Grape","386":"Bubblegum","387":"SkyBlue","388":"Midnight","389":"Green","390":"Saphire","391":"Turquoise","392":"Red","393":"White","394":"369","395":"Grape","396":"Grape","397":"Grape","398":"Grape","399":"Grape","400":"Grape","401":"Grape","402":"Grape","403":"Grape","404":"Grape","405":"Grape","406":"Grape","407":"SkyBlue","408":"Red","409":"White","410":"369","411":"Turquoise","412":"Saphire","413":"Green","414":"Midnight","415":"SkyBlue","416":"Bubblegum","417":"Grape","418":"Purple","419":"Onyx","420":"Espresso","421":"Teal","422":"Brown","423":"Coral","424":"Red","425":"White","426":"369","427":"Coral","428":"Brown","429":"Teal","430":"Espresso","431":"Onyx","432":"Purple","433":"Grape","434":"Bubblegum","435":"SkyBlue","436":"Midnight","437":"Green","438":"Saphire","439":"Turquoise","440":"Red","441":"White","442":"369","443":"Coral","444":"Brown","445":"Teal","446":"Espresso","447":"Onyx","448":"Purple","449":"Grape","450":"Bubblegum","451":"SkyBlue","452":"Midnight","453":"Green","454":"Saphire","455":"Turquoise","456":"Red","457":"White","458":"369","459":"Teal","460":"Turquoise","461":"Brown","462":"Espresso","463":"Coral","464":"Onyx","465":"Purple","466":"Grape","467":"Bubblegum","468":"SkyBlue","469":"Midnight","470":"Saphire","471":"Green","472":"Red","473":"White","474":"369","475":"Purple","476":"Green","477":"Saphire","478":"Midnight","479":"Bubblegum","480":"Coral","481":"Turquoise","482":"Teal","483":"Brown","484":"Espresso","485":"Onyx","486":"Grape","487":"SkyBlue","488":"Red","489":"White","490":"369","491":"Turquoise","492":"Saphire","493":"Green","494":"Midnight","495":"SkyBlue","496":"Bubblegum","497":"Grape","498":"Purple","499":"Onyx","500":"Espresso","501":"Teal","502":"Brown","503":"Coral","504":"Red","505":"White","506":"369","507":"Turquoise","508":"Coral","509":"Bubblegum","510":"Green","511":"Brown","512":"Teal","513":"Espresso","514":"Onyx","515":"Purple","516":"Grape","517":"SkyBlue","518":"Midnight","519":"Saphire","520":"Red","521":"White","522":"369","523":"Turquoise","524":"Saphire","525":"Green","526":"Midnight","527":"SkyBlue","528":"Bubblegum","529":"Grape","530":"Purple","531":"Onyx","532":"Espresso","533":"Teal","534":"Brown","535":"Coral","536":"Red","537":"White","538":"369","539":"Coral","540":"Brown","541":"Teal","542":"Espresso","543":"Onyx","544":"Purple","545":"Grape","546":"Bubblegum","547":"SkyBlue","548":"Midnight","549":"Green","550":"Saphire","551":"Turquoise","552":"Red","553":"White","554":"369","555":"Turquoise","556":"Brown","557":"Teal","558":"Espresso","559":"Coral","560":"Onyx","561":"Purple","562":"Grape","563":"Bubblegum","564":"SkyBlue","565":"Midnight","566":"Saphire","567":"Green","568":"Red","569":"White","570":"369","571":"Green","572":"Saphire","573":"Midnight","574":"SkyBlue","575":"Purple","576":"Grape","577":"Onyx","578":"Coral","579":"Espresso","580":"Teal","581":"Brown","582":"Bubblegum","583":"Turquoise","584":"Red","585":"White","586":"369","587":"Midnight","588":"Green","589":"Bubblegum","590":"Saphire","591":"SkyBlue","592":"Grape","593":"Purple","594":"Onyx","595":"Coral","596":"Espresso","597":"Teal","598":"Brown","599":"Turquoise","600":"Red","601":"White","602":"369","603":"Red","604":"Turquoise","605":"Saphire","606":"Green","607":"Midnight","608":"SkyBlue","609":"Bubblegum","610":"Grape","611":"Purple","612":"Onyx","613":"Espresso","614":"Teal","615":"Brown","616":"Coral","617":"White","618":"369","619":"Bubblegum","620":"Red","621":"Turquoise","622":"Saphire","623":"Green","624":"Midnight","625":"SkyBlue","627":"Grape","628":"Purple","629":"Onyx","630":"Espresso","631":"Teal","632":"Brown","633":"Coral","634":"White","635":"369","636":"Bubblegum","637":"Coral","638":"Purple","639":"Green","640":"Saphire","641":"Midnight","642":"SkyBlue","643":"Grape","644":"Onyx","645":"Espresso","646":"Teal","647":"Brown","648":"Turquoise","649":"Red","650":"White","651":"369","652":"Turquoise","653":"Brown","654":"Teal","655":"Espresso","656":"Coral","657":"Onyx","658":"Purple","659":"Grape","660":"Bubblegum","661":"SkyBlue","662":"Midnight","663":"Saphire","664":"Green","665":"Red","666":"White","667":"369","668":"Turquoise","669":"Turquoise","670":"Brown","671":"Brown","672":"Teal","673":"Teal","674":"Bubblegum","675":"Red","676":"Green","677":"Saphire","678":"Bubblegum","679":"Grape","680":"Purple","681":"Onyx","682":"Coral","683":"Espresso","684":"Teal","685":"Brown","686":"Turquoise","687":"SkyBlue","688":"Red","689":"Brown","690":"Teal","691":"Teal","692":"Espresso","693":"Espresso","694":"Coral","695":"Coral","696":"Onyx","697":"Purple","698":"Purple","699":"Grape","700":"Grape","701":"Bubblegum","702":"Bubblegum","703":"SkyBlue","704":"SkyBlue","705":"Midnight","706":"Saphire","707":"Saphire","708":"Green","709":"Red","710":"White","711":"369","712":"Coral","713":"Brown","714":"Teal","715":"Espresso","716":"Onyx","717":"Purple","718":"Grape","719":"Bubblegum","720":"SkyBlue","721":"Midnight","722":"Green","723":"Saphire","724":"Turquoise","725":"Red","726":"White","727":"369","728":"Coral","729":"Brown","730":"Teal","731":"Espresso","732":"Onyx","733":"Purple","734":"Grape","735":"Bubblegum","736":"Green","737":"Saphire","738":"Turquoise","739":"Red","740":"White","741":"369","742":"Coral","743":"Brown","744":"Teal","745":"Espresso","746":"Onyx","747":"Onyx","748":"Purple","749":"Grape","750":"Bubblegum","751":"SkyBlue","752":"Midnight","753":"Green","754":"Saphire","755":"Turquoise","756":"Red","757":"White","758":"369","759":"Teal","760":"Turquoise","761":"Brown","762":"Espresso","763":"Coral","764":"Onyx","765":"Purple","766":"Grape","767":"Bubblegum","768":"SkyBlue","769":"Midnight","770":"Saphire","771":"Green","772":"Red","773":"White","774":"369","775":"Purple","776":"Green","777":"Saphire","778":"Midnight","779":"Bubblegum","780":"Coral","781":"Turquoise","782":"Teal","783":"Brown","784":"Espresso","785":"Onyx","786":"Grape","787":"SkyBlue","788":"Red","789":"White","790":"369","791":"Turquoise","792":"Brown","793":"Teal","794":"Espresso","795":"Coral","796":"Onyx","797":"Purple","798":"Grape","799":"Bubblegum","800":"SkyBlue","801":"Midnight","802":"Saphire","803":"Green","804":"Red","805":"White","806":"369","807":"Green","808":"Saphire","809":"Midnight","810":"SkyBlue","811":"Purple","812":"Grape","813":"Onyx","814":"Coral","815":"Espresso","816":"Teal","817":"Brown","818":"Bubblegum","819":"Turquoise","820":"Red","821":"White","822":"369","823":"Midnight","824":"Green","825":"Bubblegum","826":"Saphire","827":"SkyBlue","828":"Grape","829":"Purple","830":"Onyx","831":"Coral","832":"Espresso","833":"Teal","834":"Brown","835":"Turquoise","836":"Red","837":"Red","838":"Red","839":"Turquoise","840":"Saphire","841":"Midnight","842":"SkyBlue","843":"Bubblegum","844":"Grape","845":"Purple","846":"Onyx","847":"Espresso","848":"Teal","849":"Brown","850":"Coral","851":"White","852":"369","853":"Bubblegum","854":"Bubblegum","855":"Bubblegum","856":"Red","857":"Turquoise","858":"Saphire","859":"Green","861":"Grape","862":"Purple","863":"Purple","864":"Onyx","865":"Onyx","866":"Espresso","867":"Teal","868":"Brown","869":"Coral","870":"White","871":"369","872":"369","873":"Bubblegum","874":"Coral","875":"Coral","876":"Purple","877":"Green","878":"Saphire","879":"Saphire","880":"Midnight","881":"SkyBlue","882":"SkyBlue","883":"Grape","884":"Grape","885":"Onyx","886":"Onyx","887":"Espresso","888":"Teal","889":"Brown","890":"Brown","891":"Turquoise","892":"Red","893":"White","894":"369","895":"369"}};
+const catalog={"standalone":["Inferno","Kitsune","Mochi","Nebula","Aurora","Zenith","Tempest","Vortex","Oracle","Phoenix","Kraken","Goblin","Bandit","Outlaw","Mirage","Odyssey","Chaos","Havoc","Cinder","Ember","Frost","Thunder","Storm","Eclipse","Comet","Meteor","Cosmos","Quasar","Pulsar","Nova","Solstice","Equinox","Aether","Nimbus","Zephyr","Cyclone","Monsoon","Typhoon","Tsunami","Cascade","Torrent","Riptide","Maelstrom","Volcano","Magma","Lava","Obsidian","Onyx","Opal","Jasper","Jade","Quartz","Topaz","Ruby","Sapphire","Emerald","Amethyst","Garnet","Citrine","Beryl","Cobalt","Copper","Silver","Gold","Platinum","Neon","Argon","Xenon","Radon","Helium","Proton","Neutron","Photon","Quark","Gluon","Boson","Plasma","Quantum","Entropy","Paradox","Enigma","Riddle","Cipher","Rune","Sigil","Glyph","Hex","Jinx","Charm","Spell","Mystic","Wizard","Warlock","Magus","Druid","Shaman","Alchemist","Samurai","Revenant","Phantom","Specter","Wraith","Banshee","Poltergeist","Gremlin","Gargoyle","Gorgon","Hydra","Chimera","Basilisk","Manticore","Behemoth","Leviathan","Ragnarok","Pegasus","Griffin","Dragon","Wyvern","Chimichanga","Waffle","Pickle","Noodle","Dumpling","Ramen","Sushi","Wasabi","Kimchi","Tofu","Miso","Soba","Udon","Dango","Bento","Yuzu","Lychee","Mango","Guava","Papaya","Kumquat","Tamarind","Coconut","Pistachio","Cashew","Hazelnut","Saffron","Cinnamon","Cardamom","Nutmeg","Paprika","Espresso","Mocha","Cocoa","Caramel","Toffee","Truffle","Bonbon","Biscuit","Crumpet","Pretzel","Bagel"],"prefixes":["Astra","Astro","Aero","Aqua","Auri","Azura","Boreo","Celesti","Chrono","Cinder","Cosmo","Cryo","Cyber","Dark","Dawn","Draco","Dream","Dusk","Echo","Electro","Ember","Ether","Ferro","Flame","Flora","Frost","Gala","Geo","Glimmer","Gloom","Halo","Haze","Helio","Hex","Hydro","Hyper","Ice","Inferna","Ion","Jade","Jinx","Luma","Lunar","Magma","Meta","Micro","Midnight","Mirage","Mochi","Moon","Mystic","Nano","Nebula","Necro","Neon","Nether","Night","Nova","Obsi","Omni","Onyx","Opal","Orbit","Paleo","Para","Phantom","Photo","Pico","Plasma","Prism","Proto","Pyro","Quantum","Quasar","Radiant","Raven","Rift","Rune","Sakura","Shadow","Shimmer","Sky","Solar","Sonic","Spectra","Star","Stellar","Storm","Strato","Sugar","Supra","Terra","Thunder","Titan","Turbo","Ultra","Umbra","Vanta","Velo","Venom","Violet","Void","Volt","Wave","Whisper","Wild","Wind","Winter","Wisp","Xeno","Yuzu","Zenith","Zephyr","Zero","Zeta","Zora","Blaze","Chaos","Chroma","Cobalt","Copper","Crystal","Demon","Dynamo","Emerald","Fable","Fairy","Flux"],"suffixes":["vex","fang","fire","frost","glow","gloom","spark","storm","shade","shine","wisp","wind","wing","claw","horn","tail","talon","scale","mane","pelt","paw","tooth","maw","snout","howl","roar","song","whisper","dream","wake","gaze","eye","soul","heart","mind","spirit","rune","hex","ward","charm","spell","mage","mancer","lord","king","queen","knight","blade","spear","bow","shield","forge","stone","crystal","dust","ash","ember","flare","burst","bolt","flux","bloom","fangor","zilla"]};
+const order=['color','nebula','stars','spiral','dust','overlay','wings','base','body','spikes','teeth','jaw','eyes','top'];
+function choose(n,k){if(k<0||k>n)return 0n;let r=1n;for(let i=1;i<=k;i++)r=r*BigInt(n-i+1)/BigInt(i);return r;}
+function subsets(n){let r=0n;for(let k=0;k<=9;k++)r+=choose(n,k);return r;}
+const STARS=subsets(groups.stars.length),OVERLAYS=subsets(groups.overlay.length);
+const hoodie=new Set(groups.hoodie),hoodieSpikes=new Set(groups.hoodieSpikes);
+const pairTops=[-1,...groups.hoodie,...groups.top.filter(t=>!hoodie.has(t))];
+const pairs=[];for(const top of pairTops)for(const spikes of [-1,...groups.spikes])if(!hoodie.has(top)||spikes===-1||hoodieSpikes.has(spikes))pairs.push([spikes,top]);
+const radices=[BigInt(groups.color.length),BigInt(1+groups.nebula.length+groups.spiral.length),STARS,BigInt(groups.dust.length+1),OVERLAYS,BigInt(groups.wings.length+1),BigInt(groups.base.length),BigInt(groups.body.length+1),BigInt(pairs.length),BigInt(groups.teeth.length+1),BigInt(groups.jaw.length),BigInt(groups.eyes.length)];
+const TRAIT_COUNT=order.reduce((n,k)=>n+groups[k].length,0);if(TRAIT_COUNT!==896)throw Error('REVISION_TRAIT_COUNT');
+const N=radices.reduce((a,b)=>a*b,1n);
+function unrankSubset(rank,n){rank=BigInt(rank);if(rank<0||rank>=subsets(n))throw Error('SUBSET_BOUNDS');let k=0;while(rank>=choose(n,k)){rank-=choose(n,k);k++;}const out=[];let start=0;for(let left=k;left>0;left--){for(let j=start;j<n;j++){const count=choose(n-j-1,left-1);if(rank<count){out.push(j);start=j+1;break;}rank-=count;}}return out;}
+function rankSubset(xs,n){if(xs.length>9||xs.some((x,i)=>!Number.isInteger(x)||x<0||x>=n||(i&&xs[i-1]>=x)))throw Error('SUBSET_INVALID');let r=0n;for(let k=0;k<xs.length;k++)r+=choose(n,k);let start=0;for(let i=0;i<xs.length;i++){for(let j=start;j<xs[i];j++)r+=choose(n-j-1,xs.length-i-1);start=xs[i]+1;}return r;}
+function fields(id){id=BigInt(id);if(id<1n||id>N)throw Error('RECIPE_BOUNDS');let r=id-1n;return radices.map(n=>{const x=r%n;r/=n;return x;});}
+function fromFields(xs){if(xs.length!==radices.length)throw Error('RECIPE_FIELDS');let rank=0n;for(let i=xs.length-1;i>=0;i--){const x=BigInt(xs[i]);if(x<0n||x>=radices[i])throw Error('RECIPE_FIELD');rank=rank*radices[i]+x;}return rank+1n;}
+function recipe(id){const f=fields(id);const out=[];const required=(g,i)=>out.push(groups[g][Number(f[i])]);const optional=(g,i)=>{if(f[i])out.push(groups[g][Number(f[i]-1n)]);};required('color',0);if(f[1]>0n&&f[1]<=BigInt(groups.nebula.length))out.push(groups.nebula[Number(f[1]-1n)]);out.push(...unrankSubset(f[2],groups.stars.length).map(i=>groups.stars[i]));if(f[1]>BigInt(groups.nebula.length))out.push(groups.spiral[Number(f[1]-BigInt(groups.nebula.length+1))]);optional('dust',3);out.push(...unrankSubset(f[4],groups.overlay.length).map(i=>groups.overlay[i]));optional('wings',5);required('base',6);optional('body',7);const [spikes,top]=pairs[Number(f[8])];if(spikes>=0)out.push(spikes);optional('teeth',9);required('jaw',10);required('eyes',11);if(top>=0)out.push(top);return out;}
+function validateSelection(ids){if(!Array.isArray(ids)||ids.length>29||ids.some(x=>!Number.isInteger(x)||x<0||x>=TRAIT_COUNT))throw Error('TRAIT_BOUNDS');const selected=Object.fromEntries(order.map(k=>[k,[]]));let prior=-1;for(const id of ids){const category=order.findIndex(k=>groups[k].includes(id));if(category<prior||category<0)throw Error('LAYER_ORDER');prior=category;selected[order[category]].push(id);}for(const k of order){const a=selected[k];if(['color','base','jaw','eyes'].includes(k)?a.length!==1:['stars','overlay'].includes(k)?a.length>9:a.length>1)throw Error('MULTIPLICITY');if(a.some((id,i)=>i&&a[i-1]>=id))throw Error('SOURCE_ORDER');}if(selected.nebula.length&&selected.spiral.length)throw Error('NEBULA_SPIRAL');if(selected.top.some(x=>hoodie.has(x))&&selected.spikes.some(x=>!hoodieSpikes.has(x)))throw Error('HOODIE_SPIKES');return selected;}
+function encodeSelection(ids){const s=validateSelection(ids),idx=k=>groups[k].indexOf(s[k][0]),opt=k=>s[k].length?idx(k)+1:0;return fromFields([idx('color'),s.nebula.length?idx('nebula')+1:s.spiral.length?idx('spiral')+groups.nebula.length+1:0,rankSubset(s.stars.map(i=>groups.stars.indexOf(i)),groups.stars.length),opt('dust'),rankSubset(s.overlay.map(i=>groups.overlay.indexOf(i)),groups.overlay.length),opt('wings'),idx('base'),opt('body'),pairs.findIndex(([sp,t])=>sp===(s.spikes[0]??-1)&&t===(s.top[0]??-1)),opt('teeth'),idx('jaw'),idx('eyes')]);}
+const NAME_COUNT=8352n;
+function validNameId(id){if(typeof id!=='bigint'||id<1n||id>NAME_COUNT)throw Object.assign(Error('GENESIS_NAME_ID'),{code:'GENESIS_NAME_ID'});return id;}
+function generatedName(nameId){let i=Number(validNameId(nameId)-1n);return 'Phil-'+(i<160?catalog.standalone[i]:catalog.prefixes[Math.floor((i-160)/64)]+catalog.suffixes[(i-160)%64]);}
+function tokenName(nameId,tokenId){return generatedName(nameId)+' #'+BigInt(tokenId);}
+function encodeChoice(recipeId,nameId){validNameId(nameId);if(typeof recipeId!=='bigint'||recipeId<1n||recipeId>N)throw Error('GENESIS_RECIPE');return recipeId+N*(nameId-1n);}
+function decodeChoice(choice){if(typeof choice!=='bigint'||choice<1n||choice>N*NAME_COUNT)throw Error('GENESIS_CHOICE');return {recipeId:(choice-1n)%N+1n,nameId:(choice-1n)/N+1n};}
+const randomBytes=n=>crypto.getRandomValues(new Uint8Array(n));
+function uniform(limit,source=randomBytes){limit=BigInt(limit);if(limit<1n)throw Error('GENESIS_RANDOM_LIMIT');if(limit===1n)return 0n;const bits=(limit-1n).toString(2).length,n=Math.ceil(bits/8),mask=255>>>(n*8-bits);for(let attempt=0;attempt<256;attempt++){const b=Uint8Array.from(source(n));if(b.length!==n)throw Error('GENESIS_RANDOM_SOURCE');b[0]&=mask;const x=BigInt('0x'+Array.from(b,v=>v.toString(16).padStart(2,'0')).join(''));if(x<limit)return x;}throw Error('GENESIS_RANDOM_SOURCE');}
+function countFor(category,source=randomBytes){const narrow=uniform(100n,source)<69n;return {narrow,count:Number(uniform(BigInt(narrow?(category==='stars'?2:3):7),source))};}
+function drawSubset(n,count,source){const pool=Array.from({length:n},(_,i)=>i),selected=[];for(let i=0;i<count;i++){const j=i+Number(uniform(BigInt(n-i),source));[pool[i],pool[j]]=[pool[j],pool[i]];selected.push(pool[i]);}return rankSubset(selected.sort((a,b)=>a-b),n);}
+function drawRecipe(source=randomBytes){const f=radices.map((n,i)=>[2,4,5].includes(i)?0n:uniform(n,source));const stars=countFor('stars',source),overlay=countFor('overlay',source);f[2]=drawSubset(groups.stars.length,stars.count,source);f[4]=drawSubset(groups.overlay.length,overlay.count,source);f[5]=uniform(5000n,source)===0n?uniform(BigInt(groups.wings.length),source)+1n:0n;
+ const coordinated=uniform(100n,source)<87n;let id=fromFields(f),family=null;
+ if(coordinated){const s=validateSelection(recipe(id)),hoodie=s.top.some(t=>groups.hoodie.includes(t));const eligible={};for(const k of ['body','teeth','jaw','spikes'])if(s[k].length)eligible[k]=groups[k].filter(t=>k!=='spikes'||!hoodie||groups.hoodieSpikes.includes(t));const choices=families.families.filter(color=>Object.values(eligible).every(ids=>ids.some(t=>families.traits[t]===color)));if(!choices.length)throw Error('GENESIS_COORDINATION_UNAVAILABLE');family=choices[Number(uniform(BigInt(choices.length),source))];for(const [k,ids]of Object.entries(eligible)){const matching=ids.filter(t=>families.traits[t]===family);s[k]=[matching[Number(uniform(BigInt(matching.length),source))]];}id=encodeSelection(order.flatMap(k=>s[k]));}
+ return {recipeId:String(id),coordinated,family,stars,overlay};}
+function randomRecipeId(source=randomBytes){return drawRecipe(source).recipeId;}
+
+
+const nft='0x9732f84c54407cd846b3e987594417bcfa30644e';
+const namesAddress='0x0142e100500a5360564c7875b8a988c752d7cf9d';
+const endpoints=['https://ethereum.publicnode.com','https://eth.drpc.org'];
+const traitCache=new Map();
+let chosen=null, running=false;
+async function rpc(method,params){
+ const failures=new Map();
+ const selector=params[0]?.data?.slice(0,10);
+ const step=({'0x52402457':'load a portrait layer','0x5b31cb36':'check the recipe','0x69ba0f27':'check the name','0xa2309ff8':'check the collection supply'})[selector]||'read the Ethereum head';
+ for(let attempt=0;attempt<2;attempt++){
+  for(const url of endpoints){
+   try{
+    const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:1,jsonrpc:'2.0',method,params}),signal:AbortSignal.timeout(12000)});
+    if(!response.ok)throw Error('HTTP '+response.status);
+    const {result,error}=await response.json();
+    if(error)throw Error('RPC '+error.code+' '+String(error.message).slice(0,100));
+    if(typeof result!=='string'||!/^0x[0-9a-f]+$/i.test(result))throw Error('unexpected response');
+    return result;
+   }catch(error){
+    const reason=error.name==='TimeoutError'?'timed out':error.message;
+    failures.set(new URL(url).hostname,reason);
+   }
+  }
+  if(attempt===0)await new Promise(resolve=>setTimeout(resolve,800+Math.random()*400));
+ }
+ const detail=Array.from(failures,([host,reason])=>host+' ('+reason+')').join(', ');
+ throw Error('Could not '+step+'. '+detail+'. Try again in a moment.');
+}
+function call(to,selector,id,block){
+ return rpc('eth_call',[{to,data:selector+(id===null?'':BigInt(id).toString(16).padStart(64,'0'))},block]);
+}
+async function snapshot(){
+ const [chain,block]=await Promise.all([rpc('eth_chainId',[]),rpc('eth_blockNumber',[])]);
+ if(BigInt(chain)!==1n)throw Error('Ethereum mainnet is required.');
+ return block;
+}
+async function available(candidate,block){
+ const [art,name]=await Promise.all([call(nft,'0x5b31cb36',candidate.recipeId,block),call(namesAddress,'0x69ba0f27',candidate.nameId,block)]);
+ return BigInt(art)===1n && BigInt(name)===1n;
+}
+async function trait(id,block){
+ if(traitCache.has(id))return traitCache.get(id);
+ const hex=(await call(nft,'0x52402457',id,block)).slice(2);
+ const word=at=>Number(BigInt('0x'+hex.slice(at,at+64)));
+ if(word(0)!==32)throw Error('Unexpected artwork response.');
+ const bytes=word(64);
+ if(!Number.isSafeInteger(bytes)||bytes<1||bytes*2>hex.length-128)throw Error('Incomplete Phil artwork.');
+ const fragment=new TextDecoder().decode(Uint8Array.from(hex.slice(128,128+bytes*2).match(/../g),x=>parseInt(x,16)));
+ traitCache.set(id,fragment);return fragment;
+}
+async function portrait(candidate,block){
+ const ids=recipe(candidate.recipeId), parts=[];
+ for(let i=0;i<ids.length;i+=3)parts.push(...await Promise.all(ids.slice(i,i+3).map(id=>trait(id,block))));
+ const wrap=layers=>"<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='109.06 15.22 420 420'>"+layers.map(s=>"<g style='isolation:isolate'>"+s+"</g>").join('')+'</svg>';
+ async function raster(layers){
+  const url=URL.createObjectURL(new Blob([wrap(layers)],{type:'image/svg+xml'}));
+  try{
+   const img=new Image();img.src=url;await img.decode();
+   const out=document.createElement('canvas');out.width=out.height=420;
+   out.getContext('2d').drawImage(img,0,0);return out;
+  }finally{URL.revokeObjectURL(url);}
+ }
+ const preview=(await raster(parts)).toDataURL();
+ const foreground=new Set(['wings','base','body','spikes','teeth','jaw','eyes','top'].flatMap(key=>groups[key]));
+ const face=await raster(parts.filter((_,i)=>foreground.has(ids[i])));
+ const c=face.getContext('2d'),px=c.getImageData(0,0,420,420),ink=c.createImageData(420,420);
+ let left=420,top=420,right=-1,bottom=-1;
+ for(let y=0;y<420;y++)for(let x=0;x<420;x++){
+  const i=(420*y+x)*4,d=px.data;let edge=0;
+  for(const j of [x>1?i-8:-1,y>1?i-3360:-1]){
+   const alpha=j<0?0:d[j+3];
+   edge=Math.max(edge,Math.abs(d[i+3]-alpha));
+   if(alpha>64&&d[i+3]>64)for(let k=0;k<3;k++)edge=Math.max(edge,Math.abs(d[i+k]-d[j+k]));
+  }
+  if(edge<12)continue;
+  ink.data.set([247,246,242,Math.min(255,(edge-11)*6)],i);
+  left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);
+ }
+ if(right<left)throw Error('The portrait outline could not be drawn. Roll another Phil.');
+ const color=crop(face,left,top,right-left+1,bottom-top+1);
+ c.putImageData(ink,0,0);
+ const mask=document.createElement('canvas');mask.width=right-left+1;mask.height=bottom-top+1;
+ mask.getContext('2d').drawImage(face,-left,-top);
+ return {images:variants(mask,color),preview};
+}
+async function roll(){
+ if(running)return;running=true;lockPair(true);active=null;el('pairState').textContent='Selecting an ABX stamp…';chosen=null;el('portrait').hidden=true;el('identity').textContent='';
+ try{
+  const pair=await pickStamp();el('pairState').textContent='Selected ABX stamp #'+pair.id+'.';
+  el('philState').textContent='Checking Ethereum…';const block=await snapshot();
+  if(BigInt(await call(nft,'0xa2309ff8',null,block))>=369n)throw Error('All 369 Genesis Phils have been minted.');
+  for(let i=0;i<12;i++){
+   const nameId=uniform(100n)<30n?1n+uniform(160n):161n+uniform(NAME_COUNT-160n);
+   const candidate={recipeId:drawRecipe().recipeId,nameId};
+   if(!await available(candidate,block))continue;
+   el('philState').textContent='Rendering the Genesis artwork…';
+   const art=await portrait(candidate,block);chosen={...candidate,...art};showPair(pair);
+   el('portrait').src=art.preview;el('portrait').hidden=false;
+   el('identity').textContent=generatedName(nameId)+' · Name '+nameId+' · Recipe '+candidate.recipeId;
+   el('philState').textContent='Available at Ethereum block '+Number(BigInt(block))+'. Tap the clay to press.';return;
+  }
+  throw Error('No available pair in this roll. Try another Phil.');
+ }catch(error){el('philState').textContent=error.message;el('pairState').textContent='Roll again to pair a Phil and stamp.';}
+ finally{running=false;lockPair(false);}
+}
+el('roll').onclick=roll;
+async function verifiedPress(x,y){
+ if(running)return;
+ if(!chosen){el('philState').textContent='Roll an available Phil first.';return;}
+ running=true;lockPair(true);const angle=Number(el('rotation').value),art=active;
+ try{
+  el('philState').textContent='Rechecking the recipe and name…';
+  const block=await snapshot();
+  if(!await available(chosen,block)){chosen=null;el('portrait').hidden=true;el('identity').textContent='';throw Error('This combination is no longer available. Roll another Phil.');}
+  stampMark(x,y,angle,art,chosen.images);el('philState').textContent='Pressed. Availability checked at Ethereum block '+Number(BigInt(block))+'.';
+ }catch(error){el('philState').textContent=error.message;}
+ finally{running=false;lockPair(false);}
+}
+
+changeSurface();
+</script></body></html>

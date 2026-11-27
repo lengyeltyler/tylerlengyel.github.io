@@ -68,6 +68,7 @@
       ["/linearA/", "Linear A", "linear-a"],
       ["/createPhil/", "createPhil", "create-phil"],
       ["/nakes/", "Snake", "nakes"],
+      ["/stamps/", "Stamps", "stamps"],
       ["/art/", "Art", "art"],
       ["/articles/", "Articles", "articles"],
       ["/svg-editor/", "SVG Editor", "svg-editor"]
